@@ -8,9 +8,9 @@ import yfinance as yf
 logger = logging.getLogger("finance_engine")
 logger.setLevel(logging.INFO)
 
-# In-memory cache for market data with TTL (60 seconds)
+# In-memory cache for market data with ultra-fast TTL for live stream
 MARKET_CACHE: Dict[str, Any] = {}
-CACHE_TTL_SECONDS = 60
+CACHE_TTL_SECONDS = 15
 
 FALLBACK_PRICES = {
     "USDIDR=X": 17688.0,
@@ -118,8 +118,43 @@ def get_macro_and_fx() -> Dict[str, Any]:
     }
 
 
+FALLBACK_PE_RATIOS = {
+    "VOO": 26.5,
+    "QQQ": 32.1,
+    "SMH": 34.0,
+    "BRK-B": 15.0,
+    "COST": 45.67,
+    "JPM": 12.06,
+    "V": 31.57,
+    "MSFT": 31.57,
+    "AAPL": 35.84,
+    "META": 28.71,
+    "AMZN": 38.80,
+    "GOOGL": 20.82,
+    "AVGO": 61.34,
+    "TSM": 30.52,
+    "NVDA": 42.88,
+    "ASML": 54.83,
+    "LLY": 42.13,
+    "BBCA.JK": 21.5,
+    "BBRI.JK": 11.27,
+    "UNTR.JK": 5.4,
+    "BREN.JK": 169.6,
+    "KLAC": 50.26,
+    "AMAT": 42.46,
+    "LRCX": 42.66,
+    "ETN": 42.66,
+    "RTX": 39.5,
+    "SNPS": 92.21,
+    "CEG": 26.59,
+    "PWR": 73.23,
+    "CCJ": 117.29,
+    "VRT": 59.28
+}
+
+
 def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
-    """Fetch realtime quote, ATH, PE ratio, and multi-period performance for a given ticker."""
+    """Fetch realtime quote, ATH, PE ratio, and multi-period performance (24h to 20y) for a given ticker."""
     cached = MARKET_CACHE.get(ticker_symbol)
     now = time.time()
     if cached and (now - cached.get("_timestamp", 0) < CACHE_TTL_SECONDS):
@@ -129,15 +164,25 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         "ticker": ticker_symbol,
         "price": FALLBACK_PRICES.get(ticker_symbol, 100.0),
         "ath": FALLBACK_PRICES.get(ticker_symbol, 100.0) * 1.15,
-        "pe": None,
-        "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": 0.0, "10y": 0.0},
+        "pe": FALLBACK_PE_RATIOS.get(ticker_symbol, None),
+        "perf": {
+            "24h": 0.0,
+            "1w": 0.0,
+            "1m": 0.0,
+            "6m": 0.0,
+            "1y": 0.0,
+            "5y": None,
+            "10y": None,
+            "15y": None,
+            "20y": None
+        },
         "_timestamp": now
     }
 
     try:
         t = yf.Ticker(ticker_symbol)
         
-        # 1. Fast Info
+        # 1. Fast Info & Current Price
         fi = getattr(t, "fast_info", None)
         price = None
         if fi:
@@ -146,8 +191,8 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             if ath_52w and not math.isnan(ath_52w):
                 result["ath"] = round(ath_52w, 2)
 
-        # 2. History for returns & high
-        hist = t.history(period="1y")
+        # 2. History for returns (fetch max history to get 5y, 10y, 15y, 20y accurately)
+        hist = t.history(period="max")
         if not hist.empty:
             if not price or math.isnan(price):
                 price = float(hist["Close"].iloc[-1])
@@ -157,23 +202,67 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                 result["ath"] = round(hist_high, 2)
             
             c_latest = float(hist["Close"].iloc[-1])
-            if len(hist) >= 2:
+            n = len(hist)
+
+            # 24h (~1 day)
+            if n >= 2:
                 c_prev = float(hist["Close"].iloc[-2])
                 result["perf"]["24h"] = round(((c_latest - c_prev) / c_prev) * 100, 2)
-            if len(hist) >= 5:
+            # 1w (~5 trading days)
+            if n >= 5:
                 c_1w = float(hist["Close"].iloc[-5])
                 result["perf"]["1w"] = round(((c_latest - c_1w) / c_1w) * 100, 2)
-            if len(hist) >= 21:
+            # 1m (~21 trading days)
+            if n >= 21:
                 c_1m = float(hist["Close"].iloc[-21])
                 result["perf"]["1m"] = round(((c_latest - c_1m) / c_1m) * 100, 2)
-            if len(hist) >= 126:
+            # 6m (~126 trading days)
+            if n >= 126:
                 c_6m = float(hist["Close"].iloc[-126])
                 result["perf"]["6m"] = round(((c_latest - c_6m) / c_6m) * 100, 2)
-            c_1y = float(hist["Close"].iloc[0])
-            result["perf"]["1y"] = round(((c_latest - c_1y) / c_1y) * 100, 2)
+            # 1y (~252 trading days)
+            if n >= 252:
+                c_1y = float(hist["Close"].iloc[-252])
+                result["perf"]["1y"] = round(((c_latest - c_1y) / c_1y) * 100, 2)
+            elif n > 10:
+                c_1y = float(hist["Close"].iloc[0])
+                result["perf"]["1y"] = round(((c_latest - c_1y) / c_1y) * 100, 2)
+
+            # 5y (~1260 trading days)
+            if n >= 1260:
+                c_5y = float(hist["Close"].iloc[-1260])
+                result["perf"]["5y"] = round(((c_latest - c_5y) / c_5y) * 100, 2)
+            
+            # 10y (~2520 trading days)
+            if n >= 2520:
+                c_10y = float(hist["Close"].iloc[-2520])
+                result["perf"]["10y"] = round(((c_latest - c_10y) / c_10y) * 100, 2)
+
+            # 15y (~3780 trading days)
+            if n >= 3780:
+                c_15y = float(hist["Close"].iloc[-3780])
+                result["perf"]["15y"] = round(((c_latest - c_15y) / c_15y) * 100, 2)
+
+            # 20y (~5040 trading days)
+            if n >= 5040:
+                c_20y = float(hist["Close"].iloc[-5040])
+                result["perf"]["20y"] = round(((c_latest - c_20y) / c_20y) * 100, 2)
 
         if price and not math.isnan(price):
             result["price"] = round(price, 2)
+
+        # 3. Enhanced PE Ratio Multi-source fetch
+        try:
+            info = getattr(t, "info", {})
+            pe = info.get("trailingPE") or info.get("forwardPE")
+            if not pe or math.isnan(pe):
+                eps = info.get("trailingEps") or info.get("forwardEps")
+                if eps and eps > 0 and result["price"] > 0:
+                    pe = result["price"] / eps
+            if pe and not math.isnan(pe) and pe > 0:
+                result["pe"] = round(pe, 2)
+        except Exception:
+            pass
 
     except Exception as e:
         logger.warning(f"Live data warning for {ticker_symbol}: {e}")
@@ -183,6 +272,8 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         result["price"] = FALLBACK_PRICES.get(ticker_symbol, 100.0)
     if result["ath"] <= result["price"]:
         result["ath"] = round(result["price"] * 1.1, 2)
+    if result["pe"] is None:
+        result["pe"] = FALLBACK_PE_RATIOS.get(ticker_symbol, None)
 
     MARKET_CACHE[ticker_symbol] = result
     return result

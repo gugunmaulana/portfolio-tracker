@@ -520,6 +520,25 @@ def init_db():
         FOREIGN KEY (user_id) REFERENCES users (id)
     )
     """)
+
+    # Table monthly_records
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS monthly_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        year INTEGER DEFAULT 2026,
+        month_index INTEGER,
+        month_name TEXT,
+        total_outgoings REAL DEFAULT 0.0,
+        current_networth REAL DEFAULT 0.0,
+        investing_power REAL DEFAULT 0.0,
+        pnl_idr REAL DEFAULT 0.0,
+        pnl_pct REAL DEFAULT 0.0,
+        growth_pct REAL DEFAULT 0.0,
+        notes TEXT DEFAULT '',
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    """)
     
     # Seed default user if not exists
     cursor.execute("SELECT id FROM users WHERE id = 'default_user'")
@@ -549,6 +568,29 @@ def init_db():
                     item.get("pe_good"),
                     item.get("pe_exp")
                 ))
+
+    # Seed default monthly records for 2026 if not exist
+    cursor.execute("SELECT COUNT(*) FROM monthly_records WHERE user_id = 'default_user' AND year = 2026")
+    if cursor.fetchone()[0] == 0:
+        default_months = [
+            (1, "January", 43917439.0, 39285665.0, 0.0, -4631774.0, -10.55, 0.0),
+            (2, "February", 45099478.0, 37095212.0, 1182039.0, -8004266.0, -17.75, -8.58),
+            (3, "March", 57989517.0, 47608747.0, 12890039.0, -10380770.0, -17.90, -6.41),
+            (4, "April", 62111193.0, 56906866.0, 4121676.0, -5204327.0, -8.38, 10.87),
+            (5, "May", 67128411.0, 61162314.0, 5017218.0, -5966097.0, -8.89, -1.34),
+            (6, "June", 78442336.0, 56494980.0, 11313925.0, -21947356.0, -27.98, -26.13),
+            (7, "July", 88382212.0, 72712908.0, 9939876.0, -15669304.0, -17.73, 11.11),
+            (8, "August", 91457683.0, 85256693.0, 3075471.0, -6200990.0, -6.78, 12.98),
+            (9, "September", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            (10, "October", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            (11, "November", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            (12, "December", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        ]
+        for m_idx, m_name, outg, netw, inv_pwr, pnl_idr, pnl_pct, growth in default_months:
+            cursor.execute("""
+            INSERT INTO monthly_records (user_id, year, month_index, month_name, total_outgoings, current_networth, investing_power, pnl_idr, pnl_pct, growth_pct)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, ("default_user", 2026, m_idx, m_name, outg, netw, inv_pwr, pnl_idr, pnl_pct, growth))
     
     conn.commit()
     conn.close()
@@ -621,6 +663,68 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
     }
 
 
+def get_monthly_records(user_id: str = "default_user", year: int = 2026) -> List[Dict[str, Any]]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM monthly_records WHERE user_id = ? AND year = ? ORDER BY month_index ASC", (user_id, year))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    results = []
+    total_investing_power = 0.0
+    for r in rows:
+        inv_pwr = float(r["investing_power"] or 0.0)
+        total_investing_power += inv_pwr
+        results.append({
+            "id": r["id"],
+            "year": r["year"],
+            "month_index": r["month_index"],
+            "month_name": r["month_name"],
+            "total_outgoings": float(r["total_outgoings"] or 0.0),
+            "current_networth": float(r["current_networth"] or 0.0),
+            "investing_power": inv_pwr,
+            "pnl_idr": float(r["pnl_idr"] or 0.0),
+            "pnl_pct": float(r["pnl_pct"] or 0.0),
+            "growth_pct": float(r["growth_pct"] or 0.0),
+            "notes": r["notes"] or ""
+        })
+    return results
+
+
+def upsert_monthly_record(user_id: str, record: Dict[str, Any]):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    outg = float(record.get("total_outgoings") or 0.0)
+    netw = float(record.get("current_networth") or 0.0)
+    inv_pwr = float(record.get("investing_power") or 0.0)
+    
+    pnl_idr = (netw - outg) if outg > 0 else 0.0
+    pnl_pct = ((pnl_idr / outg) * 100.0) if outg > 0 else 0.0
+    growth_pct = float(record.get("growth_pct") or 0.0)
+    
+    if record.get("id"):
+        cursor.execute("""
+        UPDATE monthly_records SET
+            total_outgoings = ?, current_networth = ?, investing_power = ?,
+            pnl_idr = ?, pnl_pct = ?, growth_pct = ?, notes = ?
+        WHERE id = ? AND user_id = ?
+        """, (outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", ""), record.get("id"), user_id))
+    else:
+        cursor.execute("""
+        INSERT INTO monthly_records (user_id, year, month_index, month_name, total_outgoings, current_networth, investing_power, pnl_idr, pnl_pct, growth_pct, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            user_id, int(record.get("year", 2026)), int(record.get("month_index", 1)),
+            record.get("month_name", "Month"), outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", "")
+        ))
+    conn.commit()
+    conn.close()
+
+
 def update_user_settings(user_id: str, target_ff: float, total_outgoings: float, cash_balance: float):
     init_db()
     conn = sqlite3.connect(DB_PATH)
@@ -672,3 +776,4 @@ def delete_portfolio_item(user_id: str, item_id: int):
     cursor.execute("DELETE FROM portfolio_items WHERE id = ? AND user_id = ?", (item_id, user_id))
     conn.commit()
     conn.close()
+

@@ -12,6 +12,8 @@ from .database import (
     update_user_settings,
     upsert_portfolio_item,
     delete_portfolio_item,
+    get_monthly_records,
+    upsert_monthly_record,
     DEFAULT_PORTFOLIO_CONFIG
 )
 from .finance_engine import (
@@ -61,16 +63,30 @@ class SettingsPayload(BaseModel):
     cash_balance: float
 
 
+class MonthlyPayload(BaseModel):
+    id: Optional[int] = None
+    year: int = 2026
+    month_index: int
+    month_name: str
+    total_outgoings: float = 0.0
+    current_networth: float = 0.0
+    investing_power: float = 0.0
+    growth_pct: float = 0.0
+    notes: Optional[str] = ""
+
+
 # Web Pages
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, user_id: str = "default_user"):
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
+    monthly = get_monthly_records(user_id, year=2026)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
             "portfolio": portfolio,
+            "monthly": monthly,
             "user_id": user_id
         }
     )
@@ -86,7 +102,6 @@ async def api_get_portfolio(user_id: str = "default_user"):
 
 @app.post("/api/refresh")
 async def api_refresh_data(user_id: str = "default_user"):
-    # Clear cache to force fresh Yahoo Finance fetch
     MARKET_CACHE.clear()
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
@@ -122,7 +137,22 @@ async def api_update_settings(payload: SettingsPayload, user_id: str = "default_
     return JSONResponse(content={"status": "success", "data": portfolio})
 
 
+# Monthly Tracking APIs
+@app.get("/api/monthly")
+async def api_get_monthly(user_id: str = "default_user", year: int = 2026):
+    records = get_monthly_records(user_id, year)
+    return JSONResponse(content=records)
+
+
+@app.post("/api/monthly/upsert")
+async def api_upsert_monthly(payload: MonthlyPayload, user_id: str = "default_user"):
+    upsert_monthly_record(user_id, payload.dict())
+    records = get_monthly_records(user_id, payload.year)
+    return JSONResponse(content={"status": "success", "data": records})
+
+
 @app.get("/api/ticker/lookup/{ticker}")
 async def api_lookup_ticker(ticker: str):
     data = fetch_ticker_market_data(ticker.upper())
     return JSONResponse(content=data)
+
