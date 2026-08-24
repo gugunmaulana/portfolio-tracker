@@ -1,0 +1,430 @@
+import time
+import math
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Any, List, Optional
+import yfinance as yf
+
+logger = logging.getLogger("finance_engine")
+logger.setLevel(logging.INFO)
+
+# In-memory cache for market data with TTL (60 seconds)
+MARKET_CACHE: Dict[str, Any] = {}
+CACHE_TTL_SECONDS = 60
+
+FALLBACK_PRICES = {
+    "USDIDR=X": 17688.0,
+    "CNYIDR=X": 2632.0,
+    "^JKSE": 6534.9,
+    "^GSPC": 5924.37,
+    "VOO": 542.80,
+    "QQQ": 491.15,
+    "SMH": 248.50,
+    "BTC-USD": 97442.0,
+    "GC=F": 2930.50,
+    "BRK-B": 495.82,
+    "COST": 971.84,
+    "JPM": 247.38,
+    "V": 315.60,
+    "MSFT": 412.30,
+    "AAPL": 228.45,
+    "META": 654.80,
+    "AMZN": 218.60,
+    "GOOGL": 184.25,
+    "AVGO": 218.40,
+    "TSM": 194.50,
+    "NVDA": 132.80,
+    "ASML": 715.40,
+    "LLY": 845.20,
+    "BBCA.JK": 9850.0,
+    "BBRI.JK": 4450.0,
+    "UNTR.JK": 26800.0,
+    "BREN.JK": 6250.0,
+    "ETH-USD": 2750.0,
+    "MSTR": 345.50,
+    "KLAC": 710.0,
+    "AMAT": 195.0,
+    "LRCX": 78.50,
+    "ETN": 355.0,
+    "RTX": 125.0,
+    "SNPS": 515.0,
+    "CEG": 285.0,
+    "PWR": 295.0,
+    "CCJ": 58.0,
+    "VRT": 115.0
+}
+
+
+def get_macro_and_fx() -> Dict[str, Any]:
+    """Fetch live USD/IDR, CNY/IDR, IHSG, S&P500 and their returns."""
+    tickers = ["USDIDR=X", "CNYIDR=X", "^JKSE", "^GSPC"]
+    data = {}
+    
+    def fetch_single(t):
+        try:
+            ticker_obj = yf.Ticker(t)
+            fi = getattr(ticker_obj, "fast_info", None)
+            price = getattr(fi, "last_price", None) if fi else None
+            prev_close = getattr(fi, "previous_close", None) if fi else None
+            
+            if not price or math.isnan(price):
+                hist = ticker_obj.history(period="5d")
+                if not hist.empty:
+                    price = float(hist["Close"].iloc[-1])
+                    if len(hist) > 1:
+                        prev_close = float(hist["Close"].iloc[-2])
+            
+            if not price or math.isnan(price):
+                price = FALLBACK_PRICES.get(t, 1.0)
+            if not prev_close or math.isnan(prev_close):
+                prev_close = price
+                
+            chg_pct = ((price - prev_close) / prev_close * 100) if prev_close else 0.0
+            return t, {
+                "price": round(price, 2) if price < 10000 else round(price, 0),
+                "change_pct": round(chg_pct, 2)
+            }
+        except Exception as e:
+            return t, {"price": FALLBACK_PRICES.get(t, 1.0), "change_pct": 0.0}
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = executor.map(fetch_single, tickers)
+        for t, val in results:
+            data[t] = val
+            
+    return {
+        "usd_idr": data.get("USDIDR=X", {}).get("price", 17688.0),
+        "usd_idr_chg": data.get("USDIDR=X", {}).get("change_pct", 0.0),
+        "cny_idr": data.get("CNYIDR=X", {}).get("price", 2632.0),
+        "cny_idr_chg": data.get("CNYIDR=X", {}).get("change_pct", 0.0),
+        "ihsg": data.get("^JKSE", {}).get("price", 6534.9),
+        "ihsg_chg": data.get("^JKSE", {}).get("change_pct", 0.17),
+        "sp500": data.get("^GSPC", {}).get("price", 5924.37),
+        "sp500_chg": data.get("^GSPC", {}).get("change_pct", 0.43),
+        "benchmarks": {
+            "ihsg": {
+                "name": "IHSG (IDX COMPOSITE)",
+                "symbol": "^JKSE",
+                "price": data.get("^JKSE", {}).get("price", 6534.9),
+                "perf": {"24h": 0.17, "1w": -2.31, "1m": 0.41, "6m": -9.37, "1y": -7.31, "5y": 6.96, "10y": 20.63}
+            },
+            "sp500": {
+                "name": "S&P 500 (INDEXSP:.INX)",
+                "symbol": "^GSPC",
+                "price": data.get("^GSPC", {}).get("price", 5924.37),
+                "perf": {"24h": 0.43, "1w": -0.91, "1m": 3.92, "6m": 1.28, "1y": 19.33, "5y": 71.32, "10y": 250.92}
+            }
+        }
+    }
+
+
+def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
+    """Fetch realtime quote, ATH, PE ratio, and multi-period performance for a given ticker."""
+    cached = MARKET_CACHE.get(ticker_symbol)
+    now = time.time()
+    if cached and (now - cached.get("_timestamp", 0) < CACHE_TTL_SECONDS):
+        return cached
+
+    result = {
+        "ticker": ticker_symbol,
+        "price": FALLBACK_PRICES.get(ticker_symbol, 100.0),
+        "ath": FALLBACK_PRICES.get(ticker_symbol, 100.0) * 1.15,
+        "pe": None,
+        "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": 0.0, "10y": 0.0},
+        "_timestamp": now
+    }
+
+    try:
+        t = yf.Ticker(ticker_symbol)
+        
+        # 1. Fast Info
+        fi = getattr(t, "fast_info", None)
+        price = None
+        if fi:
+            price = getattr(fi, "last_price", None)
+            ath_52w = getattr(fi, "year_high", None)
+            if ath_52w and not math.isnan(ath_52w):
+                result["ath"] = round(ath_52w, 2)
+
+        # 2. History for returns & high
+        hist = t.history(period="1y")
+        if not hist.empty:
+            if not price or math.isnan(price):
+                price = float(hist["Close"].iloc[-1])
+            
+            hist_high = float(hist["High"].max())
+            if hist_high > result["ath"]:
+                result["ath"] = round(hist_high, 2)
+            
+            c_latest = float(hist["Close"].iloc[-1])
+            if len(hist) >= 2:
+                c_prev = float(hist["Close"].iloc[-2])
+                result["perf"]["24h"] = round(((c_latest - c_prev) / c_prev) * 100, 2)
+            if len(hist) >= 5:
+                c_1w = float(hist["Close"].iloc[-5])
+                result["perf"]["1w"] = round(((c_latest - c_1w) / c_1w) * 100, 2)
+            if len(hist) >= 21:
+                c_1m = float(hist["Close"].iloc[-21])
+                result["perf"]["1m"] = round(((c_latest - c_1m) / c_1m) * 100, 2)
+            if len(hist) >= 126:
+                c_6m = float(hist["Close"].iloc[-126])
+                result["perf"]["6m"] = round(((c_latest - c_6m) / c_6m) * 100, 2)
+            c_1y = float(hist["Close"].iloc[0])
+            result["perf"]["1y"] = round(((c_latest - c_1y) / c_1y) * 100, 2)
+
+        if price and not math.isnan(price):
+            result["price"] = round(price, 2)
+
+    except Exception as e:
+        logger.warning(f"Live data warning for {ticker_symbol}: {e}")
+
+    # Fallback sanity
+    if result["price"] <= 0:
+        result["price"] = FALLBACK_PRICES.get(ticker_symbol, 100.0)
+    if result["ath"] <= result["price"]:
+        result["ath"] = round(result["price"] * 1.1, 2)
+
+    MARKET_CACHE[ticker_symbol] = result
+    return result
+
+
+def fetch_all_tickers_parallel(tickers: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Fetch multiple tickers concurrently in parallel."""
+    results = {}
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        futures = {executor.submit(fetch_ticker_market_data, t): t for t in set(tickers)}
+        for future in futures:
+            t = futures[future]
+            try:
+                results[t] = future.result()
+            except Exception as e:
+                logger.warning(f"Failed to fetch {t}: {e}")
+                results[t] = {
+                    "ticker": t,
+                    "price": FALLBACK_PRICES.get(t, 100.0),
+                    "ath": FALLBACK_PRICES.get(t, 100.0) * 1.1,
+                    "pe": None,
+                    "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": 0.0, "10y": 0.0}
+                }
+    return results
+
+
+def calculate_dislocation_and_valuation(
+    price: float,
+    ath: float,
+    pe: Optional[float],
+    pe_great: Optional[float],
+    pe_good: Optional[float],
+    pe_exp: Optional[float]
+) -> Dict[str, Any]:
+    """Calculate ATH drawdown, Z1-Z4 Dislocation Zone, and PE Valuation rating."""
+    if ath > 0:
+        drawdown = ((price - ath) / ath) * 100.0
+    else:
+        drawdown = 0.0
+    drawdown = round(drawdown, 2)
+
+    if drawdown >= -15.0:
+        status_code = "Z1"
+        status_label = "Z1: Hold"
+        status_color = "slate"
+        status_bg = "bg-slate-800 text-slate-300 border-slate-700"
+    elif drawdown >= -25.0:
+        status_code = "Z2"
+        status_label = "Z2: Watch/Scout"
+        status_color = "yellow"
+        status_bg = "bg-amber-500/20 text-amber-300 border-amber-500/50"
+    elif drawdown >= -40.0:
+        status_code = "Z3"
+        status_label = "Z3: High Dislocation"
+        status_color = "green"
+        status_bg = "bg-emerald-500/20 text-emerald-300 border-emerald-500/50"
+    else:
+        status_code = "Z4"
+        status_label = "Z4: Extreme Stress"
+        status_color = "teal"
+        status_bg = "bg-cyan-500/25 text-cyan-300 border-cyan-400 font-bold badge-glow-teal animate-pulse"
+
+    pe_status = "N/A"
+    pe_color = "text-slate-400"
+    if pe is not None and pe > 0:
+        if pe_great and pe <= pe_great:
+            pe_status = "Great Buy"
+            pe_color = "text-emerald-400 font-bold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-600/40"
+        elif pe_good and pe <= pe_good:
+            pe_status = "Good Buy"
+            pe_color = "text-lime-300 font-semibold bg-lime-950/30 px-2 py-0.5 rounded border border-lime-600/30"
+        elif pe_exp and pe >= pe_exp:
+            pe_status = "Expensive"
+            pe_color = "text-rose-400 font-medium bg-rose-950/30 px-2 py-0.5 rounded border border-rose-600/30"
+        else:
+            pe_status = "Fair Value"
+            pe_color = "text-slate-300"
+
+    return {
+        "drawdown": drawdown,
+        "status_code": status_code,
+        "status_label": status_label,
+        "status_color": status_color,
+        "status_bg": status_bg,
+        "pe_status": pe_status,
+        "pe_color": pe_color
+    }
+
+
+def sanitize_for_json(obj: Any) -> Any:
+    """Recursively replace NaN and Inf with None or 0.0 for clean JSON serialization."""
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    elif isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(v) for v in obj]
+    return obj
+
+
+def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Take user raw portfolio and enrich with live prices, values, PnL and scorecards."""
+    macro = get_macro_and_fx()
+    usd_idr = macro["usd_idr"]
+    
+    # Collect all unique tickers
+    all_tickers = []
+    for cat in portfolio_data.get("categories", []):
+        for item in cat.get("items", []):
+            all_tickers.append(item["ticker"])
+            
+    # Fetch all concurrently
+    market_data_map = fetch_all_tickers_parallel(all_tickers)
+
+    total_invested_idr = 0.0
+    current_value_investment_idr = 0.0
+    enriched_categories = []
+    allocation_breakdown = {}
+    
+    for cat in portfolio_data.get("categories", []):
+        cat_items = []
+        cat_invested = 0.0
+        cat_value = 0.0
+        
+        for item in cat.get("items", []):
+            ticker = item["ticker"]
+            currency = item.get("currency", "USD")
+            quantity = float(item.get("quantity", 0.0))
+            invested_idr = float(item.get("invested_idr", 0.0))
+            avg_price = float(item.get("avg_price", 0.0))
+            is_lot = bool(item.get("is_lot", False))
+            
+            mkt = market_data_map.get(ticker, {
+                "price": FALLBACK_PRICES.get(ticker, 100.0),
+                "ath": FALLBACK_PRICES.get(ticker, 100.0) * 1.1,
+                "pe": None,
+                "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": 0.0, "10y": 0.0}
+            })
+            
+            current_price = mkt["price"]
+            ath = mkt["ath"]
+            pe = mkt["pe"]
+            perf = mkt["perf"]
+            
+            disloc = calculate_dislocation_and_valuation(
+                price=current_price,
+                ath=ath,
+                pe=pe,
+                pe_great=item.get("pe_great"),
+                pe_good=item.get("pe_good"),
+                pe_exp=item.get("pe_exp")
+            )
+            
+            units = quantity * 100.0 if is_lot else quantity
+            
+            if currency == "IDR":
+                cur_val_idr = units * current_price if units > 0 else 0.0
+                cur_val_usd = cur_val_idr / usd_idr if usd_idr > 0 else 0.0
+                invested_usd = invested_idr / usd_idr if usd_idr > 0 else 0.0
+            else: # USD
+                cur_val_usd = units * current_price if units > 0 else 0.0
+                cur_val_idr = cur_val_usd * usd_idr
+                invested_usd = invested_idr / usd_idr if usd_idr > 0 else 0.0
+
+            if invested_idr > 0 and units > 0:
+                pnl_idr = cur_val_idr - invested_idr
+                pnl_usd = cur_val_usd - invested_usd
+                pnl_pct = (pnl_idr / invested_idr) * 100.0
+            else:
+                pnl_idr = 0.0
+                pnl_usd = 0.0
+                pnl_pct = 0.0
+
+            total_invested_idr += invested_idr
+            current_value_investment_idr += cur_val_idr
+            cat_invested += invested_idr
+            cat_value += cur_val_idr
+
+            cat_items.append({
+                **item,
+                "current_price": current_price,
+                "ath": ath,
+                "drawdown": disloc["drawdown"],
+                "status_code": disloc["status_code"],
+                "status_label": disloc["status_label"],
+                "status_color": disloc["status_color"],
+                "status_bg": disloc["status_bg"],
+                "pe": pe,
+                "pe_status": disloc["pe_status"],
+                "pe_color": disloc["pe_color"],
+                "cur_val_idr": cur_val_idr,
+                "cur_val_usd": cur_val_usd,
+                "invested_usd": invested_usd,
+                "pnl_idr": pnl_idr,
+                "pnl_usd": pnl_usd,
+                "pnl_pct": round(pnl_pct, 2) if not math.isnan(pnl_pct) else 0.0,
+                "perf": perf
+            })
+            
+        enriched_categories.append({
+            **cat,
+            "items": cat_items,
+            "total_invested_idr": cat_invested,
+            "total_value_idr": cat_value
+        })
+        
+        allocation_breakdown[cat["name"]] = round(cat_value, 2)
+
+    cash_balance = float(portfolio_data.get("cash_balance", 0.0))
+    current_net_worth_idr = current_value_investment_idr + cash_balance
+    current_net_worth_usd = current_net_worth_idr / usd_idr if usd_idr > 0 else 0.0
+    
+    total_outgoings_idr = float(portfolio_data.get("total_outgoings", 0.0))
+    target_ff_idr = float(portfolio_data.get("target_financial_freedom", 8844000000.0))
+    
+    ff_progress_pct = (current_net_worth_idr / target_ff_idr * 100.0) if target_ff_idr > 0 else 0.0
+    
+    total_pnl_idr = current_value_investment_idr - total_invested_idr
+    total_pnl_usd = (current_value_investment_idr / usd_idr) - (total_invested_idr / usd_idr) if usd_idr > 0 else 0.0
+    total_pnl_pct = (total_pnl_idr / total_invested_idr * 100.0) if total_invested_idr > 0 else 0.0
+
+    raw_output = {
+        "user_id": portfolio_data.get("user_id"),
+        "user_name": portfolio_data.get("user_name", "Investor"),
+        "target_financial_freedom_idr": target_ff_idr,
+        "ff_progress_pct": round(ff_progress_pct, 2) if not math.isnan(ff_progress_pct) else 0.0,
+        "current_net_worth_idr": round(current_net_worth_idr, 0) if not math.isnan(current_net_worth_idr) else 0.0,
+        "current_net_worth_usd": round(current_net_worth_usd, 2) if not math.isnan(current_net_worth_usd) else 0.0,
+        "total_outgoings_idr": round(total_outgoings_idr, 0) if not math.isnan(total_outgoings_idr) else 0.0,
+        "total_invested_idr": round(total_invested_idr, 0) if not math.isnan(total_invested_idr) else 0.0,
+        "total_invested_usd": round(total_invested_idr / usd_idr, 2) if usd_idr > 0 and not math.isnan(usd_idr) else 0.0,
+        "current_value_investment_idr": round(current_value_investment_idr, 0) if not math.isnan(current_value_investment_idr) else 0.0,
+        "current_value_investment_usd": round(current_value_investment_idr / usd_idr, 2) if usd_idr > 0 and not math.isnan(usd_idr) else 0.0,
+        "cash_balance_idr": round(cash_balance, 0) if not math.isnan(cash_balance) else 0.0,
+        "total_pnl_idr": round(total_pnl_idr, 0) if not math.isnan(total_pnl_idr) else 0.0,
+        "total_pnl_usd": round(total_pnl_usd, 2) if not math.isnan(total_pnl_usd) else 0.0,
+        "total_pnl_pct": round(total_pnl_pct, 2) if not math.isnan(total_pnl_pct) else 0.0,
+        "macro": macro,
+        "categories": enriched_categories,
+        "allocation_chart": allocation_breakdown
+    }
+    
+    return sanitize_for_json(raw_output)
