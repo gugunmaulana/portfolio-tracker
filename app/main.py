@@ -20,8 +20,6 @@ from .finance_engine import (
     compute_full_portfolio,
     get_macro_and_fx,
     fetch_ticker_market_data,
-    fetch_ticker_yearly_returns,
-    DEFAULT_CAGR_DATA,
     MARKET_CACHE
 )
 
@@ -89,7 +87,6 @@ async def index(request: Request, user_id: str = "default_user"):
         context={
             "portfolio": portfolio,
             "monthly": monthly,
-            "cagr_data": DEFAULT_CAGR_DATA,
             "user_id": user_id
         }
     )
@@ -159,16 +156,5 @@ async def api_lookup_ticker(ticker: str):
     data = fetch_ticker_market_data(ticker.upper())
     return JSONResponse(content=data)
 
-
-# CAGR APIs
-@app.get("/api/cagr/data")
-async def api_get_cagr_data():
-    return JSONResponse(content=DEFAULT_CAGR_DATA)
-
-
-@app.get("/api/cagr/ticker-returns/{ticker}")
-async def api_get_ticker_yearly_returns(ticker: str, start_year: int = 2011, end_year: int = 2026):
-    returns = fetch_ticker_yearly_returns(ticker.upper(), start_year, end_year)
-    return JSONResponse(content={"ticker": ticker.upper(), "returns": returns})
 
 
