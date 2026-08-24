@@ -199,7 +199,7 @@
 
     </div>
 
-    <!-- 3-MENU TOP NAVIGATION BAR (CAGR REMOVED) -->
+    <!-- 3-MENU TOP NAVIGATION BAR -->
     <div class="max-w-[1920px] mx-auto px-4 lg:px-8 pt-2 flex items-center justify-between gap-4 border-t overflow-x-auto"
          :class="theme === 'dark' ? 'border-darkborder/50' : 'border-lightborder/60'">
       <div class="flex items-center gap-2 whitespace-nowrap">
@@ -214,7 +214,7 @@
           <span x-text="t('tab_portfolio_radar')"></span>
         </button>
 
-        <!-- Tab 2: Track Bulanan & PnL -->
+        <!-- Tab 2: Track Bulanan & PnL (Multi-Year) -->
         <button @click="activeTab = 'monthly'; $nextTick(() => renderMonthlyChart())" 
                 class="px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 flex items-center gap-2 transition"
                 :class="activeTab === 'monthly' 
@@ -222,7 +222,7 @@
                   : (theme === 'dark' ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-500 hover:text-slate-800')">
           <i data-lucide="calendar" class="w-4 h-4"></i>
           <span x-text="t('tab_monthly_tracker')"></span>
-          <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono">2026</span>
+          <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono" x-text="selectedYear"></span>
         </button>
 
         <!-- Tab 3: Kalkulator FF (Wealth Ladder & Hustle vs Compounding) -->
@@ -527,7 +527,7 @@
                 </div>
               </div>
 
-              <!-- 9 Timeframe Checkboxes -->
+              <!-- 9 Timeframe Checkboxes (15y & 20y hidden by default) -->
               <div class="grid grid-cols-3 gap-2 pt-1 font-mono">
                 <template x-for="tf in ['24h', '1w', '1m', '6m', '1y', '5y', '10y', '15y', '20y']" :key="tf">
                   <label class="flex items-center gap-1.5 cursor-pointer hover:opacity-80 p-1 rounded"
@@ -816,11 +816,11 @@
     </div>
 
     <!-- ======================================================= -->
-    <!-- TAB 2: TRACK BULANAN & RIWAYAT PNL (MONTHLY TRACKER)   -->
+    <!-- TAB 2: TRACK BULANAN & RIWAYAT PNL (MULTI-YEAR TRACKER)-->
     <!-- ======================================================= -->
     <div x-show="activeTab === 'monthly'" class="space-y-6" x-cloak>
       
-      <!-- Top Action Bar for Monthly Tracker -->
+      <!-- Top Action Bar for Monthly Tracker with Multi-Year Navigation -->
       <div class="p-4 rounded-2xl border flex flex-wrap items-center justify-between gap-4"
            :class="theme === 'dark' ? 'bg-darkcard border-darkborder' : 'bg-white border-lightborder shadow-sm'">
         <div>
@@ -831,7 +831,32 @@
           <p class="text-xs" :class="theme === 'dark' ? 'text-slate-400' : 'text-slate-500'" x-text="t('monthly_tracker_desc')"></p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <!-- Year Switcher Buttons & Add Year Action -->
+        <div class="flex flex-wrap items-center gap-2">
+          
+          <!-- Existing Years Selector Pills -->
+          <div class="flex items-center gap-1.5 p-1 rounded-xl border font-mono"
+               :class="theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-slate-100 border-slate-300'">
+            <span class="text-[10px] text-slate-400 px-1 font-semibold">TAHUN:</span>
+            <template x-for="yr in availableYears" :key="yr">
+              <button @click="switchYear(yr)" 
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                      :class="selectedYear === yr 
+                        ? 'bg-cyan-600 text-white shadow-md' 
+                        : (theme === 'dark' ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-700 hover:bg-slate-200')"
+                      x-text="yr"></button>
+            </template>
+          </div>
+
+          <!-- Add New Year Button -->
+          <button @click="openAddYearModal()" 
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition"
+                  :class="theme === 'dark' ? 'bg-slate-900 hover:bg-slate-800 border-cyan-500/40 text-cyan-300' : 'bg-white hover:bg-slate-50 border-cyan-600/40 text-cyan-800 shadow-sm'">
+            <i data-lucide="calendar-plus" class="w-4 h-4 text-cyan-400"></i>
+            <span>+ Tambah Tahun</span>
+          </button>
+
+          <!-- Add/Update Monthly Record -->
           <button @click="openAddMonthlyModal()" 
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition">
             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -849,7 +874,7 @@
           <div class="px-5 py-3.5 border-b flex items-center justify-between"
                :class="theme === 'dark' ? 'bg-slate-900/90 border-darkborder' : 'bg-slate-100/80 border-lightborder'">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-extrabold font-mono text-cyan-400">2026</span>
+              <span class="text-sm font-extrabold font-mono text-cyan-400" x-text="selectedYear"></span>
               <span class="text-xs font-bold" :class="theme === 'dark' ? 'text-slate-200' : 'text-slate-800'" x-text="t('monthly_recap')"></span>
             </div>
             <div class="text-xs font-mono">
@@ -935,7 +960,7 @@
                  :class="theme === 'dark' ? 'text-slate-200' : 'text-slate-800'">
               <span class="flex items-center gap-1.5">
                 <i data-lucide="grid" class="w-4 h-4 text-cyan-400"></i>
-                <span x-text="t('growth_matrix_2026')"></span>
+                <span x-text="'Matriks Pertumbuhan (' + selectedYear + ')'"></span>
               </span>
               <span class="text-[10px] text-slate-400">Monthly Returns</span>
             </div>
@@ -958,7 +983,7 @@
             <div class="text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5"
                  :class="theme === 'dark' ? 'text-slate-200' : 'text-slate-800'">
               <i data-lucide="chart-bar" class="w-4 h-4 text-emerald-400"></i>
-              <span x-text="t('chart_networth_growth')"></span>
+              <span x-text="'Grafik Pertumbuhan Net Worth (' + selectedYear + ')'"></span>
             </div>
             <div class="h-48 relative">
               <canvas id="monthlyGrowthChart"></canvas>
@@ -1185,7 +1210,7 @@
   <!-- MODALS SECTION                             -->
   <!-- ========================================== -->
 
-  <!-- MODAL: ADD ASSET -->
+  <!-- MODAL 1: ADD / EDIT ASSET -->
   <div x-cloak x-show="showAssetModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showAssetModal = false" class="border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4"
          :class="theme === 'dark' ? 'bg-darkcard border-darkborder' : 'bg-white border-lightborder shadow-2xl'">
@@ -1278,7 +1303,96 @@
     </div>
   </div>
 
-  <!-- MODAL: SETTINGS (TARGET FINANCIAL FREEDOM) -->
+  <!-- MODAL 2: EDIT MONTHLY RECORD -->
+  <div x-cloak x-show="showMonthlyModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showMonthlyModal = false" class="border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+         :class="theme === 'dark' ? 'bg-darkcard border-darkborder' : 'bg-white border-lightborder shadow-2xl'">
+      <div class="flex items-center justify-between border-b pb-3" :class="theme === 'dark' ? 'border-darkborder' : 'border-lightborder'">
+        <h3 class="text-base font-bold flex items-center gap-2" :class="theme === 'dark' ? 'text-white' : 'text-slate-900'">
+          <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i>
+          <span x-text="'Update Data Bulan ' + tMonth(monthlyForm.month_name) + ' (' + monthlyForm.year + ')'"></span>
+        </h3>
+        <button @click="showMonthlyModal = false" class="text-slate-400 hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form @submit.prevent="saveMonthlyRecord()" class="space-y-3 text-xs">
+        <div>
+          <label class="block mb-1 font-semibold" :class="theme === 'dark' ? 'text-slate-300' : 'text-slate-700'">Total Outgoings / Modal Keluar (IDR)</label>
+          <input type="number" step="any" x-model="monthlyForm.total_outgoings" required
+                 class="w-full rounded-lg px-3 py-2 font-mono border outline-none"
+                 :class="theme === 'dark' ? 'bg-slate-900 border-darkborder text-white' : 'bg-slate-50 border-slate-300 text-slate-900'">
+        </div>
+
+        <div>
+          <label class="block mb-1 font-semibold" :class="theme === 'dark' ? 'text-slate-300' : 'text-slate-700'">Current Networth (IDR)</label>
+          <input type="number" step="any" x-model="monthlyForm.current_networth" required
+                 class="w-full rounded-lg px-3 py-2 font-mono font-bold text-cyan-400 border outline-none"
+                 :class="theme === 'dark' ? 'bg-slate-900 border-darkborder text-white' : 'bg-slate-50 border-slate-300 text-slate-900'">
+        </div>
+
+        <div>
+          <label class="block mb-1 font-semibold" :class="theme === 'dark' ? 'text-slate-300' : 'text-slate-700'">Investing Power / Injeksi Baru (IDR)</label>
+          <input type="number" step="any" x-model="monthlyForm.investing_power"
+                 class="w-full rounded-lg px-3 py-2 font-mono font-bold text-emerald-400 border outline-none"
+                 :class="theme === 'dark' ? 'bg-slate-900 border-darkborder text-white' : 'bg-slate-50 border-slate-300 text-slate-900'">
+        </div>
+
+        <div>
+          <label class="block mb-1 font-semibold" :class="theme === 'dark' ? 'text-slate-300' : 'text-slate-700'">Growth % (Bulan ini)</label>
+          <input type="number" step="any" x-model="monthlyForm.growth_pct"
+                 class="w-full rounded-lg px-3 py-2 font-mono border outline-none"
+                 :class="theme === 'dark' ? 'bg-slate-900 border-darkborder text-white' : 'bg-slate-50 border-slate-300 text-slate-900'">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3">
+          <button type="button" @click="showMonthlyModal = false" class="px-4 py-2 rounded-lg border transition"
+                  :class="theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'"
+                  x-text="t('cancel')"></button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition">
+            Simpan Rekap
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ADD NEW YEAR -->
+  <div x-cloak x-show="showAddYearModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showAddYearModal = false" class="border rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4"
+         :class="theme === 'dark' ? 'bg-darkcard border-darkborder' : 'bg-white border-lightborder shadow-2xl'">
+      <div class="flex items-center justify-between border-b pb-3" :class="theme === 'dark' ? 'border-darkborder' : 'border-lightborder'">
+        <h3 class="text-base font-bold flex items-center gap-2" :class="theme === 'dark' ? 'text-white' : 'text-slate-900'">
+          <i data-lucide="calendar-plus" class="w-4 h-4 text-cyan-400"></i>
+          <span>Tambah Tahun Pelacakan Baru</span>
+        </h3>
+        <button @click="showAddYearModal = false" class="text-slate-400 hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form @submit.prevent="submitAddYear()" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block mb-1 font-semibold" :class="theme === 'dark' ? 'text-slate-300' : 'text-slate-700'">Masukkan Tahun (contoh: 2027, 2028)</label>
+          <input type="number" min="2010" max="2050" x-model.number="newYearInput" required
+                 class="w-full rounded-lg px-3 py-2 font-mono text-base font-extrabold border outline-none text-center"
+                 :class="theme === 'dark' ? 'bg-slate-900 border-darkborder text-cyan-400 focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-cyan-700 focus:border-cyan-500'">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3">
+          <button type="button" @click="showAddYearModal = false" class="px-4 py-2 rounded-lg border transition"
+                  :class="theme === 'dark' ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'"
+                  x-text="t('cancel')"></button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold transition">
+            Buat Tahun
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: SETTINGS (TARGET FINANCIAL FREEDOM) -->
   <div x-cloak x-show="showSettingsModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showSettingsModal = false" class="border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
          :class="theme === 'dark' ? 'bg-darkcard border-darkborder' : 'bg-white border-lightborder shadow-2xl'">
@@ -1395,12 +1509,11 @@
         syncing: "Sinkronisasi...",
         pause: "Jeda",
         monthly_tracker_title: "Pelacakan Portofolio Bulanan & Heatmap Pertumbuhan",
-        monthly_tracker_desc: "Rekapitulasi pertumbuhan Net Worth, injeksi modal baru, dan evaluasi PnL tahun 2026",
-        add_monthly_record: "Tambah / Update Bulan",
+        monthly_tracker_desc: "Rekapitulasi pertumbuhan Net Worth, injeksi modal baru, dan evaluasi PnL multi-tahun",
+        add_monthly_record: "Update Data Bulan",
         monthly_recap: "Rekapitulasi Bulanan",
         total_investing_power: "Total Injeksi Modal",
-        growth_matrix_2026: "Matriks Pertumbuhan 2026",
-        chart_networth_growth: "Grafik Pertumbuhan Net Worth 2026",
+        chart_networth_growth: "Grafik Pertumbuhan Net Worth",
         col_month: "Bulan",
         col_total_outgoings: "Total Outgoings",
         col_current_networth: "Current Networth",
@@ -1472,12 +1585,11 @@
         syncing: "Syncing...",
         pause: "Pause",
         monthly_tracker_title: "Monthly Portfolio Tracking & Growth Heatmap",
-        monthly_tracker_desc: "Recap of Net Worth growth, new capital injections, and PnL evaluations for 2026",
-        add_monthly_record: "Add / Update Month",
+        monthly_tracker_desc: "Recap of Net Worth growth, new capital injections, and multi-year PnL evaluations",
+        add_monthly_record: "Update Month Record",
         monthly_recap: "Monthly Recap",
         total_investing_power: "Total Capital Injection",
-        growth_matrix_2026: "2026 Investment Growth Matrix",
-        chart_networth_growth: "2026 Net Worth Trajectory",
+        chart_networth_growth: "Net Worth Trajectory",
         col_month: "Month",
         col_total_outgoings: "Total Outgoings",
         col_current_networth: "Current Networth",
@@ -1547,6 +1659,8 @@
       return {
         data: {{ portfolio | tojson | safe }},
         monthlyRecords: {{ monthly | tojson | safe }},
+        availableYears: {{ available_years | tojson | safe }} || [2026],
+        selectedYear: {{ current_year }} || 2026,
         
         activeTab: 'radar',
         theme: localStorage.getItem('portfolio_theme') || 'dark',
@@ -1566,7 +1680,7 @@
         priceChanges: {},
         valChangeAnim: { networth: '', usd_idr: '' },
 
-        // Column Visibility Preferences
+        // Column Visibility Preferences (AVG PRICE HIDDEN BY DEFAULT)
         columns: {
           invested: true,
           quantity: true,
@@ -1575,14 +1689,14 @@
           drawdown: true,
           price: true,
           ath: true,
-          avg_price: true,
+          avg_price: false, // Hidden by default
           current_value: true,
           pnl: true,
           perf: true
         },
 
-        // Individual Performance Sub-Column Filter (24h to 20y)
-        perfColumns: JSON.parse(localStorage.getItem('portfolio_perf_cols')) || {
+        // Individual Performance Sub-Column Filter (15Y & 20Y HIDDEN BY DEFAULT)
+        perfColumns: JSON.parse(localStorage.getItem('portfolio_perf_cols_v2')) || {
           '24h': true,
           '1w': true,
           '1m': true,
@@ -1590,13 +1704,16 @@
           '1y': true,
           '5y': true,
           '10y': true,
-          '15y': true,
-          '20y': true
+          '15y': false, // Hidden by default
+          '20y': false  // Hidden by default
         },
 
         // Modals & Toast
         showAssetModal: false,
         showSettingsModal: false,
+        showMonthlyModal: false,
+        showAddYearModal: false,
+        newYearInput: 2027,
         toast: { show: false, message: '' },
 
         assetForm: {
@@ -1612,6 +1729,17 @@
           pe_great: null,
           pe_good: null,
           pe_exp: null
+        },
+
+        monthlyForm: {
+          id: null,
+          year: 2026,
+          month_index: 1,
+          month_name: 'January',
+          total_outgoings: 0,
+          current_networth: 0,
+          investing_power: 0,
+          growth_pct: 0
         },
 
         settingsForm: {
@@ -1664,7 +1792,7 @@
         activePerfTimeframes() {
           const all = ['24h', '1w', '1m', '6m', '1y', '5y', '10y', '15y', '20y'];
           const active = all.filter(tf => this.perfColumns[tf]);
-          localStorage.setItem('portfolio_perf_cols', JSON.stringify(this.perfColumns));
+          localStorage.setItem('portfolio_perf_cols_v2', JSON.stringify(this.perfColumns));
           return active;
         },
 
@@ -1672,7 +1800,7 @@
           ['24h', '1w', '1m', '6m', '1y', '5y', '10y', '15y', '20y'].forEach(tf => {
             this.perfColumns[tf] = enabled;
           });
-          localStorage.setItem('portfolio_perf_cols', JSON.stringify(this.perfColumns));
+          localStorage.setItem('portfolio_perf_cols_v2', JSON.stringify(this.perfColumns));
         },
 
         toggleTheme() {
@@ -1782,6 +1910,50 @@
           });
         },
 
+        // Multi-Year Switching & Add Year
+        async switchYear(year) {
+          this.selectedYear = parseInt(year);
+          try {
+            const res = await fetch(`/api/monthly?year=${this.selectedYear}`);
+            const data = await res.json();
+            this.monthlyRecords = data;
+            this.$nextTick(() => {
+              this.renderMonthlyChart();
+              lucide.createIcons();
+            });
+          } catch (e) {
+            console.error(e);
+          }
+        },
+
+        openAddYearModal() {
+          this.newYearInput = (this.availableYears[this.availableYears.length - 1] || 2026) + 1;
+          this.showAddYearModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        async submitAddYear() {
+          const yr = parseInt(this.newYearInput);
+          if (!yr || isNaN(yr)) return;
+          try {
+            const res = await fetch(`/api/monthly/add-year/${yr}`, { method: 'POST' });
+            const json = await res.json();
+            if (json.status === 'success') {
+              this.availableYears = json.years;
+              this.selectedYear = yr;
+              this.monthlyRecords = json.records;
+              this.showAddYearModal = false;
+              this.showToast(`✅ Tahun ${yr} berhasil ditambahkan!`);
+              this.$nextTick(() => {
+                this.renderMonthlyChart();
+                lucide.createIcons();
+              });
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        },
+
         calculateTotalInvestingPower() {
           return (this.monthlyRecords || []).reduce((acc, curr) => acc + (curr.investing_power || 0), 0);
         },
@@ -1820,9 +1992,7 @@
           }
         },
 
-        // ==========================================
-        // FINANCIAL FREEDOM & WEALTH LADDER (TAB 3)
-        // ==========================================
+        // Financial Freedom Tab 3
         computeFF() {
           const cur = parseFloat(this.ffForm.cur) || 0;
           const mo = parseFloat(this.ffForm.mo) || 0;
@@ -1901,7 +2071,6 @@
           const isDark = this.theme === 'dark';
           const labels = porto.map((_, i) => 'Usia ' + (age + i + 1));
 
-          // 1. Growth curve chart
           const canvas1 = document.getElementById('ffGrowthCurveChart');
           if (canvas1) {
             if (this.charts.ffGrowth) this.charts.ffGrowth.destroy();
@@ -1929,7 +2098,6 @@
             });
           }
 
-          // 2. Duel & Composition Chart
           const canvas2 = document.getElementById('ffDuelCompositionChart');
           if (canvas2) {
             if (this.charts.ffDuel) this.charts.ffDuel.destroy();
@@ -2054,6 +2222,47 @@
               this.data = json.data;
               this.showToast(this.t('asset_deleted_success'));
               this.$nextTick(() => lucide.createIcons());
+            }
+          } catch (e) { console.error(e); }
+        },
+
+        openAddMonthlyModal() {
+          this.monthlyForm = {
+            id: null,
+            year: this.selectedYear,
+            month_index: 1,
+            month_name: 'January',
+            total_outgoings: 0,
+            current_networth: 0,
+            investing_power: 0,
+            growth_pct: 0
+          };
+          this.showMonthlyModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        editMonthlyRecord(row) {
+          this.monthlyForm = { ...row };
+          this.showMonthlyModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        async saveMonthlyRecord() {
+          try {
+            const res = await fetch('/api/monthly/upsert', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.monthlyForm)
+            });
+            const json = await res.json();
+            if (json.data) {
+              this.monthlyRecords = json.data;
+              this.showMonthlyModal = false;
+              this.showToast('✅ Rekapitulasi bulan berhasil disimpan!');
+              this.$nextTick(() => {
+                this.renderMonthlyChart();
+                lucide.createIcons();
+              });
             }
           } catch (e) { console.error(e); }
         },

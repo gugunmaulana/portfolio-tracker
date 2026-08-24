@@ -13,6 +13,8 @@ from .database import (
     upsert_portfolio_item,
     delete_portfolio_item,
     get_monthly_records,
+    get_available_years,
+    create_year_records,
     upsert_monthly_record,
     DEFAULT_PORTFOLIO_CONFIG
 )
@@ -77,16 +79,21 @@ class MonthlyPayload(BaseModel):
 
 # Web Pages
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request, user_id: str = "default_user"):
+async def index(request: Request, user_id: str = "default_user", year: int = 2026):
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
-    monthly = get_monthly_records(user_id, year=2026)
+    years = get_available_years(user_id)
+    if year not in years:
+        year = years[-1] if years else 2026
+    monthly = get_monthly_records(user_id, year=year)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
             "portfolio": portfolio,
             "monthly": monthly,
+            "available_years": years,
+            "current_year": year,
             "user_id": user_id
         }
     )
@@ -144,6 +151,20 @@ async def api_get_monthly(user_id: str = "default_user", year: int = 2026):
     return JSONResponse(content=records)
 
 
+@app.get("/api/monthly/years")
+async def api_get_monthly_years(user_id: str = "default_user"):
+    years = get_available_years(user_id)
+    return JSONResponse(content=years)
+
+
+@app.post("/api/monthly/add-year/{year}")
+async def api_add_monthly_year(year: int, user_id: str = "default_user"):
+    create_year_records(user_id, year)
+    years = get_available_years(user_id)
+    records = get_monthly_records(user_id, year)
+    return JSONResponse(content={"status": "success", "years": years, "records": records})
+
+
 @app.post("/api/monthly/upsert")
 async def api_upsert_monthly(payload: MonthlyPayload, user_id: str = "default_user"):
     upsert_monthly_record(user_id, payload.dict())
@@ -155,6 +176,7 @@ async def api_upsert_monthly(payload: MonthlyPayload, user_id: str = "default_us
 async def api_lookup_ticker(ticker: str):
     data = fetch_ticker_market_data(ticker.upper())
     return JSONResponse(content=data)
+
 
 
 

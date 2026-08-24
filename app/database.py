@@ -663,8 +663,41 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
     }
 
 
+def get_available_years(user_id: str = "default_user") -> List[int]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT year FROM monthly_records WHERE user_id = ? ORDER BY year ASC", (user_id,))
+    years = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    if not years:
+        years = [2026]
+    return sorted(list(set(years)))
+
+
+def create_year_records(user_id: str = "default_user", year: int = 2026):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM monthly_records WHERE user_id = ? AND year = ?", (user_id, year))
+    if cursor.fetchone()[0] == 0:
+        months = [
+            (1, "January"), (2, "February"), (3, "March"), (4, "April"),
+            (5, "May"), (6, "June"), (7, "July"), (8, "August"),
+            (9, "September"), (10, "October"), (11, "November"), (12, "December")
+        ]
+        for m_idx, m_name in months:
+            cursor.execute("""
+            INSERT INTO monthly_records (user_id, year, month_index, month_name, total_outgoings, current_networth, investing_power, pnl_idr, pnl_pct, growth_pct, notes)
+            VALUES (?, ?, ?, ?, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '')
+            """, (user_id, year, m_idx, m_name))
+        conn.commit()
+    conn.close()
+
+
 def get_monthly_records(user_id: str = "default_user", year: int = 2026) -> List[Dict[str, Any]]:
     init_db()
+    create_year_records(user_id, year)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -673,10 +706,8 @@ def get_monthly_records(user_id: str = "default_user", year: int = 2026) -> List
     conn.close()
     
     results = []
-    total_investing_power = 0.0
     for r in rows:
         inv_pwr = float(r["investing_power"] or 0.0)
-        total_investing_power += inv_pwr
         results.append({
             "id": r["id"],
             "year": r["year"],

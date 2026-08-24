@@ -198,16 +198,25 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
     }
 
     try:
-        chart_res = fetch_direct_yahoo_chart(ticker_symbol, "10y")
+        chart_res = fetch_direct_yahoo_chart(ticker_symbol, "max")
         if chart_res:
             meta = chart_res.get("meta", {})
+            timestamps = chart_res.get("timestamp", [])
             quotes = chart_res.get("indicators", {}).get("quote", [{}])[0]
-            closes = [c for c in quotes.get("close", []) if c is not None and not math.isnan(c)]
-            highs = [h for h in quotes.get("high", []) if h is not None and not math.isnan(h)]
+            raw_closes = quotes.get("close", [])
+            raw_highs = quotes.get("high", [])
+
+            # Valid pairs
+            data_points = []
+            for t, c in zip(timestamps, raw_closes):
+                if c is not None and not math.isnan(c) and c > 0:
+                    data_points.append((t, c))
+
+            highs = [h for h in raw_highs if h is not None and not math.isnan(h)]
 
             price = meta.get("regularMarketPrice")
-            if not price and closes:
-                price = closes[-1]
+            if (not price or math.isnan(price)) and data_points:
+                price = data_points[-1][1]
             if price and not math.isnan(price):
                 result["price"] = round(price, 2)
 
@@ -215,43 +224,36 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             high_point = max(highs) if highs else (price * 1.1 if price else 100.0)
             result["ath"] = round(max(ath_meta or 0, high_point), 2)
 
-            n = len(closes)
-            if n >= 1:
-                c_latest = closes[-1]
+            if len(data_points) >= 1:
+                cur_close = data_points[-1][1]
+                now_ts = data_points[-1][0]
+                first_ts = data_points[0][0]
 
-                # 24h (~1 day)
-                if n >= 2:
-                    c_prev = closes[-2]
-                    result["perf"]["24h"] = round(((c_latest - c_prev) / c_prev) * 100, 2)
-                # 1w (~5 trading days)
-                if n >= 5:
-                    c_1w = closes[-5]
-                    result["perf"]["1w"] = round(((c_latest - c_1w) / c_1w) * 100, 2)
-                # 1m (~21 trading days)
-                if n >= 21:
-                    c_1m = closes[-21]
-                    result["perf"]["1m"] = round(((c_latest - c_1m) / c_1m) * 100, 2)
-                # 6m (~126 trading days)
-                if n >= 126:
-                    c_6m = closes[-126]
-                    result["perf"]["6m"] = round(((c_latest - c_6m) / c_6m) * 100, 2)
-                # 1y (~252 trading days)
-                if n >= 252:
-                    c_1y = closes[-252]
-                    result["perf"]["1y"] = round(((c_latest - c_1y) / c_1y) * 100, 2)
-                elif n > 10:
-                    c_1y = closes[0]
-                    result["perf"]["1y"] = round(((c_latest - c_1y) / c_1y) * 100, 2)
+                # 24h
+                if len(data_points) >= 2:
+                    c_prev = data_points[-2][1]
+                    result["perf"]["24h"] = round(((cur_close - c_prev) / c_prev) * 100.0, 1)
 
-                # 5y (~1260 trading days)
-                if n >= 1260:
-                    c_5y = closes[-1260]
-                    result["perf"]["5y"] = round(((c_latest - c_5y) / c_5y) * 100, 2)
-                
-                # 10y (~2520 trading days)
-                if n >= 2520:
-                    c_10y = closes[-2520]
-                    result["perf"]["10y"] = round(((c_latest - c_10y) / c_10y) * 100, 2)
+                def get_perf_by_days(days: int) -> Optional[float]:
+                    target_ts = now_ts - (days * 86400)
+                    # If ticker started after target_ts, it did not exist for that full timeframe
+                    if target_ts < first_ts:
+                        return None
+                    # Find closest point
+                    closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
+                    if closest[1] and closest[1] > 0:
+                        ret = ((cur_close - closest[1]) / closest[1]) * 100.0
+                        return round(ret, 1)
+                    return None
+
+                result["perf"]["1w"] = get_perf_by_days(7) or 0.0
+                result["perf"]["1m"] = get_perf_by_days(30) or 0.0
+                result["perf"]["6m"] = get_perf_by_days(182) or 0.0
+                result["perf"]["1y"] = get_perf_by_days(365) or 0.0
+                result["perf"]["5y"] = get_perf_by_days(5 * 365)
+                result["perf"]["10y"] = get_perf_by_days(10 * 365)
+                result["perf"]["15y"] = get_perf_by_days(15 * 365)
+                result["perf"]["20y"] = get_perf_by_days(20 * 365)
 
     except Exception as e:
         logger.debug(f"Fetch error for {ticker_symbol}: {e}")
