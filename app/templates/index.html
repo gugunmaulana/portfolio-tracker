@@ -280,33 +280,38 @@
                  class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
         </div>
 
-        <!-- Column Toggles (Simpel Cryptorank style) -->
-        <div class="flex flex-wrap items-center gap-2 font-medium">
-          <span class="text-slate-500 text-[11px] font-semibold">TAMPILKAN KOLOM:</span>
+        <!-- Column Customizer Button & Quick Toggles -->
+        <div class="flex flex-wrap items-center gap-2">
           
-          <button @click="showAvgPrice = !showAvgPrice" 
-                  class="px-2.5 py-1 rounded-lg text-xs transition border"
-                  :class="showAvgPrice ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 font-semibold' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'">
-            AVG Price
+          <!-- Master Pengaturan Kolom Modal Button -->
+          <button @click="showColumnModal = true" 
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 transition active:scale-95">
+            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+            <span>⚙️ Pengaturan Kolom</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]" x-text="activeColumnCount() + '/17'"></span>
           </button>
 
-          <button @click="showLongTerm = !showLongTerm" 
-                  class="px-2.5 py-1 rounded-lg text-xs transition border"
-                  :class="showLongTerm ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 font-semibold' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'">
-            15Y & 20Y (Profit %)
-          </button>
-
-          <button @click="showPeValuation = !showPeValuation" 
-                  class="px-2.5 py-1 rounded-lg text-xs transition border"
-                  :class="showPeValuation ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 font-semibold' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'">
-            Valuasi P/E
-          </button>
-
-          <button @click="showAthZone = !showAthZone" 
-                  class="px-2.5 py-1 rounded-lg text-xs transition border"
-                  :class="showAthZone ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 font-semibold' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'">
-            Zonasi ATH
-          </button>
+          <!-- Quick Toggle Pills for Performance & Portfolio -->
+          <div class="hidden xl:flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700 text-[11px] font-semibold">
+            <button @click="toggleCol('perf24h')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf24h ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">24H</button>
+            <button @click="toggleCol('perf5h')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf5h ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">5H</button>
+            <button @click="toggleCol('perf1m')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf1m ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">1M</button>
+            <button @click="toggleCol('perf1y')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf1y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">1Y</button>
+            <button @click="toggleCol('perf5y')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf5y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">5Y</button>
+            <button @click="toggleCol('perf10y')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf10y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">10Y</button>
+            <button @click="toggleCol('perf15y')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf15y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">15Y</button>
+            <button @click="toggleCol('perf20y')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf20y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">20Y</button>
+            <button @click="toggleCol('avgPrice')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.avgPrice ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">AVG Price</button>
+          </div>
 
         </div>
 
@@ -372,29 +377,28 @@
                     <th class="py-3 px-4">Nama Aset</th>
                     <th class="py-3 px-3">Ticker</th>
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
-                    <th class="py-3 px-3 text-center">24H</th>
-                    <th class="py-3 px-3 text-center">5H</th>
-                    <th class="py-3 px-3 text-center">1M</th>
-                    <th class="py-3 px-3 text-center">1Y</th>
-                    <th class="py-3 px-3 text-center">5Y</th>
-                    <th class="py-3 px-3 text-center">10Y</th>
                     
-                    <!-- Toggleable 15Y & 20Y -->
-                    <th class="py-3 px-3 text-center" x-show="showLongTerm">15Y</th>
-                    <th class="py-3 px-3 text-center" x-show="showLongTerm">20Y</th>
+                    <!-- 17 Fully Customizable Columns -->
+                    <th class="py-3 px-3 text-center" x-show="cols.perf24h">24H</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf5h">5H</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf1m">1M</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf1y">1Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf5y">5Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf10y">10Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf15y">15Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf20y">20Y</th>
                     
-                    <th class="py-3 px-3 text-right">ATH Price</th>
-                    <th class="py-3 px-3 text-center">% from ATH</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.athPrice">ATH Price</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.athDrawdown">% from ATH</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.athZone">Zonasi ATH</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.peValuation">Valuasi P/E</th>
                     
-                    <!-- Toggleable ATH Zone & PE -->
-                    <th class="py-3 px-3 text-center" x-show="showAthZone">Zonasi ATH</th>
-                    <th class="py-3 px-3 text-center" x-show="showPeValuation">Valuasi P/E</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.investedIdr">Modal Terinvestasi</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.quantity">Quantity</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.avgPrice">AVG Price</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.curVal">Nilai Berjalan</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.pnl">Floating PnL</th>
                     
-                    <th class="py-3 px-3 text-right">Modal Terinvestasi</th>
-                    <th class="py-3 px-3 text-right">Quantity</th>
-                    <th class="py-3 px-3 text-right" x-show="showAvgPrice">AVG Price</th>
-                    <th class="py-3 px-3 text-right">Nilai Berjalan</th>
-                    <th class="py-3 px-3 text-right">Floating PnL</th>
                     <th class="py-3 px-4 text-center">Aksi</th>
                   </tr>
                 </thead>
@@ -435,60 +439,60 @@
                           x-text="item.currency === 'IDR' ? formatIDR(item.current_price) : formatUSD(item.current_price)"></td>
 
                       <!-- 24H % -->
-                      <td class="py-3 px-3 text-center font-bold"
+                      <td class="py-3 px-3 text-center font-bold" x-show="cols.perf24h"
                           :class="item.perf?.['24h'] > 0 ? 'text-emerald-500' : (item.perf?.['24h'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['24h'] !== null && item.perf?.['24h'] !== undefined ? ((item.perf?.['24h'] > 0 ? '+' : '') + item.perf?.['24h'] + '%') : 'N/A'"></td>
 
                       <!-- 5H % -->
-                      <td class="py-3 px-3 text-center font-bold"
+                      <td class="py-3 px-3 text-center font-bold" x-show="cols.perf5h"
                           :class="(item.perf?.['5h'] ?? item.perf?.['1w']) > 0 ? 'text-emerald-500' : ((item.perf?.['5h'] ?? item.perf?.['1w']) < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="(item.perf?.['5h'] ?? item.perf?.['1w']) !== null && (item.perf?.['5h'] ?? item.perf?.['1w']) !== undefined ? (((item.perf?.['5h'] ?? item.perf?.['1w']) > 0 ? '+' : '') + (item.perf?.['5h'] ?? item.perf?.['1w']) + '%') : 'N/A'"></td>
 
                       <!-- 1M % -->
-                      <td class="py-3 px-3 text-center font-medium"
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf1m"
                           :class="item.perf?.['1m'] > 0 ? 'text-emerald-500' : (item.perf?.['1m'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['1m'] !== null && item.perf?.['1m'] !== undefined ? ((item.perf?.['1m'] > 0 ? '+' : '') + item.perf?.['1m'] + '%') : 'N/A'"></td>
 
                       <!-- 1Y % -->
-                      <td class="py-3 px-3 text-center font-medium"
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf1y"
                           :class="item.perf?.['1y'] > 0 ? 'text-emerald-500' : (item.perf?.['1y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['1y'] !== null && item.perf?.['1y'] !== undefined ? ((item.perf?.['1y'] > 0 ? '+' : '') + item.perf?.['1y'] + '%') : 'N/A'"></td>
 
                       <!-- 5Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium"
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf5y"
                           :class="item.perf?.['5y'] > 0 ? 'text-emerald-500' : (item.perf?.['5y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['5y'] !== null && item.perf?.['5y'] !== undefined ? ((item.perf?.['5y'] > 0 ? '+' : '') + item.perf?.['5y'] + '%') : 'N/A'"></td>
 
                       <!-- 10Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium"
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf10y"
                           :class="item.perf?.['10y'] > 0 ? 'text-emerald-500' : (item.perf?.['10y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['10y'] !== null && item.perf?.['10y'] !== undefined ? ((item.perf?.['10y'] > 0 ? '+' : '') + item.perf?.['10y'] + '%') : 'N/A'"></td>
 
                       <!-- 15Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="showLongTerm"
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf15y"
                           :class="item.perf?.['15y'] > 0 ? 'text-emerald-500' : (item.perf?.['15y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['15y'] !== null && item.perf?.['15y'] !== undefined ? ((item.perf?.['15y'] > 0 ? '+' : '') + item.perf?.['15y'] + '%') : 'N/A'"></td>
 
                       <!-- 20Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="showLongTerm"
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf20y"
                           :class="item.perf?.['20y'] > 0 ? 'text-emerald-500' : (item.perf?.['20y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['20y'] !== null && item.perf?.['20y'] !== undefined ? ((item.perf?.['20y'] > 0 ? '+' : '') + item.perf?.['20y'] + '%') : 'N/A'"></td>
 
                       <!-- ATH Price -->
-                      <td class="py-3 px-3 text-right text-slate-500"
+                      <td class="py-3 px-3 text-right text-slate-500" x-show="cols.athPrice"
                           x-text="item.currency === 'IDR' ? formatIDR(item.ath) : formatUSD(item.ath)"></td>
 
                       <!-- % from ATH -->
-                      <td class="py-3 px-3 text-center font-bold text-rose-500"
+                      <td class="py-3 px-3 text-center font-bold text-rose-500" x-show="cols.athDrawdown"
                           x-text="item.drawdown + '%'"></td>
 
                       <!-- Zonasi ATH -->
-                      <td class="py-3 px-3 text-center" x-show="showAthZone">
+                      <td class="py-3 px-3 text-center" x-show="cols.athZone">
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold border inline-block" :class="item.status_bg" x-text="item.status_label"></span>
                       </td>
 
                       <!-- Valuasi P/E (Tailored per asset) -->
-                      <td class="py-3 px-3 text-center" x-show="showPeValuation">
+                      <td class="py-3 px-3 text-center" x-show="cols.peValuation">
                         <template x-if="item.pe">
                           <span class="text-[11px]" :class="item.pe_color" x-text="item.pe + ' (' + item.pe_status + ')'"></span>
                         </template>
@@ -498,23 +502,23 @@
                       </td>
 
                       <!-- Modal Terinvestasi -->
-                      <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold"
+                      <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold" x-show="cols.investedIdr"
                           x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
 
                       <!-- Quantity -->
-                      <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold"
+                      <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold" x-show="cols.quantity"
                           x-text="item.quantity > 0 ? (item.quantity + (item.is_lot ? ' lot' : '')) : '-'"></td>
 
                       <!-- AVG Price (Toggleable) -->
-                      <td class="py-3 px-3 text-right text-slate-500" x-show="showAvgPrice"
+                      <td class="py-3 px-3 text-right text-slate-500" x-show="cols.avgPrice"
                           x-text="item.avg_price > 0 ? (item.currency === 'IDR' ? formatIDR(item.avg_price) : formatUSD(item.avg_price)) : '-'"></td>
 
                       <!-- Nilai Berjalan -->
-                      <td class="py-3 px-3 text-right font-bold text-sky-600 dark:text-sky-400"
+                      <td class="py-3 px-3 text-right font-bold text-sky-600 dark:text-sky-400" x-show="cols.curVal"
                           x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
 
                       <!-- Floating P&L -->
-                      <td class="py-3 px-3 text-right font-bold"
+                      <td class="py-3 px-3 text-right font-bold" x-show="cols.pnl"
                           :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
                           x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct + '%)') : '-'"></td>
 
@@ -799,6 +803,156 @@
   </div>
 
   <!-- ========================================================================= -->
+  <!-- MODAL: PENGATURAN VISIBILITAS KOLOM (CUSTOMIZE COLUMNS)                   -->
+  <!-- ========================================================================= -->
+  <div x-cloak x-show="showColumnModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showColumnModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-sky-500"></i>
+            <span>Pengaturan Kolom Tabel</span>
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 17 kolom aktif'"></span>).
+          </p>
+        </div>
+        <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Preset Buttons -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
+        <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
+          Semua Kolom (17)
+        </button>
+        <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
+          Standar Rekomendasi (14)
+        </button>
+        <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
+          Ringkas Minimal (6)
+        </button>
+      </div>
+
+      <!-- Column Groups Grid -->
+      <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+        
+        <!-- Group 1: Indikator Performa Return -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+          <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+            <span>1. Indikator Performa Return (% Profit)</span>
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf24h" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">24H</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf5h" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">5H</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf1m" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">1M</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf1y" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">1Y</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf5y" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">5Y</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf10y" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">10Y</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf15y" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">15Y</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf20y" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">20Y</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Group 2: Valuasi & ATH -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+          <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="target" class="w-3.5 h-3.5"></i>
+            <span>2. Valuasi & ATH Radar</span>
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.athPrice" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">ATH Price</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.athDrawdown" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">% from ATH</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.athZone" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Zonasi ATH</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.peValuation" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Valuasi P/E</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Group 3: Portofolio & Posisi -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+            <span>3. Portofolio & Posisi Investasi</span>
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.investedIdr" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Modal Terinvestasi</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.quantity" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Quantity</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.avgPrice" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">AVG Price</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.curVal" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Nilai Berjalan</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.pnl" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Floating PnL</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+        <span class="text-[11px] text-slate-400">Pilihan otomatis tersimpan di browser Anda</span>
+        <button type="button" @click="showColumnModal = false" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-md shadow-sky-600/20 text-xs transition">
+          Selesai
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- MODAL: SETTINGS (FINANCIAL FREEDOM & CASH)                               -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showSettingsModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -912,6 +1066,35 @@
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
+      // Load saved column preferences or default
+      const defaultCols = {
+        perf24h: true,
+        perf5h: true,
+        perf1m: true,
+        perf1y: true,
+        perf5y: true,
+        perf10y: true,
+        perf15y: false,
+        perf20y: false,
+        athPrice: true,
+        athDrawdown: true,
+        athZone: true,
+        peValuation: true,
+        investedIdr: true,
+        quantity: true,
+        avgPrice: false,
+        curVal: true,
+        pnl: true
+      };
+
+      let savedCols = defaultCols;
+      try {
+        const stored = localStorage.getItem('radar_cols_v2');
+        if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
+      } catch (e) {
+        console.error(e);
+      }
+
       return {
         data: {{ portfolio | tojson | safe }},
         monthlyRecords: {{ monthly | tojson | safe }},
@@ -922,11 +1105,9 @@
         activeView: 'portfolio',
         searchQuery: '',
         
-        // Column Visibility (Default: AVG Price and 15Y/20Y are hidden)
-        showAvgPrice: false,
-        showLongTerm: false,
-        showPeValuation: true,
-        showAthZone: true,
+        // 17 Fully Configurable Columns
+        cols: savedCols,
+        showColumnModal: false,
         
         isLoading: false,
         currentTime: '',
@@ -969,6 +1150,48 @@
           setInterval(() => this.updateClock(), 1000);
           this.startAutoRefreshTimer();
           lucide.createIcons();
+        },
+
+        toggleCol(colKey) {
+          if (this.cols[colKey] !== undefined) {
+            this.cols[colKey] = !this.cols[colKey];
+            this.saveColsPref();
+          }
+        },
+
+        saveColsPref() {
+          try {
+            localStorage.setItem('radar_cols_v2', JSON.stringify(this.cols));
+          } catch (e) {
+            console.error(e);
+          }
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        activeColumnCount() {
+          return Object.values(this.cols).filter(Boolean).length;
+        },
+
+        setColsPreset(preset) {
+          if (preset === 'all') {
+            Object.keys(this.cols).forEach(k => this.cols[k] = true);
+          } else if (preset === 'default') {
+            this.cols = {
+              perf24h: true, perf5h: true, perf1m: true, perf1y: true, perf5y: true, perf10y: true,
+              perf15y: false, perf20y: false,
+              athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
+              investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
+            };
+          } else if (preset === 'compact') {
+            this.cols = {
+              perf24h: true, perf5h: true, perf1m: false, perf1y: true, perf5y: false, perf10y: false,
+              perf15y: false, perf20y: false,
+              athPrice: false, athDrawdown: false, athZone: false, peValuation: false,
+              investedIdr: false, quantity: false, avgPrice: false, curVal: true, pnl: true
+            };
+          }
+          this.saveColsPref();
+          this.showToastMessage('Preset kolom berhasil diterapkan!');
         },
 
         toggleTheme() {
