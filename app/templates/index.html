@@ -293,7 +293,7 @@
           <button @click="showLongTerm = !showLongTerm" 
                   class="px-2.5 py-1 rounded-lg text-xs transition border"
                   :class="showLongTerm ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30 font-semibold' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'">
-            15Y & 20Y (CAGR)
+            15Y & 20Y (Profit %)
           </button>
 
           <button @click="showPeValuation = !showPeValuation" 
@@ -372,16 +372,16 @@
                     <th class="py-3 px-4">Nama Aset</th>
                     <th class="py-3 px-3">Ticker</th>
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
-                    <th class="py-3 px-3 text-center">24h</th>
-                    <th class="py-3 px-3 text-center">1W</th>
+                    <th class="py-3 px-3 text-center">24H</th>
+                    <th class="py-3 px-3 text-center">5H</th>
                     <th class="py-3 px-3 text-center">1M</th>
                     <th class="py-3 px-3 text-center">1Y</th>
-                    <th class="py-3 px-3 text-center">5Y (CAGR)</th>
-                    <th class="py-3 px-3 text-center">10Y (CAGR)</th>
+                    <th class="py-3 px-3 text-center">5Y</th>
+                    <th class="py-3 px-3 text-center">10Y</th>
                     
                     <!-- Toggleable 15Y & 20Y -->
-                    <th class="py-3 px-3 text-center" x-show="showLongTerm">15Y (CAGR)</th>
-                    <th class="py-3 px-3 text-center" x-show="showLongTerm">20Y (CAGR)</th>
+                    <th class="py-3 px-3 text-center" x-show="showLongTerm">15Y</th>
+                    <th class="py-3 px-3 text-center" x-show="showLongTerm">20Y</th>
                     
                     <th class="py-3 px-3 text-right">ATH Price</th>
                     <th class="py-3 px-3 text-center">% from ATH</th>
@@ -434,45 +434,45 @@
                       <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
                           x-text="item.currency === 'IDR' ? formatIDR(item.current_price) : formatUSD(item.current_price)"></td>
 
-                      <!-- 24h % -->
+                      <!-- 24H % -->
                       <td class="py-3 px-3 text-center font-bold"
                           :class="item.perf?.['24h'] > 0 ? 'text-emerald-500' : (item.perf?.['24h'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['24h'] !== null ? ((item.perf?.['24h'] > 0 ? '+' : '') + item.perf?.['24h'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['24h'] !== null && item.perf?.['24h'] !== undefined ? ((item.perf?.['24h'] > 0 ? '+' : '') + item.perf?.['24h'] + '%') : 'N/A'"></td>
 
-                      <!-- 1W % -->
-                      <td class="py-3 px-3 text-center font-medium"
-                          :class="item.perf?.['1w'] > 0 ? 'text-emerald-500' : (item.perf?.['1w'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['1w'] !== null ? ((item.perf?.['1w'] > 0 ? '+' : '') + item.perf?.['1w'] + '%') : 'N/A'"></td>
+                      <!-- 5H % -->
+                      <td class="py-3 px-3 text-center font-bold"
+                          :class="(item.perf?.['5h'] ?? item.perf?.['1w']) > 0 ? 'text-emerald-500' : ((item.perf?.['5h'] ?? item.perf?.['1w']) < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="(item.perf?.['5h'] ?? item.perf?.['1w']) !== null && (item.perf?.['5h'] ?? item.perf?.['1w']) !== undefined ? (((item.perf?.['5h'] ?? item.perf?.['1w']) > 0 ? '+' : '') + (item.perf?.['5h'] ?? item.perf?.['1w']) + '%') : 'N/A'"></td>
 
                       <!-- 1M % -->
                       <td class="py-3 px-3 text-center font-medium"
                           :class="item.perf?.['1m'] > 0 ? 'text-emerald-500' : (item.perf?.['1m'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['1m'] !== null ? ((item.perf?.['1m'] > 0 ? '+' : '') + item.perf?.['1m'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['1m'] !== null && item.perf?.['1m'] !== undefined ? ((item.perf?.['1m'] > 0 ? '+' : '') + item.perf?.['1m'] + '%') : 'N/A'"></td>
 
                       <!-- 1Y % -->
                       <td class="py-3 px-3 text-center font-medium"
                           :class="item.perf?.['1y'] > 0 ? 'text-emerald-500' : (item.perf?.['1y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['1y'] !== null ? ((item.perf?.['1y'] > 0 ? '+' : '') + item.perf?.['1y'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['1y'] !== null && item.perf?.['1y'] !== undefined ? ((item.perf?.['1y'] > 0 ? '+' : '') + item.perf?.['1y'] + '%') : 'N/A'"></td>
 
-                      <!-- 5Y (CAGR) -->
+                      <!-- 5Y (Total Profit %) -->
                       <td class="py-3 px-3 text-center font-medium"
                           :class="item.perf?.['5y'] > 0 ? 'text-emerald-500' : (item.perf?.['5y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['5y'] !== null ? ((item.perf?.['5y'] > 0 ? '+' : '') + item.perf?.['5y'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['5y'] !== null && item.perf?.['5y'] !== undefined ? ((item.perf?.['5y'] > 0 ? '+' : '') + item.perf?.['5y'] + '%') : 'N/A'"></td>
 
-                      <!-- 10Y (CAGR) -->
+                      <!-- 10Y (Total Profit %) -->
                       <td class="py-3 px-3 text-center font-medium"
                           :class="item.perf?.['10y'] > 0 ? 'text-emerald-500' : (item.perf?.['10y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['10y'] !== null ? ((item.perf?.['10y'] > 0 ? '+' : '') + item.perf?.['10y'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['10y'] !== null && item.perf?.['10y'] !== undefined ? ((item.perf?.['10y'] > 0 ? '+' : '') + item.perf?.['10y'] + '%') : 'N/A'"></td>
 
-                      <!-- 15Y (CAGR) -->
+                      <!-- 15Y (Total Profit %) -->
                       <td class="py-3 px-3 text-center font-medium" x-show="showLongTerm"
                           :class="item.perf?.['15y'] > 0 ? 'text-emerald-500' : (item.perf?.['15y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['15y'] !== null ? ((item.perf?.['15y'] > 0 ? '+' : '') + item.perf?.['15y'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['15y'] !== null && item.perf?.['15y'] !== undefined ? ((item.perf?.['15y'] > 0 ? '+' : '') + item.perf?.['15y'] + '%') : 'N/A'"></td>
 
-                      <!-- 20Y (CAGR) -->
+                      <!-- 20Y (Total Profit %) -->
                       <td class="py-3 px-3 text-center font-medium" x-show="showLongTerm"
                           :class="item.perf?.['20y'] > 0 ? 'text-emerald-500' : (item.perf?.['20y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['20y'] !== null ? ((item.perf?.['20y'] > 0 ? '+' : '') + item.perf?.['20y'] + '%') : 'N/A'"></td>
+                          x-text="item.perf?.['20y'] !== null && item.perf?.['20y'] !== undefined ? ((item.perf?.['20y'] > 0 ? '+' : '') + item.perf?.['20y'] + '%') : 'N/A'"></td>
 
                       <!-- ATH Price -->
                       <td class="py-3 px-3 text-right text-slate-500"

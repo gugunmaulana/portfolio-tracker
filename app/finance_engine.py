@@ -294,12 +294,22 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                 first_ts = data_points[0][0]
                 total_span_days = (now_ts - first_ts) / 86400.0
 
-                # 24h
+                # 24H (1 trading session / 1 day return)
                 if len(data_points) >= 2:
                     c_prev = data_points[-2][1]
                     result["perf"]["24h"] = round(((cur_close - c_prev) / c_prev) * 100.0, 1)
 
-                def get_perf_by_days(days: int, is_annualized: bool = False) -> Optional[float]:
+                # 5H / 1W (5 trading sessions / 1 week return)
+                if len(data_points) >= 6:
+                    c_5d = data_points[-6][1]
+                    result["perf"]["5h"] = round(((cur_close - c_5d) / c_5d) * 100.0, 1)
+                    result["perf"]["1w"] = result["perf"]["5h"]
+                elif len(data_points) >= 2:
+                    c_first = data_points[0][1]
+                    result["perf"]["5h"] = round(((cur_close - c_first) / c_first) * 100.0, 1)
+                    result["perf"]["1w"] = result["perf"]["5h"]
+
+                def get_total_profit_pct(days: int) -> Optional[float]:
                     # If total history is significantly shorter than requested timeframe, return None (N/A)
                     if total_span_days < (days * 0.85):
                         return None
@@ -308,23 +318,24 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                         return None
                     closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
                     if closest[1] and closest[1] > 0:
-                        if is_annualized and days >= 365:
-                            years = days / 365.25
-                            cagr = ((cur_close / closest[1]) ** (1.0 / years) - 1.0) * 100.0
-                            return round(cagr, 1)
-                        else:
-                            ret = ((cur_close - closest[1]) / closest[1]) * 100.0
-                            return round(ret, 1)
+                        # Pure Total Cumulative Profit Percentage (NO CAGR!)
+                        ret = ((cur_close - closest[1]) / closest[1]) * 100.0
+                        return round(ret, 1)
                     return None
 
-                result["perf"]["1w"] = get_perf_by_days(7) or 0.0
-                result["perf"]["1m"] = get_perf_by_days(30) or 0.0
-                result["perf"]["6m"] = get_perf_by_days(182) or 0.0
-                result["perf"]["1y"] = get_perf_by_days(365) or 0.0
-                result["perf"]["5y"] = get_perf_by_days(5 * 365, is_annualized=True)
-                result["perf"]["10y"] = get_perf_by_days(10 * 365, is_annualized=True)
-                result["perf"]["15y"] = get_perf_by_days(15 * 365, is_annualized=True)
-                result["perf"]["20y"] = get_perf_by_days(20 * 365, is_annualized=True)
+                # If 5h wasn't set by trading sessions, compute by 7 calendar days
+                if result["perf"].get("5h") is None:
+                    p5 = get_total_profit_pct(7)
+                    result["perf"]["5h"] = p5
+                    result["perf"]["1w"] = p5
+
+                result["perf"]["1m"] = get_total_profit_pct(30)
+                result["perf"]["6m"] = get_total_profit_pct(182)
+                result["perf"]["1y"] = get_total_profit_pct(365)
+                result["perf"]["5y"] = get_total_profit_pct(5 * 365)
+                result["perf"]["10y"] = get_total_profit_pct(10 * 365)
+                result["perf"]["15y"] = get_total_profit_pct(15 * 365)
+                result["perf"]["20y"] = get_total_profit_pct(20 * 365)
 
     except Exception as e:
         logger.debug(f"Fetch error for {ticker_symbol}: {e}")
