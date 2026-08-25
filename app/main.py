@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import FastAPI, Request, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,12 +16,16 @@ from .database import (
     get_available_years,
     create_year_records,
     upsert_monthly_record,
+    get_user_categories,
+    upsert_category,
+    delete_category,
     DEFAULT_PORTFOLIO_CONFIG
 )
 from .finance_engine import (
     compute_full_portfolio,
     get_macro_and_fx,
     fetch_ticker_market_data,
+    get_asset_logo_url,
     MARKET_CACHE
 )
 
@@ -59,6 +63,14 @@ class AssetPayload(BaseModel):
     pe_exp: Optional[float] = None
 
 
+class CategoryPayload(BaseModel):
+    id: str
+    name: str
+    subtitle: Optional[str] = ""
+    color: Optional[str] = "blue"
+    sort_order: Optional[int] = 0
+
+
 class SettingsPayload(BaseModel):
     target_financial_freedom: float
     total_outgoings: float
@@ -86,6 +98,7 @@ async def index(request: Request, user_id: str = "default_user", year: int = 202
     if year not in years:
         year = years[-1] if years else 2026
     monthly = get_monthly_records(user_id, year=year)
+    categories = get_user_categories(user_id)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
@@ -94,6 +107,7 @@ async def index(request: Request, user_id: str = "default_user", year: int = 202
             "monthly": monthly,
             "available_years": years,
             "current_year": year,
+            "categories": categories,
             "user_id": user_id
         }
     )
@@ -115,6 +129,32 @@ async def api_refresh_data(user_id: str = "default_user"):
     return JSONResponse(content={"status": "success", "data": portfolio})
 
 
+# Category Management APIs
+@app.get("/api/categories")
+async def api_get_categories(user_id: str = "default_user"):
+    categories = get_user_categories(user_id)
+    return JSONResponse(content=categories)
+
+
+@app.post("/api/categories/upsert")
+async def api_upsert_category(payload: CategoryPayload, user_id: str = "default_user"):
+    upsert_category(user_id, payload.dict())
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    categories = get_user_categories(user_id)
+    return JSONResponse(content={"status": "success", "portfolio": portfolio, "categories": categories})
+
+
+@app.delete("/api/categories/{category_id}")
+async def api_delete_category(category_id: str, user_id: str = "default_user"):
+    delete_category(user_id, category_id)
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    categories = get_user_categories(user_id)
+    return JSONResponse(content={"status": "success", "portfolio": portfolio, "categories": categories})
+
+
+# Asset Management APIs
 @app.post("/api/assets/upsert")
 async def api_upsert_asset(payload: AssetPayload, user_id: str = "default_user"):
     upsert_portfolio_item(user_id, payload.dict())
@@ -176,7 +216,3 @@ async def api_upsert_monthly(payload: MonthlyPayload, user_id: str = "default_us
 async def api_lookup_ticker(ticker: str):
     data = fetch_ticker_market_data(ticker.upper())
     return JSONResponse(content=data)
-
-
-
-

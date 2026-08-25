@@ -1,9 +1,17 @@
 import json
 import sqlite3
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "portfolio.db")
+
+DEFAULT_CATEGORIES_DATA = [
+    ("core_radar", "default_user", "CORE RADAR — 3 Best ETF", "Pondasi Index US & Semikonduktor", "blue", 1),
+    ("war_nemesis", "default_user", "WAR NEMESIS & ANCHOR ASSETS", "Crypto Anchor & Safe Haven / Hedge", "amber", 2),
+    ("global_stock", "default_user", "US & GLOBAL MONOPOLY STOCK", "Tech Backbone & Semiconductor Chokepoint", "indigo", 3),
+    ("satellites", "default_user", "EXTENDED RADAR — Indonesia & Crypto Satellites", "Diversifikasi Lokal IHSG & High-Beta Crypto", "emerald", 4),
+    ("watchlist", "default_user", "WATCHLIST — AI Infrastructure & Energy Grid", "Rantai Pasok Semikonduktor, Software & Nuklir", "cyan", 5),
+]
 
 DEFAULT_PORTFOLIO_CONFIG = {
     "user_id": "default_user",
@@ -98,55 +106,55 @@ DEFAULT_PORTFOLIO_CONFIG = {
             "items": [
                 {
                     "ticker": "BRK-B",
-                    "name": "Mesin alokasi modal W.Buffet",
+                    "name": "Konglomerasi Buffett & Kas Masif",
                     "category": "global_stock",
                     "currency": "USD",
                     "invested_idr": 0.0,
                     "quantity": 0.0,
                     "avg_price_usd": 0.0,
-                    "pe_great": 15.0,
+                    "pe_great": 16.0,
                     "pe_good": 20.0,
-                    "pe_exp": 24.0
+                    "pe_exp": 25.0
                 },
                 {
                     "ticker": "COST",
-                    "name": "Raja konsumen",
+                    "name": "Ritel Monopoli Membership",
                     "category": "global_stock",
                     "currency": "USD",
                     "invested_idr": 0.0,
                     "quantity": 0.0,
                     "avg_price_usd": 0.0,
-                    "pe_great": 35.0,
-                    "pe_good": 45.0,
+                    "pe_great": 32.0,
+                    "pe_good": 40.0,
                     "pe_exp": 50.0
                 },
                 {
                     "ticker": "JPM",
-                    "name": "Raja perbankan global",
+                    "name": "Raja Finansial & Perbankan Wall St",
                     "category": "global_stock",
                     "currency": "USD",
                     "invested_idr": 0.0,
                     "quantity": 0.0,
                     "avg_price_usd": 0.0,
-                    "pe_great": 11.0,
-                    "pe_good": 14.0,
-                    "pe_exp": 16.0
+                    "pe_great": 10.0,
+                    "pe_good": 12.5,
+                    "pe_exp": 15.0
                 },
                 {
                     "ticker": "V",
-                    "name": "Mesin tol ekonomi dunia",
+                    "name": "Rel Pembayaran & Finansial Global",
                     "category": "global_stock",
                     "currency": "USD",
                     "invested_idr": 0.0,
                     "quantity": 0.0,
                     "avg_price_usd": 0.0,
-                    "pe_great": 22.0,
-                    "pe_good": 28.0,
-                    "pe_exp": 32.0
+                    "pe_great": 24.0,
+                    "pe_good": 29.0,
+                    "pe_exp": 35.0
                 },
                 {
                     "ticker": "MSFT",
-                    "name": "Tech Backbone (Cloud / AI)",
+                    "name": "Tech Backbone (Enterprise & Cloud)",
                     "category": "global_stock",
                     "currency": "USD",
                     "invested_idr": 3003107.0,
@@ -300,33 +308,33 @@ DEFAULT_PORTFOLIO_CONFIG = {
                 },
                 {
                     "ticker": "UNTR.JK",
-                    "name": "Raja Alat Berat & Tambang RI",
+                    "name": "Heavy Equipment & Tambang Emas",
                     "category": "satellites",
                     "currency": "IDR",
-                    "invested_idr": 0.0,
-                    "quantity": 0.0,
-                    "avg_price_idr": 0.0,
+                    "invested_idr": 2420000.0,
+                    "quantity": 1.0,
+                    "avg_price_idr": 24200.0,
                     "is_lot": True,
                     "pe_great": 5.0,
-                    "pe_good": 7.0,
-                    "pe_exp": 9.0
+                    "pe_good": 6.5,
+                    "pe_exp": 8.5
                 },
                 {
                     "ticker": "BREN.JK",
-                    "name": "Energi Terbarukan RI",
+                    "name": "Energi Terbarukan Panas Bumi RI",
                     "category": "satellites",
                     "currency": "IDR",
-                    "invested_idr": 407000.0,
+                    "invested_idr": 922500.0,
                     "quantity": 1.0,
-                    "avg_price_idr": 4070.0,
+                    "avg_price_idr": 9225.0,
                     "is_lot": True,
-                    "pe_great": 12.0,
-                    "pe_good": 16.0,
-                    "pe_exp": 22.0
+                    "pe_great": 80.0,
+                    "pe_good": 120.0,
+                    "pe_exp": 180.0
                 },
                 {
                     "ticker": "ETH-USD",
-                    "name": "Ethereum Smart Contract Platform",
+                    "name": "Smart Contract Platform Leader",
                     "category": "satellites",
                     "currency": "USD",
                     "invested_idr": 0.0,
@@ -338,12 +346,12 @@ DEFAULT_PORTFOLIO_CONFIG = {
                 },
                 {
                     "ticker": "MSTR",
-                    "name": "MicroStrategy Bitcoin Proxy",
+                    "name": "Bitcoin Treasury & Hyper-Leverage",
                     "category": "satellites",
                     "currency": "USD",
-                    "invested_idr": 29317750.0,
-                    "quantity": 11.17,
-                    "avg_price_usd": 151.73,
+                    "invested_idr": 0.0,
+                    "quantity": 0.0,
+                    "avg_price_usd": 0.0,
                     "pe_great": None,
                     "pe_good": None,
                     "pe_exp": None
@@ -501,6 +509,19 @@ def init_db():
     )
     """)
     
+    # Table categories (Editable & Dynamic Categories)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS categories (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        name TEXT,
+        subtitle TEXT,
+        color TEXT DEFAULT 'blue',
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    """)
+
     # Table portfolio_items
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS portfolio_items (
@@ -569,6 +590,15 @@ def init_db():
                     item.get("pe_exp")
                 ))
 
+    # Seed default categories if not exist
+    cursor.execute("SELECT COUNT(*) FROM categories WHERE user_id = 'default_user'")
+    if cursor.fetchone()[0] == 0:
+        for cat_id, uid, name, sub, col, ord_idx in DEFAULT_CATEGORIES_DATA:
+            cursor.execute("""
+            INSERT OR REPLACE INTO categories (id, user_id, name, subtitle, color, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, (cat_id, uid, name, sub, col, ord_idx))
+
     # Seed default monthly records for 2026 if not exist
     cursor.execute("SELECT COUNT(*) FROM monthly_records WHERE user_id = 'default_user' AND year = 2026")
     if cursor.fetchone()[0] == 0:
@@ -596,6 +626,50 @@ def init_db():
     conn.close()
 
 
+def get_user_categories(user_id: str = "default_user") -> List[Dict[str, Any]]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order ASC, id ASC", (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_category(user_id: str, data: Dict[str, Any]):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cat_id = data.get("id", "").strip().lower().replace(" ", "_")
+    name = data.get("name", "Kategori Baru")
+    subtitle = data.get("subtitle", "")
+    color = data.get("color", "blue")
+    sort_order = int(data.get("sort_order", 99))
+    
+    cursor.execute("""
+    INSERT INTO categories (id, user_id, name, subtitle, color, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        subtitle = excluded.subtitle,
+        color = excluded.color,
+        sort_order = excluded.sort_order
+    """, (cat_id, user_id, name, subtitle, color, sort_order))
+    conn.commit()
+    conn.close()
+
+
+def delete_category(user_id: str, category_id: str):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM categories WHERE id = ? AND user_id = ?", (category_id, user_id))
+    # Note: we do not delete assets, we can keep them or user can reassign
+    conn.commit()
+    conn.close()
+
+
 def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
     init_db()
     conn = sqlite3.connect(DB_PATH)
@@ -607,6 +681,10 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
     if not user:
         conn.close()
         return DEFAULT_PORTFOLIO_CONFIG
+    
+    # Query categories
+    cursor.execute("SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order ASC, id ASC", (user_id,))
+    cat_rows = cursor.fetchall()
     
     cursor.execute("SELECT * FROM portfolio_items WHERE user_id = ?", (user_id,))
     rows = cursor.fetchall()
@@ -633,22 +711,30 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
         })
     
     categories = []
-    cat_metadata = {
-        "core_radar": ("CORE RADAR — 3 Best ETF", "Pondasi Index US & Semikonduktor", "blue"),
-        "war_nemesis": ("WAR NEMESIS & ANCHOR ASSETS", "Crypto Anchor & Safe Haven / Hedge", "amber"),
-        "global_stock": ("US & GLOBAL MONOPOLY STOCK", "Tech Backbone & Semiconductor Chokepoint", "indigo"),
-        "satellites": ("EXTENDED RADAR — Indonesia & Crypto Satellites", "Diversifikasi Lokal IHSG & High-Beta Crypto", "emerald"),
-        "watchlist": ("WATCHLIST — AI Infrastructure & Energy Grid", "Rantai Pasok Semikonduktor, Software & Nuklir", "cyan")
-    }
-    
-    for cat_id, (name, subtitle, color) in cat_metadata.items():
+    seen_cats = set()
+    for crow in cat_rows:
+        cid = crow["id"]
+        seen_cats.add(cid)
         categories.append({
-            "id": cat_id,
-            "name": name,
-            "subtitle": subtitle,
-            "color": color,
-            "items": items_by_cat.get(cat_id, [])
+            "id": cid,
+            "name": crow["name"],
+            "subtitle": crow["subtitle"] or "",
+            "color": crow["color"] or "blue",
+            "sort_order": crow["sort_order"],
+            "items": items_by_cat.get(cid, [])
         })
+        
+    # Any item with a category not in table
+    for cat_id, items in items_by_cat.items():
+        if cat_id not in seen_cats:
+            categories.append({
+                "id": cat_id,
+                "name": cat_id.replace("_", " ").upper(),
+                "subtitle": "Kategori Kustom",
+                "color": "cyan",
+                "sort_order": 99,
+                "items": items
+            })
         
     return {
         "user_id": user["id"],
@@ -807,4 +893,3 @@ def delete_portfolio_item(user_id: str, item_id: int):
     cursor.execute("DELETE FROM portfolio_items WHERE id = ? AND user_id = ?", (item_id, user_id))
     conn.commit()
     conn.close()
-

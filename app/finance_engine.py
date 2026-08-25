@@ -20,6 +20,70 @@ session.headers.update({
 MARKET_CACHE: Dict[str, Any] = {}
 CACHE_TTL_SECONDS = 15
 
+# Vetted high-resolution asset logo repository
+ASSET_LOGOS = {
+    # Cryptocurrencies & Commodities
+    "BTC-USD": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
+    "BTC": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
+    "ETH-USD": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
+    "ETH": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
+    "SOL-USD": "https://assets.coingecko.com/coins/images/4128/small/solana.png",
+    "SOL": "https://assets.coingecko.com/coins/images/4128/small/solana.png",
+    "GC=F": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png", # Gold bullion
+    "XAUUSD": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png",
+    # ETFs & Major Indices
+    "VOO": "https://assets.parqet.com/logos/symbol/VOO?format=png",
+    "QQQ": "https://assets.parqet.com/logos/symbol/QQQ?format=png",
+    "SMH": "https://assets.parqet.com/logos/symbol/SMH?format=png",
+    "^GSPC": "https://assets.parqet.com/logos/symbol/SPY?format=png",
+    "^JKSE": "https://assets.parqet.com/logos/symbol/EIDO?format=png",
+    # US & Global Equities
+    "NVDA": "https://assets.parqet.com/logos/symbol/NVDA?format=png",
+    "MSFT": "https://assets.parqet.com/logos/symbol/MSFT?format=png",
+    "AAPL": "https://assets.parqet.com/logos/symbol/AAPL?format=png",
+    "GOOGL": "https://assets.parqet.com/logos/symbol/GOOGL?format=png",
+    "AMZN": "https://assets.parqet.com/logos/symbol/AMZN?format=png",
+    "META": "https://assets.parqet.com/logos/symbol/META?format=png",
+    "BRK-B": "https://assets.parqet.com/logos/symbol/BRK-B?format=png",
+    "TSM": "https://assets.parqet.com/logos/symbol/TSM?format=png",
+    "ASML": "https://assets.parqet.com/logos/symbol/ASML?format=png",
+    "AVGO": "https://assets.parqet.com/logos/symbol/AVGO?format=png",
+    "COST": "https://assets.parqet.com/logos/symbol/COST?format=png",
+    "JPM": "https://assets.parqet.com/logos/symbol/JPM?format=png",
+    "V": "https://assets.parqet.com/logos/symbol/V?format=png",
+    "LLY": "https://assets.parqet.com/logos/symbol/LLY?format=png",
+    "PLTR": "https://assets.parqet.com/logos/symbol/PLTR?format=png",
+    "MSTR": "https://assets.parqet.com/logos/symbol/MSTR?format=png",
+    "KLAC": "https://assets.parqet.com/logos/symbol/KLAC?format=png",
+    "AMAT": "https://assets.parqet.com/logos/symbol/AMAT?format=png",
+    "LRCX": "https://assets.parqet.com/logos/symbol/LRCX?format=png",
+    "ETN": "https://assets.parqet.com/logos/symbol/ETN?format=png",
+    "RTX": "https://assets.parqet.com/logos/symbol/RTX?format=png",
+    "SNPS": "https://assets.parqet.com/logos/symbol/SNPS?format=png",
+    "CEG": "https://assets.parqet.com/logos/symbol/CEG?format=png",
+    "PWR": "https://assets.parqet.com/logos/symbol/PWR?format=png",
+    "CCJ": "https://assets.parqet.com/logos/symbol/CCJ?format=png",
+    "VRT": "https://assets.parqet.com/logos/symbol/VRT?format=png",
+    # Indonesian Stocks
+    "BBCA.JK": "https://assets.parqet.com/logos/symbol/BBCA.JK?format=png",
+    "BBRI.JK": "https://assets.parqet.com/logos/symbol/BBRI.JK?format=png",
+    "BMRI.JK": "https://assets.parqet.com/logos/symbol/BMRI.JK?format=png",
+    "UNTR.JK": "https://assets.parqet.com/logos/symbol/UNTR.JK?format=png",
+    "BREN.JK": "https://assets.parqet.com/logos/symbol/BREN.JK?format=png",
+    "AMMN.JK": "https://assets.parqet.com/logos/symbol/AMMN.JK?format=png",
+}
+
+
+def get_asset_logo_url(ticker: str) -> str:
+    clean = ticker.strip().upper()
+    if clean in ASSET_LOGOS:
+        return ASSET_LOGOS[clean]
+    if "-USD" in clean:
+        coin = clean.split("-")[0].lower()
+        return f"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/{coin}.png"
+    return f"https://assets.parqet.com/logos/symbol/{clean}?format=png"
+
+
 FALLBACK_PRICES = {
     "USDIDR=X": 17688.0,
     "CNYIDR=X": 2632.0,
@@ -228,32 +292,39 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                 cur_close = data_points[-1][1]
                 now_ts = data_points[-1][0]
                 first_ts = data_points[0][0]
+                total_span_days = (now_ts - first_ts) / 86400.0
 
                 # 24h
                 if len(data_points) >= 2:
                     c_prev = data_points[-2][1]
                     result["perf"]["24h"] = round(((cur_close - c_prev) / c_prev) * 100.0, 1)
 
-                def get_perf_by_days(days: int) -> Optional[float]:
+                def get_perf_by_days(days: int, is_annualized: bool = False) -> Optional[float]:
+                    # If total history is significantly shorter than requested timeframe, return None (N/A)
+                    if total_span_days < (days * 0.85):
+                        return None
                     target_ts = now_ts - (days * 86400)
-                    # If ticker started after target_ts, it did not exist for that full timeframe
                     if target_ts < first_ts:
                         return None
-                    # Find closest point
                     closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
                     if closest[1] and closest[1] > 0:
-                        ret = ((cur_close - closest[1]) / closest[1]) * 100.0
-                        return round(ret, 1)
+                        if is_annualized and days >= 365:
+                            years = days / 365.25
+                            cagr = ((cur_close / closest[1]) ** (1.0 / years) - 1.0) * 100.0
+                            return round(cagr, 1)
+                        else:
+                            ret = ((cur_close - closest[1]) / closest[1]) * 100.0
+                            return round(ret, 1)
                     return None
 
                 result["perf"]["1w"] = get_perf_by_days(7) or 0.0
                 result["perf"]["1m"] = get_perf_by_days(30) or 0.0
                 result["perf"]["6m"] = get_perf_by_days(182) or 0.0
                 result["perf"]["1y"] = get_perf_by_days(365) or 0.0
-                result["perf"]["5y"] = get_perf_by_days(5 * 365)
-                result["perf"]["10y"] = get_perf_by_days(10 * 365)
-                result["perf"]["15y"] = get_perf_by_days(15 * 365)
-                result["perf"]["20y"] = get_perf_by_days(20 * 365)
+                result["perf"]["5y"] = get_perf_by_days(5 * 365, is_annualized=True)
+                result["perf"]["10y"] = get_perf_by_days(10 * 365, is_annualized=True)
+                result["perf"]["15y"] = get_perf_by_days(15 * 365, is_annualized=True)
+                result["perf"]["20y"] = get_perf_by_days(20 * 365, is_annualized=True)
 
     except Exception as e:
         logger.debug(f"Fetch error for {ticker_symbol}: {e}")
@@ -286,7 +357,7 @@ def fetch_all_tickers_parallel(tickers: List[str]) -> Dict[str, Dict[str, Any]]:
                     "price": FALLBACK_PRICES.get(t, 100.0),
                     "ath": FALLBACK_PRICES.get(t, 100.0) * 1.1,
                     "pe": FALLBACK_PE_RATIOS.get(t, None),
-                    "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None}
+                    "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None, "15y": None, "20y": None}
                 }
     return results
 
@@ -299,7 +370,7 @@ def calculate_dislocation_and_valuation(
     pe_good: Optional[float],
     pe_exp: Optional[float]
 ) -> Dict[str, Any]:
-    """Calculate ATH drawdown, Z1-Z4 Dislocation Zone, and PE Valuation rating."""
+    """Calculate ATH drawdown, Z1-Z4 Dislocation Zone, and PE Valuation rating tailored per asset."""
     if ath > 0:
         drawdown = ((price - ath) / ath) * 100.0
     else:
@@ -310,38 +381,38 @@ def calculate_dislocation_and_valuation(
         status_code = "Z1"
         status_label = "Z1: Hold"
         status_color = "slate"
-        status_bg = "bg-slate-200 text-slate-800 border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 font-bold shadow-xs"
+        status_bg = "bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 font-semibold"
     elif drawdown >= -25.0:
         status_code = "Z2"
         status_label = "Z2: Watch/Scout"
         status_color = "yellow"
-        status_bg = "bg-amber-100 text-amber-950 border-amber-400 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/50 font-bold shadow-xs"
+        status_bg = "bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40 font-semibold"
     elif drawdown >= -40.0:
         status_code = "Z3"
         status_label = "Z3: High Dislocation"
         status_color = "green"
-        status_bg = "bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-500/25 dark:text-emerald-300 dark:border-emerald-500/50 font-extrabold shadow-xs"
+        status_bg = "bg-emerald-50 text-emerald-900 border-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 font-bold"
     else:
         status_code = "Z4"
         status_label = "Z4: Extreme Stress"
         status_color = "teal"
-        status_bg = "bg-cyan-100 text-cyan-950 border-cyan-500 dark:bg-cyan-500/30 dark:text-cyan-300 dark:border-cyan-400 font-extrabold badge-glow-teal animate-pulse shadow-md"
+        status_bg = "bg-cyan-50 text-cyan-900 border-cyan-400 dark:bg-cyan-500/25 dark:text-cyan-300 dark:border-cyan-400 font-extrabold"
 
     pe_status = "N/A"
-    pe_color = "text-slate-500 dark:text-slate-400 font-medium"
+    pe_color = "text-slate-400 dark:text-slate-500 font-normal"
     if pe is not None and pe > 0:
-        if pe_great and pe <= pe_great:
-            pe_status = "Great Buy"
-            pe_color = "text-emerald-900 bg-emerald-100 border-emerald-400 dark:text-emerald-300 dark:bg-emerald-950/60 dark:border-emerald-600/60 font-bold px-2 py-0.5 rounded border shadow-xs"
-        elif pe_good and pe <= pe_good:
-            pe_status = "Good Buy"
-            pe_color = "text-lime-900 bg-lime-100 border-lime-400 dark:text-lime-300 dark:bg-lime-950/50 dark:border-lime-600/50 font-bold px-2 py-0.5 rounded border shadow-xs"
-        elif pe_exp and pe >= pe_exp:
-            pe_status = "Expensive"
-            pe_color = "text-rose-900 bg-rose-100 border-rose-400 dark:text-rose-300 dark:bg-rose-950/60 dark:border-rose-600/60 font-bold px-2 py-0.5 rounded border shadow-xs"
+        if pe_great is not None and pe <= pe_great:
+            pe_status = "Diskon / Murah"
+            pe_color = "text-emerald-700 bg-emerald-50 border-emerald-300 dark:text-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-600/50 font-bold px-2 py-0.5 rounded border"
+        elif pe_good is not None and pe <= pe_good:
+            pe_status = "Harga Wajar"
+            pe_color = "text-blue-700 bg-blue-50 border-blue-300 dark:text-blue-300 dark:bg-blue-950/40 dark:border-blue-600/50 font-semibold px-2 py-0.5 rounded border"
+        elif pe_exp is not None and pe >= pe_exp:
+            pe_status = "Mahal / Overvalued"
+            pe_color = "text-rose-700 bg-rose-50 border-rose-300 dark:text-rose-300 dark:bg-rose-950/40 dark:border-rose-600/50 font-bold px-2 py-0.5 rounded border"
         else:
-            pe_status = "Fair Value"
-            pe_color = "text-slate-600 dark:text-slate-400 font-semibold"
+            pe_status = "Fair"
+            pe_color = "text-slate-700 bg-slate-100 border-slate-300 dark:text-slate-300 dark:bg-slate-800 dark:border-slate-700 font-medium px-2 py-0.5 rounded border"
 
     return {
         "drawdown": drawdown,
@@ -368,7 +439,7 @@ def sanitize_for_json(obj: Any) -> Any:
 
 
 def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Take user raw portfolio and enrich with live prices, values, PnL and scorecards."""
+    """Take user raw portfolio and enrich with live prices, values, PnL, logos, and custom valuations."""
     macro = get_macro_and_fx()
     usd_idr = macro["usd_idr"]
     
@@ -403,7 +474,7 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
                 "price": FALLBACK_PRICES.get(ticker, 100.0),
                 "ath": FALLBACK_PRICES.get(ticker, 100.0) * 1.1,
                 "pe": None,
-                "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": 0.0, "10y": 0.0}
+                "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None, "15y": None, "20y": None}
             })
             
             current_price = mkt["price"]
@@ -445,8 +516,11 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
             cat_invested += invested_idr
             cat_value += cur_val_idr
 
+            logo_url = get_asset_logo_url(ticker)
+
             cat_items.append({
                 **item,
+                "logo_url": logo_url,
                 "current_price": current_price,
                 "ath": ath,
                 "drawdown": disloc["drawdown"],
