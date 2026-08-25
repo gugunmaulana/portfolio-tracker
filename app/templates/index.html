@@ -1,9 +1,21 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id" class="dark" :class="{
+  'theme-terminal-dark': currentTheme === 'terminal_dark',
+  'theme-modern-dark': currentTheme === 'modern_dark',
+  'theme-classic-light': currentTheme === 'classic_light',
+  'theme-modern-light': currentTheme === 'modern_light',
+  'theme-midnight-blue': currentTheme === 'midnight_blue',
+  'theme-paper-research': currentTheme === 'paper_research',
+  'dark': appearanceMode === 'dark' || (appearanceMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches),
+  'light': appearanceMode === 'light' || (appearanceMode === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches),
+  'density-compact': currentDensity === 'compact',
+  'density-default': currentDensity === 'default',
+  'density-relaxed': currentDensity === 'relaxed'
+}" x-data="radarTerminalApp()" x-init="initApp()">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RADAR ASET 3.0 — Professional Investment Intelligence Terminal</title>
+  <title>RADAR ASET 4.0 — Global Asset Scanner & Investment Intelligence Terminal</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,23 +25,16 @@
       theme: {
         extend: {
           colors: {
-            terminal: {
-              bg: '#07090e',
-              card: '#0d111a',
-              cardsec: '#131824',
-              border: '#1b2234',
-              borderlight: '#263147',
-              text: '#f1f5f9',
-              muted: '#8492a6',
-            },
             pos: '#10b981',
             neg: '#f43f5e',
             warn: '#f59e0b',
-            cyanbrand: '#06b6d4'
+            cyanbrand: '#06b6d4',
+            purplebrand: '#a855f7'
           },
           fontFamily: {
             mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['Newsreader', 'Georgia', 'serif']
           }
         }
       }
@@ -43,72 +48,150 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- ======================================================================= -->
+  <!-- MULTI-THEME DESIGN TOKEN SYSTEM (6 THEMES + DENSITY CONTROL)           -->
+  <!-- ======================================================================= -->
   <style>
     [x-cloak] { display: none !important; }
     
-    /* Terminal Scrollbar */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    .dark ::-webkit-scrollbar-track { background: #07090e; }
-    .dark ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 3px; }
-    .dark ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    /* 1. TERMINAL DARK (Bloomberg Monospace Dense) */
+    .theme-terminal-dark {
+      --bg-main: #07090e;
+      --bg-card: #0d111a;
+      --bg-card-hover: #131824;
+      --border-color: #1b2234;
+      --border-light: #263147;
+      --text-main: #f1f5f9;
+      --text-muted: #8492a6;
+      --accent: #06b6d4;
+      --font-body: 'JetBrains Mono', monospace;
+    }
 
-    /* Tabular numbers for professional financial precision */
+    /* 2. MODERN DARK (Clean Fintech Dark) */
+    .theme-modern-dark {
+      --bg-main: #0b0f19;
+      --bg-card: #111827;
+      --bg-card-hover: #1f2937;
+      --border-color: #1f293d;
+      --border-light: #374151;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    /* 3. CLASSIC LIGHT (Institutional Research Desk) */
+    .theme-classic-light {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border-color: #cbd5e1;
+      --border-light: #94a3b8;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent: #1e3a8a;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    /* 4. MODERN LIGHT (Bright Fintech) */
+    .theme-modern-light {
+      --bg-main: #f3f4f6;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f9fafb;
+      --border-color: #e5e7eb;
+      --border-light: #d1d5db;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --accent: #059669;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    /* 5. MIDNIGHT BLUE (Deep Navy Institutional) */
+    .theme-midnight-blue {
+      --bg-main: #050b18;
+      --bg-card: #0a1329;
+      --bg-card-hover: #101e40;
+      --border-color: #162a56;
+      --border-light: #234182;
+      --text-main: #f0f6fc;
+      --text-muted: #8b9bb4;
+      --accent: #38bdf8;
+      --font-body: 'JetBrains Mono', monospace;
+    }
+
+    /* 6. PAPER RESEARCH (Warm Editorial Typography) */
+    .theme-paper-research {
+      --bg-main: #f7f4ed;
+      --bg-card: #fffefb;
+      --bg-card-hover: #f1ede2;
+      --border-color: #ded8c9;
+      --border-light: #c7beab;
+      --text-main: #292524;
+      --text-muted: #57534e;
+      --accent: #854d0e;
+      --font-body: 'Newsreader', serif;
+    }
+
+    body {
+      background-color: var(--bg-main, #07090e);
+      color: var(--text-main, #f1f5f9);
+      font-family: var(--font-body, 'Inter', sans-serif);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .card-theme {
+      background-color: var(--bg-card, #0d111a);
+      border-color: var(--border-color, #1b2234);
+    }
+    .card-hover:hover {
+      background-color: var(--bg-card-hover, #131824);
+    }
+    .border-theme {
+      border-color: var(--border-color, #1b2234);
+    }
+    .text-theme-muted {
+      color: var(--text-muted, #8492a6);
+    }
+
+    /* Tabular numbers for financial precision */
     .font-mono, td, th, .tabular-nums {
       font-variant-numeric: tabular-nums;
     }
+
+    /* Custom Density Modifiers */
+    .density-compact td, .density-compact th { padding-top: 0.35rem; padding-bottom: 0.35rem; font-size: 0.75rem; }
+    .density-default td, .density-default th { padding-top: 0.6rem; padding-bottom: 0.6rem; font-size: 0.8125rem; }
+    .density-relaxed td, .density-relaxed th { padding-top: 0.85rem; padding-bottom: 0.85rem; font-size: 0.875rem; }
+
+    /* Terminal Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main, #07090e); }
+    ::-webkit-scrollbar-thumb { background: var(--border-color, #1f293d); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-light, #334155); }
 
     @keyframes scanPulse {
       0% { opacity: 0.3; transform: scale(0.98); }
       50% { opacity: 0.9; transform: scale(1.01); }
       100% { opacity: 0.3; transform: scale(0.98); }
     }
-    .scanner-active {
-      animation: scanPulse 1.8s infinite ease-in-out;
-    }
-
-    .badge-glow-teal { box-shadow: 0 0 12px rgba(6, 182, 212, 0.4); }
-    .badge-glow-rose { box-shadow: 0 0 12px rgba(244, 63, 94, 0.4); }
-    .badge-glow-emerald { box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
-
-    /* Range slider custom styling */
-    input[type=range] {
-      height: 4px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: #1e293b;
-      border-radius: 2px;
-      outline: none;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #06b6d4;
-      cursor: pointer;
-      border: 2px solid #ffffff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
-    }
+    .scanner-active { animation: scanPulse 1.8s infinite ease-in-out; }
   </style>
 </head>
 
-<body class="min-h-screen font-sans antialiased text-slate-100 bg-[#07090e] selection:bg-cyan-500 selection:text-white"
-      x-data="radarTerminalApp()" x-init="initApp()">
+<body class="min-h-screen antialiased selection:bg-cyan-500 selection:text-white">
 
   <!-- ========================================================================= -->
-  <!-- 1. GLOBAL MARKET TICKER HEADER (LIVE STREAM + HONEST FRESHNESS REGISTRY) -->
+  <!-- 1. GLOBAL MARKET TICKER HEADER (LIVE STREAM & REALTIME METRICS)          -->
   <!-- ========================================================================= -->
   <header class="sticky top-0 z-40 bg-[#0a0e17]/98 border-b border-[#1b2234] backdrop-blur-md">
     
-    <!-- Top Micro Ticker Stream -->
+    <!-- Micro Ticker Feed Strip -->
     <div class="px-3 lg:px-6 py-1.5 border-b border-[#151c2c] flex items-center justify-between text-[11px] font-mono overflow-x-auto whitespace-nowrap gap-4">
       <div class="flex items-center gap-4">
-        <!-- Live Badge -->
+        <!-- Feed Live Status -->
         <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold text-[10px]">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-          <span>RADAR FEED: ONLINE</span>
+          <span>GLOBAL RADAR: ONLINE</span>
         </span>
 
         <!-- Ticker Items with Real Freshness -->
@@ -117,18 +200,21 @@
             <span class="text-slate-400 font-semibold">IHSG</span>
             <span class="font-bold text-white" x-text="data.macro?.ihsg"></span>
             <span :class="data.macro?.ihsg_chg >= 0 ? 'text-emerald-400' : 'text-rose-400'" x-text="(data.macro?.ihsg_chg >= 0 ? '+' : '') + data.macro?.ihsg_chg + '%'"></span>
+            <a :href="getYahooUrl('^JKSE')" target="_blank" class="text-slate-500 hover:text-cyan-400 text-[10px]" title="Verify on Yahoo Finance">↗</a>
           </span>
           <span class="text-slate-600">|</span>
           <span class="flex items-center gap-1.5">
             <span class="text-slate-400 font-semibold">S&P 500</span>
             <span class="font-bold text-white" x-text="data.macro?.sp500"></span>
             <span :class="data.macro?.sp500_chg >= 0 ? 'text-emerald-400' : 'text-rose-400'" x-text="(data.macro?.sp500_chg >= 0 ? '+' : '') + data.macro?.sp500_chg + '%'"></span>
+            <a :href="getYahooUrl('^GSPC')" target="_blank" class="text-slate-500 hover:text-cyan-400 text-[10px]" title="Verify on Yahoo Finance">↗</a>
           </span>
           <span class="text-slate-600">|</span>
           <span class="flex items-center gap-1.5">
             <span class="text-slate-400 font-semibold">NASDAQ</span>
             <span class="font-bold text-white" x-text="data.macro?.nasdaq"></span>
             <span :class="data.macro?.nasdaq_chg >= 0 ? 'text-emerald-400' : 'text-rose-400'" x-text="(data.macro?.nasdaq_chg >= 0 ? '+' : '') + data.macro?.nasdaq_chg + '%'"></span>
+            <a :href="getYahooUrl('^IXIC')" target="_blank" class="text-slate-500 hover:text-cyan-400 text-[10px]" title="Verify on Yahoo Finance">↗</a>
           </span>
           <span class="text-slate-600">|</span>
           <span class="flex items-center gap-1.5">
@@ -144,17 +230,16 @@
           </span>
           <span class="text-slate-600">|</span>
           <span class="flex items-center gap-1.5">
-            <span class="text-slate-400 font-semibold">BI Rate</span>
+            <span class="text-slate-400 font-semibold">BI 7DRR</span>
             <span class="font-bold text-amber-400">5.75%</span>
-            <span class="text-[9px] px-1 rounded bg-slate-800 text-slate-400">AUG 2026</span>
           </span>
         </div>
       </div>
 
-      <!-- Live Clock & Stream Countdown -->
+      <!-- Live Clock & Quick Sync -->
       <div class="flex items-center gap-2 text-slate-400">
         <span x-text="currentTime"></span>
-        <span class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-400 font-bold" x-text="'Sync in ' + autoRefreshCountdown + 's'"></span>
+        <span class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-400 font-bold" x-text="'Sync ' + autoRefreshCountdown + 's'"></span>
       </div>
     </div>
 
@@ -163,33 +248,33 @@
       
       <!-- Brand & Title -->
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/20 border border-cyan-400/30">
-          <i data-lucide="radar" class="w-4 h-4 text-white"></i>
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-cyan-500/20 border border-cyan-400/30">
+          <i data-lucide="compass" class="w-4 h-4 text-white"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-sm lg:text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
               <span>RADAR ASET</span>
-              <span class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono font-bold border border-cyan-500/40">3.0 PRO</span>
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono font-bold border border-purple-500/40">4.0 PRO INTELLIGENCE</span>
             </h1>
           </div>
-          <p class="text-[11px] text-slate-400">Professional Investment Intelligence Terminal for Indonesian Investors</p>
+          <p class="text-[11px] text-slate-400">Global Asset Scanner & Institutional Investment Intelligence Terminal</p>
         </div>
       </div>
 
-      <!-- Center: Command Search / Quick Jump Trigger -->
+      <!-- Center: Command Palette Trigger -->
       <div class="hidden md:flex items-center">
         <button @click="showCommandPalette = true" 
                 class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0d121c] border border-[#1e293b] text-slate-400 hover:text-white hover:border-cyan-500 transition text-xs font-mono w-72 justify-between">
           <span class="flex items-center gap-1.5">
             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
-            <span>Cari ticker, aset, metrik...</span>
+            <span>Cari ticker, tema, sinyal...</span>
           </span>
           <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 border border-slate-700">Ctrl + K</kbd>
         </button>
       </div>
 
-      <!-- Right Controls: Full Scan Action, Add Asset, Settings, Manual Refresh -->
+      <!-- Right Controls: Scan Portfolio, Theme Selector, Add Asset, Manual Refresh -->
       <div class="flex items-center gap-2">
         
         <!-- SIGNATURE ACTION: FULL PORTFOLIO SCAN -->
@@ -197,7 +282,15 @@
                 :disabled="isScanning"
                 class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-cyan-600/20 transition active:scale-95 disabled:opacity-50">
           <i data-lucide="scan-line" class="w-3.5 h-3.5" :class="{ 'scanner-active': isScanning }"></i>
-          <span x-text="isScanning ? 'SCANNING RADAR...' : '⚡ SCAN PORTFOLIO'"></span>
+          <span x-text="isScanning ? 'SCANNING...' : '⚡ SCAN PORTFOLIO'"></span>
+        </button>
+
+        <!-- Quick Theme Switcher Pill -->
+        <button @click="showAppearanceModal = true" 
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#131a29] border border-[#202c44] hover:border-purple-400 text-xs text-purple-300 font-semibold transition"
+                title="Pilih Tema & Tampilan Terminal">
+          <i data-lucide="palette" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span class="hidden sm:inline" x-text="getThemeName(currentTheme)"></span>
         </button>
 
         <!-- Add Asset -->
@@ -226,7 +319,7 @@
 
     </div>
 
-    <!-- Workspace View Navigation Pills (8 Workspaces) -->
+    <!-- Workspace View Navigation Tabs (9 Core Workspaces) -->
     <div class="px-3 lg:px-6 pt-1 flex items-center gap-1.5 border-t border-[#151c2c] overflow-x-auto whitespace-nowrap text-xs font-mono font-bold">
       
       <button @click="activeView = 'radar'" 
@@ -240,57 +333,58 @@
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'portfolio' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
-        <span>2. PORTFOLIO & ETF LOOKTHROUGH</span>
+        <span>2. PORTFOLIO & ETF</span>
+      </button>
+
+      <!-- NEW MASTER AREA: DISCOVER GLOBAL ASSET SCANNER -->
+      <button @click="activeView = 'discover'; $nextTick(() => renderRiskRewardChart())" 
+              class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
+              :class="activeView === 'discover' ? 'border-purple-400 text-purple-300 bg-purple-500/15' : 'border-transparent text-purple-400 hover:text-purple-200'">
+        <i data-lucide="compass" class="w-3.5 h-3.5 text-purple-400"></i>
+        <span>3. DISCOVER (GLOBAL SCANNER)</span>
+        <span class="px-1 py-0.2 rounded bg-purple-500/30 text-purple-200 text-[10px] font-extrabold animate-pulse">NEW</span>
       </button>
 
       <button @click="activeView = 'markets'" 
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'markets' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-        <span>3. MARKETS & MACRO</span>
+        <span>4. MARKETS & MACRO</span>
       </button>
 
       <button @click="activeView = 'risk'" 
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'risk' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
-        <span>4. RISK & STRESS TEST</span>
+        <span>5. RISK & STRESS TEST</span>
       </button>
 
       <button @click="activeView = 'valuation'" 
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'valuation' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="target" class="w-3.5 h-3.5"></i>
-        <span>5. VALUATION & AI RISK</span>
+        <span>6. VALUATION & AI RISK</span>
       </button>
 
       <button @click="activeView = 'wealth'; $nextTick(() => renderMonteCarloChart())" 
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'wealth' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
-        <span>6. WEALTH & MONTE CARLO</span>
+        <span>7. WEALTH & MONTE CARLO</span>
       </button>
 
       <button @click="activeView = 'monthly'; $nextTick(() => renderMonthlyGrowthChart())" 
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'monthly' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-        <span>7. TRACK BULANAN</span>
-        <span class="px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px]" x-text="selectedYear"></span>
-      </button>
-
-      <button @click="activeView = 'thesis'" 
-              class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
-              :class="activeView === 'thesis' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
-        <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-        <span>8. THESIS JOURNAL</span>
+        <span>8. TRACK BULANAN</span>
       </button>
 
       <button @click="activeView = 'settings'" 
               class="px-3.5 py-2 rounded-t-lg border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'settings' ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10' : 'border-transparent text-slate-400 hover:text-slate-200'">
         <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-        <span>9. TAX & ASSUMPTIONS</span>
+        <span>9. THEMES, TAX & SETTINGS</span>
       </button>
 
     </div>
@@ -309,17 +403,14 @@
       
       <!-- Top 10-Second Executive Summary Bar -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-        
-        <!-- Total Net Worth -->
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] shadow-lg">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">CURRENT NET WORTH</span>
+        <div class="p-4 rounded-xl card-theme border border-theme shadow-lg">
+          <span class="text-[11px] font-bold text-theme-muted uppercase tracking-wider block">CURRENT NET WORTH</span>
           <div class="text-2xl font-extrabold font-mono text-white mt-1" x-text="formatIDR(data.current_net_worth_idr)"></div>
-          <div class="text-xs font-mono text-slate-400 mt-0.5" x-text="'≈ ' + formatUSD(data.current_net_worth_usd)"></div>
+          <div class="text-xs font-mono text-theme-muted mt-0.5" x-text="'≈ ' + formatUSD(data.current_net_worth_usd)"></div>
         </div>
 
-        <!-- Total Floating P&L -->
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] shadow-lg">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">TOTAL FLOATING P&L</span>
+        <div class="p-4 rounded-xl card-theme border border-theme shadow-lg">
+          <span class="text-[11px] font-bold text-theme-muted uppercase tracking-wider block">TOTAL FLOATING P&L</span>
           <div class="text-2xl font-extrabold font-mono mt-1 flex items-center gap-1"
                :class="data.total_pnl_idr >= 0 ? 'text-emerald-400' : 'text-rose-400'">
             <span x-text="(data.total_pnl_idr >= 0 ? '▲ +' : '▼ ') + formatIDR(data.total_pnl_idr)"></span>
@@ -328,46 +419,40 @@
                x-text="(data.total_pnl_pct >= 0 ? '+' : '') + data.total_pnl_pct + '%'"></div>
         </div>
 
-        <!-- Explainable Health Score -->
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] shadow-lg flex items-center justify-between">
+        <div class="p-4 rounded-xl card-theme border border-theme shadow-lg flex items-center justify-between">
           <div>
-            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">PORTFOLIO HEALTH</span>
+            <span class="text-[11px] font-bold text-theme-muted uppercase tracking-wider block">PORTFOLIO HEALTH</span>
             <div class="text-2xl font-extrabold font-mono text-cyan-400 mt-1" x-text="data.health?.health_score + ' / 100'"></div>
             <span class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold" x-text="data.health?.health_level"></span>
           </div>
-          <div class="text-right text-[10px] font-mono text-slate-400">
+          <div class="text-right text-[10px] font-mono text-theme-muted">
             <span>Data Quality</span>
             <div class="font-bold text-emerald-400 text-xs" x-text="data.health?.data_quality_score + '%'"></div>
           </div>
         </div>
 
-        <!-- Annualized Volatility & Sharpe -->
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] shadow-lg">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">VOLATILITY / SHARPE</span>
+        <div class="p-4 rounded-xl card-theme border border-theme shadow-lg">
+          <span class="text-[11px] font-bold text-theme-muted uppercase tracking-wider block">VOLATILITY / SHARPE</span>
           <div class="text-2xl font-extrabold font-mono text-amber-400 mt-1" x-text="data.portfolio_volatility_pct + '%'"></div>
           <div class="text-xs font-mono text-slate-300 mt-0.5" x-text="'Sharpe: ' + data.sharpe_ratio + ' (Rf=4%)'"></div>
         </div>
 
-        <!-- Financial Freedom Progress -->
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] shadow-lg">
-          <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">TARGET FF PROGRESS</span>
+        <div class="p-4 rounded-xl card-theme border border-theme shadow-lg">
+          <span class="text-[11px] font-bold text-theme-muted uppercase tracking-wider block">TARGET FF PROGRESS</span>
           <div class="text-2xl font-extrabold font-mono text-emerald-400 mt-1" x-text="data.ff_progress_pct + '%'"></div>
-          <div class="text-xs font-mono text-slate-400 mt-0.5" x-text="'Target: ' + formatIDR(data.target_financial_freedom_idr)"></div>
+          <div class="text-xs font-mono text-theme-muted mt-0.5" x-text="'Target: ' + formatIDR(data.target_financial_freedom_idr)"></div>
         </div>
-
       </div>
 
-      <!-- Middle Grid: Top 3 Priorities & Prioritized Radar Alerts -->
+      <!-- Top Priorities & Radar Alert Engine -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Left: Top 3 Priorities (What Matters Now?) -->
-        <div class="lg:col-span-6 p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-3">
+        <div class="lg:col-span-6 p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-theme pb-3">
             <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
               <span>TOP PRIORITIES (WHAT MATTERS MOST NOW?)</span>
             </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Ranked by Portfolio Impact</span>
+            <span class="text-[10px] text-theme-muted font-mono">Ranked by Impact</span>
           </div>
 
           <div class="space-y-3">
@@ -381,21 +466,20 @@
                     <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold"
                           :class="p.impact === 'HIGH IMPACT' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'" x-text="p.impact"></span>
                   </div>
-                  <p class="text-slate-400 text-[11px]" x-text="p.desc"></p>
+                  <p class="text-theme-muted text-[11px]" x-text="p.desc"></p>
                 </div>
               </div>
             </template>
           </div>
         </div>
 
-        <!-- Right: Radar Alert Engine -->
-        <div class="lg:col-span-6 p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-3">
+        <div class="lg:col-span-6 p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-theme pb-3">
             <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <i data-lucide="bell" class="w-4 h-4 text-cyan-400"></i>
               <span>RADAR ALERT ENGINE</span>
             </h3>
-            <span class="text-[10px] text-slate-400 font-mono" x-text="data.health?.alerts?.length + ' Sinyal Aktif'"></span>
+            <span class="text-[10px] text-theme-muted font-mono" x-text="data.health?.alerts?.length + ' Sinyal Aktif'"></span>
           </div>
 
           <div class="space-y-2.5">
@@ -408,85 +492,14 @@
                   <span x-text="alert.title"></span>
                 </div>
                 <div class="text-slate-300 text-[11px]">
-                  <p><strong class="text-slate-400">Apa yang terjadi:</strong> <span x-text="alert.what"></span></p>
-                  <p><strong class="text-slate-400">Kenapa penting:</strong> <span x-text="alert.why"></span></p>
+                  <p><strong class="text-theme-muted">Apa yang terjadi:</strong> <span x-text="alert.what"></span></p>
+                  <p><strong class="text-theme-muted">Kenapa penting:</strong> <span x-text="alert.why"></span></p>
                   <p><strong class="text-cyan-400">Tindakan:</strong> <span x-text="alert.monitor"></span></p>
                 </div>
               </div>
             </template>
           </div>
         </div>
-
-      </div>
-
-      <!-- Bottom Grid: Performance Attribution & FX Decomposition -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- FX Decomposition Table (Asset Return vs USD/IDR Effect) -->
-        <div class="lg:col-span-7 p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-              <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
-              <span>DEKOMPOSISI FX ATTRIBUTION (RETURN ASET VS EFEK KURS USD/IDR)</span>
-            </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Mathematical Reconciliation</span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs whitespace-nowrap font-mono">
-              <thead class="border-b border-[#1b2234] text-[10px] uppercase text-slate-400 font-semibold">
-                <tr>
-                  <th class="py-2 px-3">Ticker / Aset</th>
-                  <th class="py-2 px-3 text-right">Return Aset Murni</th>
-                  <th class="py-2 px-3 text-right">Efek Kurs USD/IDR</th>
-                  <th class="py-2 px-3 text-right">Total Return IDR</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-[#1b2234]">
-                <template x-for="item in (data.all_holdings || []).filter(x => x.invested_idr > 0)" :key="item.ticker">
-                  <tr class="hover:bg-slate-900/40">
-                    <td class="py-2 px-3 font-sans font-bold text-white" x-text="item.ticker + ' — ' + item.name"></td>
-                    <td class="py-2 px-3 text-right font-bold"
-                        :class="item.asset_ret_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'"
-                        x-text="(item.asset_ret_pct >= 0 ? '+' : '') + item.asset_ret_pct + '%'"></td>
-                    <td class="py-2 px-3 text-right"
-                        :class="item.fx_ret_pct >= 0 ? 'text-cyan-400' : 'text-slate-400'"
-                        x-text="item.currency === 'USD' ? ((item.fx_ret_pct >= 0 ? '+' : '') + item.fx_ret_pct + '%') : '0.00% (IDR)'"></td>
-                    <td class="py-2 px-3 text-right font-extrabold"
-                        :class="item.pnl_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'"
-                        x-text="(item.pnl_pct >= 0 ? '+' : '') + item.pnl_pct + '%'"></td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Passive Income & Dividend Annual Forecast -->
-        <div class="lg:col-span-5 p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-              <i data-lucide="coins" class="w-4 h-4 text-amber-400"></i>
-              <span>ESTIMASI DIVIDEN & PASSIVE CASHFLOW</span>
-            </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Annualized Yield</span>
-          </div>
-
-          <div class="space-y-3 font-mono">
-            <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-xs text-slate-400">Proyeksi Dividen / Tahun:</span>
-              <strong class="text-emerald-400 font-bold text-base" x-text="formatIDR(data.est_annual_dividend_idr)"></strong>
-            </div>
-            <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span class="text-xs text-slate-400">Rata-rata Passive Income / Bulan:</span>
-              <strong class="text-cyan-400 font-bold text-base" x-text="formatIDR(data.est_monthly_dividend_idr)"></strong>
-            </div>
-            <p class="text-[11px] text-slate-400 font-sans">
-              *Dihitung dari estimasi dividen tunai tahunan saham dividend-paying (BBCA ~3.2%, BBRI ~6.5%, UNTR ~7.5%, VOO ~1.3%).
-            </p>
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -496,56 +509,28 @@
     <!-- ======================================================================= -->
     <div x-show="activeView === 'portfolio'" class="space-y-6" x-cloak>
       
-      <!-- Top Action & Filter Bar -->
-      <div class="p-4 rounded-2xl bg-[#0d111a] border border-[#1b2234] flex flex-wrap items-center justify-between gap-4">
+      <!-- Action Bar with Direct Yahoo Links -->
+      <div class="p-4 rounded-2xl card-theme border border-theme flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i data-lucide="briefcase" class="w-4 h-4 text-cyan-400"></i>
-            <span>DAFTAR KEPEMILIKAN ASET & ETF LOOK-THROUGH</span>
+            <span>DAFTAR KEPEMILIKAN ASET & VERIFIKASI LANGSUNG YAHOO FINANCE</span>
           </h2>
-          <p class="text-xs text-slate-400">Tabel posisi aset, bobot efektif ekonomi, dan filter multi-periode performa</p>
+          <p class="text-xs text-theme-muted">Klik simbol atau link ↗ untuk memverifikasi chart & data fundamental langsung</p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <!-- Filter Periode Performa Button -->
-          <div class="relative" x-data="{ openPerfMenu: false }">
-            <button @click="openPerfMenu = !openPerfMenu" 
-                    class="px-3 py-1.5 rounded-lg bg-slate-900 border border-cyan-500/40 text-cyan-300 text-xs font-semibold flex items-center gap-1.5">
-              <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
-              <span>Filter Periode Performa</span>
-              <span class="px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-400 text-[10px]" x-text="activePerfTimeframes().length + '/9'"></span>
-            </button>
-            <div x-show="openPerfMenu" @click.away="openPerfMenu = false" x-cloak
-                 class="absolute right-0 top-full mt-2 w-64 p-3.5 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl z-30 space-y-2 text-xs">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                <span class="font-bold text-[10px] text-cyan-400 uppercase">Pilih Periode Tampil</span>
-                <button @click="setAllPerf(true)" class="text-[10px] text-cyan-400 hover:underline">Semua</button>
-              </div>
-              <div class="grid grid-cols-3 gap-2 pt-1 font-mono">
-                <template x-for="tf in ['24h', '1w', '1m', '6m', '1y', '5y', '10y', '15y', '20y']" :key="tf">
-                  <label class="flex items-center gap-1.5 cursor-pointer p-1 rounded" :class="perfColumns[tf] ? 'bg-cyan-950/40 text-cyan-300' : 'text-slate-500'">
-                    <input type="checkbox" x-model="perfColumns[tf]" class="rounded text-cyan-600">
-                    <span class="uppercase text-[10px]" x-text="tf"></span>
-                  </label>
-                </template>
-              </div>
-            </div>
-          </div>
-
-          <button @click="openAddAssetModal()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1 shadow">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>Tambah Aset</span>
-          </button>
-        </div>
+        <button @click="openAddAssetModal()" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1 shadow">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>Tambah Aset</span>
+        </button>
       </div>
 
       <!-- Main Holdings Table categorized -->
       <div class="space-y-6">
         <template x-for="category in data.categories" :key="category.id">
-          <div class="border border-[#1b2234] rounded-2xl bg-[#0d111a] shadow-xl overflow-hidden">
+          <div class="border border-theme rounded-2xl card-theme shadow-xl overflow-hidden">
             
-            <!-- Category Header -->
-            <div class="px-5 py-3 border-b border-[#1b2234] bg-[#090d15] flex flex-wrap items-center justify-between gap-3">
+            <div class="px-5 py-3 border-b border-theme bg-black/20 flex flex-wrap items-center justify-between gap-3">
               <div class="flex items-center gap-2.5">
                 <div class="w-2.5 h-2.5 rounded-full"
                      :class="{
@@ -557,60 +542,51 @@
                      }"></div>
                 <div>
                   <h3 class="text-xs font-bold text-white tracking-wide" x-text="category.name"></h3>
-                  <p class="text-[10px] text-slate-400" x-text="category.subtitle"></p>
+                  <p class="text-[10px] text-theme-muted" x-text="category.subtitle"></p>
                 </div>
               </div>
 
               <div class="flex items-center gap-4 text-xs font-mono">
                 <div>
-                  <span class="text-[9px] block text-slate-500 uppercase">TERINVESTASI</span>
+                  <span class="text-[9px] block text-theme-muted uppercase">TERINVESTASI</span>
                   <span class="font-bold text-slate-300" x-text="formatIDR(category.total_invested_idr)"></span>
                 </div>
-                <div class="pl-3 border-l border-[#1b2234]">
-                  <span class="text-[9px] block text-slate-500 uppercase">NILAI BERJALAN</span>
+                <div class="pl-3 border-l border-theme">
+                  <span class="text-[9px] block text-theme-muted uppercase">NILAI BERJALAN</span>
                   <span class="font-bold text-cyan-400" x-text="formatIDR(category.total_value_idr)"></span>
                 </div>
               </div>
             </div>
 
-            <!-- Table -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs whitespace-nowrap font-mono">
-                <thead class="border-b border-[#1b2234] bg-[#080b12] text-[10px] uppercase text-slate-400 font-semibold">
+                <thead class="border-b border-theme bg-black/30 text-[10px] uppercase text-theme-muted font-semibold">
                   <tr>
                     <th class="py-2.5 px-4 font-sans">Aset / Peran</th>
-                    <th class="py-2.5 px-3">Ticker</th>
+                    <th class="py-2.5 px-3">Ticker / Verify</th>
                     <th class="py-2.5 px-3 text-right">Modal IDR</th>
                     <th class="py-2.5 px-3 text-right">Quantity</th>
                     <th class="py-2.5 px-3 text-center">Zonasi ATH</th>
                     <th class="py-2.5 px-3 text-center">Valuasi P/E</th>
-                    <th class="py-2.5 px-3 text-right">Drawdown</th>
-                    <th class="py-2.5 px-3 text-right">Harga Realtime</th>
+                    <th class="py-2.5 px-3 text-right">Harga Pasar</th>
                     <th class="py-2.5 px-3 text-right">Nilai Berjalan</th>
                     <th class="py-2.5 px-3 text-right">Floating PnL</th>
-                    
-                    <!-- Dynamic Multi-Period Header -->
-                    <th x-show="activePerfTimeframes().length > 0"
-                        :style="'min-width: ' + (activePerfTimeframes().length * 68) + 'px; width: ' + (activePerfTimeframes().length * 70) + 'px;'"
-                        class="py-2.5 px-4 text-center">
-                      <div class="text-[10px] font-bold text-slate-300" x-text="'PERFORMA (' + activePerfTimeframes().map(x => x.toUpperCase()).join(' · ') + ')'"></div>
-                      <div :style="'display: grid; grid-template-columns: repeat(' + activePerfTimeframes().length + ', minmax(0, 1fr)); gap: 4px;'"
-                           class="text-[9px] font-mono text-slate-400 mt-1">
-                        <template x-for="tf in activePerfTimeframes()" :key="tf">
-                          <span class="uppercase" x-text="tf"></span>
-                        </template>
-                      </div>
-                    </th>
-
                     <th class="py-2.5 px-3 text-center">Aksi</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-[#151c2c]">
+                <tbody class="divide-y divide-slate-800/40">
                   <template x-for="item in category.items" :key="item.id || item.ticker">
                     <tr class="hover:bg-slate-900/50 transition">
-                      <td class="py-2.5 px-4 font-sans font-semibold text-slate-200" x-text="item.name"></td>
+                      <td class="py-2.5 px-4 font-sans font-semibold text-slate-200">
+                        <span class="hover:text-cyan-400 cursor-pointer" @click="openAssetResearch(item.ticker)" x-text="item.name"></span>
+                      </td>
                       <td class="py-2.5 px-3 font-bold text-cyan-400">
-                        <span x-text="item.ticker"></span>
+                        <div class="flex items-center gap-1.5">
+                          <span class="cursor-pointer hover:underline" @click="openAssetResearch(item.ticker)" x-text="item.ticker"></span>
+                          <a :href="getYahooUrl(item.ticker)" target="_blank" class="text-slate-500 hover:text-cyan-300 text-[11px] p-0.5 rounded bg-slate-800/60" title="Open Yahoo Finance ↗">
+                            ↗
+                          </a>
+                        </div>
                       </td>
                       <td class="py-2.5 px-3 text-right text-slate-300" x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
                       <td class="py-2.5 px-3 text-right text-slate-200" x-text="item.quantity > 0 ? item.quantity + (item.is_lot ? ' lot' : '') : '-'"></td>
@@ -622,34 +598,20 @@
                           <span class="font-bold text-xs" :class="item.pe_color" x-text="item.pe + ' (' + item.pe_status + ')'"></span>
                         </template>
                         <template x-if="!item.pe">
-                          <span class="text-slate-500">N/A</span>
+                          <span class="text-theme-muted">N/A</span>
                         </template>
                       </td>
-                      <td class="py-2.5 px-3 text-right font-bold"
-                          :class="item.drawdown < -25 ? 'text-rose-400' : 'text-slate-300'" x-text="item.drawdown + '%'"></td>
                       <td class="py-2.5 px-3 text-right font-bold text-emerald-400"
                           x-text="item.currency === 'IDR' ? formatIDR(item.current_price) : formatUSD(item.current_price)"></td>
                       <td class="py-2.5 px-3 text-right font-bold text-cyan-300" x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
                       <td class="py-2.5 px-3 text-right font-bold"
                           :class="item.pnl_idr >= 0 ? 'text-emerald-400' : 'text-rose-400'"
                           x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct + '%)') : '-'"></td>
-                      
-                      <!-- Dynamic Performance Cell -->
-                      <td x-show="activePerfTimeframes().length > 0"
-                          :style="'min-width: ' + (activePerfTimeframes().length * 68) + 'px; width: ' + (activePerfTimeframes().length * 70) + 'px;'"
-                          class="py-2.5 px-4">
-                        <div :style="'display: grid; grid-template-columns: repeat(' + activePerfTimeframes().length + ', minmax(0, 1fr)); gap: 4px;'"
-                             class="text-[10px] text-center font-mono">
-                          <template x-for="tf in activePerfTimeframes()" :key="tf">
-                            <div class="py-0.5 px-1 rounded text-center" :class="getPerfBg(item.perf?.[tf])">
-                              <span x-text="formatPct(item.perf?.[tf])"></span>
-                            </div>
-                          </template>
-                        </div>
-                      </td>
-
                       <td class="py-2.5 px-3 text-center">
                         <div class="flex items-center justify-center gap-1">
+                          <button @click="openAssetResearch(item.ticker)" class="p-1 rounded text-cyan-400 hover:bg-cyan-500/20" title="Buka Riset Detail">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                          </button>
                           <button @click="editAsset(item)" class="p-1 rounded text-slate-400 hover:text-cyan-400" title="Edit Aset">
                             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                           </button>
@@ -658,7 +620,6 @@
                           </button>
                         </div>
                       </td>
-
                     </tr>
                   </template>
                 </tbody>
@@ -669,188 +630,453 @@
         </template>
       </div>
 
-      <!-- Hidden Concentration & ETF Look-Through Decomposition -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Top Underlying Companies -->
-        <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
-            <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2">
-              <i data-lucide="pie-chart" class="w-4 h-4 text-cyan-400"></i>
-              <span>TOP EFFECTIVE COMPANY EXPOSURE</span>
-            </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Direct + ETF</span>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- WORKSPACE 3: DISCOVER — GLOBAL ASSET SCANNER & OPPORTUNITY RADAR        -->
+    <!-- ======================================================================= -->
+    <div x-show="activeView === 'discover'" class="space-y-6" x-cloak>
+      
+      <!-- Top Header & Filter Controls -->
+      <div class="p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-theme pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-white flex items-center gap-2">
+              <i data-lucide="compass" class="w-5 h-5 text-purple-400"></i>
+              <span>GLOBAL ASSET SCANNER & OPPORTUNITY RADAR</span>
+            </h2>
+            <p class="text-xs text-theme-muted">Pemindai semesta aset global: Temukan aset undervalued, quality compounder, dan potensi multibagger</p>
           </div>
 
-          <div class="space-y-2 font-mono text-xs">
-            <template x-for="c in data.lookthrough?.companies" :key="c.name">
-              <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                <span class="font-bold text-slate-200" x-text="c.name"></span>
-                <div class="text-right">
-                  <span class="font-extrabold text-cyan-400" x-text="c.weight_pct + '%'"></span>
-                  <span class="text-[10px] text-slate-500 block" x-text="formatIDR(c.value_idr)"></span>
+          <!-- Quick Search -->
+          <div class="relative w-full sm:w-80">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" x-model="discoverSearch" @input="filterDiscoverUniverse()"
+                   placeholder="Cari simbol, nama, tema (NVDA, BBCA, AI, Nuklir)..."
+                   class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-purple-400">
+          </div>
+        </div>
+
+        <!-- Filter Pills Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          
+          <!-- Market Filter -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-theme-muted font-bold text-[10px]">MARKET:</span>
+            <template x-for="m in ['ALL', 'GLOBAL', 'US', 'ID', 'EU', 'ASIA']" :key="m">
+              <button @click="discoverMarketFilter = m; filterDiscoverUniverse()" 
+                      class="px-2 py-1 rounded-lg text-[10px] font-bold transition"
+                      :class="discoverMarketFilter === m ? 'bg-purple-600 text-white shadow' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'"
+                      x-text="m"></button>
+            </template>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-theme-muted font-bold text-[10px]">TYPE:</span>
+            <template x-for="t in ['ALL', 'STOCK', 'ETF', 'CRYPTO', 'COMMODITY', 'REIT']" :key="t">
+              <button @click="discoverTypeFilter = t; filterDiscoverUniverse()" 
+                      class="px-2 py-1 rounded-lg text-[10px] font-bold transition"
+                      :class="discoverTypeFilter === t ? 'bg-cyan-600 text-white shadow' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'"
+                      x-text="t"></button>
+            </template>
+          </div>
+
+          <!-- Style Filter -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-theme-muted font-bold text-[10px]">STYLE:</span>
+            <template x-for="s in ['ALL', 'VALUE', 'GROWTH', 'QUALITY', 'MOMENTUM', 'MULTIBAGGER']" :key="s">
+              <button @click="discoverStyleFilter = s; filterDiscoverUniverse()" 
+                      class="px-2 py-1 rounded-lg text-[10px] font-bold transition"
+                      :class="discoverStyleFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'"
+                      x-text="s"></button>
+            </template>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Discover Sub-Tab Navigation -->
+      <div class="flex items-center gap-2 border-b border-theme pb-2 overflow-x-auto whitespace-nowrap text-xs font-mono font-bold">
+        <button @click="discoverSubTab = 'scanner'" 
+                class="px-3 py-1.5 rounded-lg transition"
+                :class="discoverSubTab === 'scanner' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40' : 'text-slate-400 hover:text-white'">
+          📋 SEMUA ASET (<span x-text="filteredUniverse.length"></span>)
+        </button>
+        <button @click="discoverSubTab = 'multibagger'" 
+                class="px-3 py-1.5 rounded-lg transition"
+                :class="discoverSubTab === 'multibagger' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40' : 'text-slate-400 hover:text-white'">
+          🚀 POTENSI MULTIBAGGER
+        </button>
+        <button @click="discoverSubTab = 'quality'" 
+                class="px-3 py-1.5 rounded-lg transition"
+                :class="discoverSubTab === 'quality' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40' : 'text-slate-400 hover:text-white'">
+          💎 QUALITY COMPOUNDERS
+        </button>
+        <button @click="discoverSubTab = 'discount'" 
+                class="px-3 py-1.5 rounded-lg transition"
+                :class="discoverSubTab === 'discount' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40' : 'text-slate-400 hover:text-white'">
+          🏷️ TODAY'S DISCOUNTS (DEEP VALUE)
+        </button>
+        <button @click="discoverSubTab = 'themes'" 
+                class="px-3 py-1.5 rounded-lg transition"
+                :class="discoverSubTab === 'themes' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40' : 'text-slate-400 hover:text-white'">
+          🌌 TEMA INVESTASI GLOBAL
+        </button>
+        <button @click="discoverSubTab = 'matrix'; $nextTick(() => renderRiskRewardChart())" 
+                class="px-3 py-1.5 rounded-lg transition"
+                :class="discoverSubTab === 'matrix' ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40' : 'text-slate-400 hover:text-white'">
+          🗺️ MATRIKS RISK / REWARD
+        </button>
+      </div>
+
+      <!-- SUB-TAB 1: GLOBAL SCANNER ASSET CARDS GRID -->
+      <div x-show="discoverSubTab === 'scanner'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <template x-for="item in filteredUniverse" :key="item.ticker">
+          <div class="p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-3.5 hover:border-purple-500/50 transition">
+            
+            <!-- Card Header -->
+            <div class="flex items-start justify-between border-b border-theme pb-2.5">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-extrabold font-mono text-cyan-400 text-base" x-text="item.ticker"></span>
+                  <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700" x-text="item.market"></span>
+                  <a :href="item.yahoo_url" target="_blank" class="text-slate-500 hover:text-cyan-400 text-xs font-bold" title="Open in Yahoo Finance ↗">↗</a>
+                </div>
+                <h4 class="text-xs font-bold text-white mt-0.5 truncate max-w-[200px]" x-text="item.name"></h4>
+              </div>
+
+              <div class="text-right font-mono">
+                <span class="text-[9px] text-theme-muted block">OPPORTUNITY</span>
+                <span class="text-lg font-extrabold text-purple-400" x-text="item.opportunity_score + '/100'"></span>
+              </div>
+            </div>
+
+            <!-- Metrics Strip -->
+            <div class="grid grid-cols-3 gap-2 font-mono text-center text-xs">
+              <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
+                <span class="text-[9px] text-theme-muted block">MULTIBAGGER</span>
+                <strong class="text-cyan-400 font-bold" x-text="item.multibagger?.score"></strong>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
+                <span class="text-[9px] text-theme-muted block">QUALITY</span>
+                <strong class="text-emerald-400 font-bold" x-text="item.quality?.score"></strong>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
+                <span class="text-[9px] text-theme-muted block">PORTFOLIO FIT</span>
+                <strong class="text-amber-400 font-bold" x-text="item.portfolio_fit?.fit_score + '%'"></strong>
+              </div>
+            </div>
+
+            <!-- Why Interesting & What Could Go Wrong -->
+            <div class="space-y-1.5 text-xs text-slate-300">
+              <p><strong class="text-emerald-400">Peluang:</strong> <span x-text="item.why_interesting"></span></p>
+              <p><strong class="text-rose-400">Risiko Utama:</strong> <span x-text="item.what_could_go_wrong"></span></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-2 border-t border-theme">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border" :class="item.multibagger?.tier_badge" x-text="item.multibagger?.potential_tier"></span>
+              <div class="flex items-center gap-2">
+                <a :href="item.yahoo_url" target="_blank" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-slate-300 border border-slate-700 flex items-center gap-1 font-mono">
+                  <span>Yahoo ↗</span>
+                </a>
+                <button @click="openAssetResearch(item.ticker)" class="px-3 py-1 rounded bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold shadow">
+                  Buka Riset
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </template>
+      </div>
+
+      <!-- SUB-TAB 2: POTENSI MULTIBAGGER RADAR -->
+      <div x-show="discoverSubTab === 'multibagger'" class="space-y-4" x-cloak>
+        <div class="p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+          <div class="border-b border-theme pb-3 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="rocket" class="w-4 h-4 text-purple-400"></i>
+                <span>MULTIBAGGER RADAR — ASYMMETRIC UPSIDE CANDIDATES</span>
+              </h3>
+              <p class="text-xs text-theme-muted">Model multi-faktor: Pertumbuhan Revenue, Runway TAM, Moat, Efisiensi Modal (ROIC), dan Kriteria Invalidation.</p>
+            </div>
+            <span class="text-xs font-mono px-2.5 py-1 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold">
+              Bukan Ramalan Pasti · Asymmetric Potential
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <template x-for="item in filteredUniverse.filter(x => x.multibagger?.score >= 75)" :key="item.ticker">
+              <div class="p-4 rounded-xl card-theme border border-theme space-y-3">
+                <div class="flex items-center justify-between border-b border-theme pb-2">
+                  <div>
+                    <span class="font-extrabold font-mono text-purple-400 text-base" x-text="item.ticker"></span>
+                    <span class="text-xs text-slate-300 block font-semibold" x-text="item.name"></span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-lg font-extrabold font-mono text-white" x-text="item.multibagger?.score + '/100'"></span>
+                    <span class="text-[9px] text-theme-muted block">Multibagger Score</span>
+                  </div>
+                </div>
+
+                <!-- Multibagger Component Breakdown -->
+                <div class="space-y-1 font-mono text-[11px]">
+                  <div class="flex justify-between text-slate-400">
+                    <span>Revenue Growth:</span>
+                    <strong class="text-emerald-400" x-text="item.multibagger?.breakdown?.growth + '/100'"></strong>
+                  </div>
+                  <div class="flex justify-between text-slate-400">
+                    <span>TAM Runway:</span>
+                    <strong class="text-cyan-400" x-text="item.multibagger?.breakdown?.tam_runway + '/100'"></strong>
+                  </div>
+                  <div class="flex justify-between text-slate-400">
+                    <span>Moat Strength:</span>
+                    <strong class="text-purple-400" x-text="item.multibagger?.breakdown?.moat + '/100'"></strong>
+                  </div>
+                </div>
+
+                <div class="p-2.5 rounded-lg bg-rose-950/20 border border-rose-900/40 text-[11px] text-rose-200">
+                  <strong>Syarat Pembatalan Tesis (Invalidation):</strong>
+                  <p class="text-slate-400 text-[10px] mt-0.5" x-text="item.invalidation_conditions"></p>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                  <a :href="item.yahoo_url" target="_blank" class="text-slate-400 hover:text-cyan-400 text-xs font-mono">Verify Yahoo ↗</a>
+                  <button @click="openAssetResearch(item.ticker)" class="px-3 py-1 rounded bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow">
+                    Riset Mendalam
+                  </button>
                 </div>
               </div>
             </template>
           </div>
         </div>
+      </div>
 
-        <!-- Top Sectors -->
-        <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
-            <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2">
-              <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
-              <span>SECTOR BREAKDOWN</span>
+      <!-- SUB-TAB 3: QUALITY COMPOUNDERS -->
+      <div x-show="discoverSubTab === 'quality'" class="space-y-4" x-cloak>
+        <div class="p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+          <div class="border-b border-theme pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="gem" class="w-4 h-4 text-emerald-400"></i>
+              <span>QUALITY COMPOUNDER RADAR (ROIC > 15%, HIGH FCF, LOW LEVERAGE)</span>
             </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Economic Exposure</span>
+            <p class="text-xs text-theme-muted">Bisnis dengan imbal hasil modal tinggi (ROIC), margin kas kuat, dan ketahanan neraca.</p>
           </div>
 
-          <div class="space-y-2 font-mono text-xs">
-            <template x-for="s in data.lookthrough?.sectors" :key="s.name">
-              <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                <span class="font-bold text-slate-200 font-sans text-[11px]" x-text="s.name"></span>
-                <span class="font-extrabold text-amber-400" x-text="s.weight_pct + '%'"></span>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <template x-for="item in filteredUniverse.filter(x => x.quality?.score >= 80)" :key="item.ticker">
+              <div class="p-4 rounded-xl card-theme border border-theme space-y-3">
+                <div class="flex items-center justify-between border-b border-theme pb-2">
+                  <div>
+                    <span class="font-extrabold font-mono text-emerald-400 text-base" x-text="item.ticker"></span>
+                    <span class="text-xs text-slate-300 block font-semibold" x-text="item.name"></span>
+                  </div>
+                  <div class="text-right font-mono">
+                    <span class="text-lg font-extrabold text-white" x-text="item.quality?.score + '/100'"></span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold block" x-text="item.quality?.level"></span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 font-mono text-center text-xs">
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-[9px] text-theme-muted block">ROIC</span>
+                    <strong class="text-emerald-400" x-text="item.roic ? item.roic + '%' : 'N/A'"></strong>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-[9px] text-theme-muted block">FCF MARGIN</span>
+                    <strong class="text-cyan-400" x-text="item.fcf_margin ? item.fcf_margin + '%' : 'N/A'"></strong>
+                  </div>
+                  <div class="p-2 rounded bg-slate-900/60 border border-slate-800">
+                    <span class="text-[9px] text-theme-muted block">DEBT/EBITDA</span>
+                    <strong class="text-slate-200" x-text="item.debt_to_ebitda ? item.debt_to_ebitda + 'x' : '<0.5x'"></strong>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                  <a :href="item.yahoo_url" target="_blank" class="text-slate-400 hover:text-cyan-400 text-xs font-mono">Verify Yahoo ↗</a>
+                  <button @click="openAssetResearch(item.ticker)" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow">
+                    Riset Mendalam
+                  </button>
+                </div>
               </div>
             </template>
           </div>
         </div>
+      </div>
 
-        <!-- Geographic Exposure -->
-        <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
-            <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2">
-              <i data-lucide="globe" class="w-4 h-4 text-emerald-400"></i>
-              <span>GEOGRAPHY EXPOSURE</span>
+      <!-- SUB-TAB 4: TODAY'S DISCOUNTS (DEEP VALUE) -->
+      <div x-show="discoverSubTab === 'discount'" class="space-y-4" x-cloak>
+        <div class="p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+          <div class="border-b border-theme pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="tag" class="w-4 h-4 text-amber-400"></i>
+              <span>TODAY'S DISCOUNTS — ASSETS ON SALE VS 10Y MEDIAN</span>
             </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Sovereignty Risk</span>
+            <p class="text-xs text-theme-muted">Membedakan secara tegas: Diskon karena "Misunderstood Cyclical Opportunity" vs "Fundamentally Deteriorating Trap".</p>
           </div>
 
-          <div class="space-y-2 font-mono text-xs">
-            <template x-for="g in data.lookthrough?.geographies" :key="g.name">
-              <div class="p-2 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                <span class="font-bold text-slate-200 font-sans text-[11px]" x-text="g.name"></span>
-                <span class="font-extrabold text-emerald-400" x-text="g.weight_pct + '%'"></span>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <template x-for="item in filteredUniverse.filter(x => x.discount?.is_undervalued)" :key="item.ticker">
+              <div class="p-4 rounded-xl card-theme border border-theme space-y-3">
+                <div class="flex items-center justify-between border-b border-theme pb-2">
+                  <div>
+                    <span class="font-extrabold font-mono text-amber-400 text-base" x-text="item.ticker"></span>
+                    <span class="text-xs text-slate-300 block font-semibold" x-text="item.name"></span>
+                  </div>
+                  <div class="text-right font-mono">
+                    <span class="text-lg font-extrabold text-rose-400" x-text="item.discount?.drawdown_ath + '% ATH'"></span>
+                    <span class="text-[10px] text-theme-muted block" x-text="'P/E ' + (item.pe || 'N/A')"></span>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1 text-xs">
+                  <p><strong class="text-emerald-400">Kenapa Murah:</strong> <span x-text="item.discount?.why_cheap"></span></p>
+                  <p><strong class="text-rose-400">Risiko Makin Murah:</strong> <span x-text="item.discount?.what_could_make_cheaper"></span></p>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40" x-text="item.discount?.classification"></span>
+                  <button @click="openAssetResearch(item.ticker)" class="px-3 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow">
+                    Riset Mendalam
+                  </button>
+                </div>
               </div>
             </template>
           </div>
         </div>
+      </div>
 
+      <!-- SUB-TAB 5: THEMES (12 INSTITUTIONAL THEMES) -->
+      <div x-show="discoverSubTab === 'themes'" class="space-y-4" x-cloak>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <template x-for="theme in themesList" :key="theme.id">
+            <div class="p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-3.5">
+              <div class="flex items-center justify-between border-b border-theme pb-2.5">
+                <div>
+                  <h4 class="text-sm font-bold text-white" x-text="theme.name"></h4>
+                  <span class="text-[10px] text-theme-muted font-mono" x-text="theme.market_size_desc"></span>
+                </div>
+                <div class="text-right font-mono">
+                  <span class="text-base font-extrabold text-purple-400" x-text="theme.theme_score + '/100'"></span>
+                  <span class="text-[9px] text-theme-muted block">Theme Score</span>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-300" x-text="theme.desc"></p>
+
+              <!-- Leading Assets Pills -->
+              <div class="space-y-1.5">
+                <span class="text-[10px] font-bold uppercase text-theme-muted block">ASET PEMIMPIN TEMA:</span>
+                <div class="flex flex-wrap gap-1.5 font-mono text-xs">
+                  <template x-for="c in theme.leading_cards" :key="c.ticker">
+                    <button @click="openAssetResearch(c.ticker)" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 hover:border-cyan-400 text-cyan-300 font-bold flex items-center gap-1">
+                      <span x-text="c.ticker"></span>
+                      <span class="text-[9px] text-slate-500" x-text="'(' + c.multibagger_score + ')'"></span>
+                    </button>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Catalysts & Risks -->
+              <div class="space-y-1 text-[11px] text-slate-300 pt-1 border-t border-theme">
+                <p><strong class="text-emerald-400">Katalis:</strong> <span x-text="theme.catalysts"></span></p>
+                <p><strong class="text-rose-400">Risiko:</strong> <span x-text="theme.risks"></span></p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 6: 2D RISK / REWARD SCATTER MATRIX -->
+      <div x-show="discoverSubTab === 'matrix'" class="space-y-4" x-cloak>
+        <div class="p-6 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-theme pb-3">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="grid" class="w-4 h-4 text-cyan-400"></i>
+                <span>2D ASSET RISK / REWARD MAPPING MATRIX</span>
+              </h3>
+              <p class="text-xs text-theme-muted">Sumbu X: Risiko Terukur (0-100) vs Sumbu Y: Potensi Imbal Hasil Multibagger (0-100)</p>
+            </div>
+            <span class="text-xs font-mono text-cyan-400 font-bold">Asymmetric Opportunity Quadrant</span>
+          </div>
+
+          <div class="h-80 relative">
+            <canvas id="riskRewardCanvas"></canvas>
+          </div>
+        </div>
       </div>
 
     </div>
 
     <!-- ======================================================================= -->
-    <!-- WORKSPACE 3: MARKETS & MACRO REGIME                                     -->
+    <!-- WORKSPACE 4: MARKETS & MACRO                                            -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'markets'" class="space-y-6" x-cloak>
-      
-      <div class="p-4 rounded-2xl bg-[#0d111a] border border-[#1b2234] flex items-center justify-between">
+      <div class="p-4 rounded-2xl card-theme border border-theme flex items-center justify-between">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
             <span>MARKET INTELLIGENCE & INDIKATOR MAKRO INDONESIA / GLOBAL</span>
           </h2>
-          <p class="text-xs text-slate-400">Observasi suku bunga sentral, inflasi BPS, yield obligasi, dan siklus makro</p>
+          <p class="text-xs text-theme-muted">Observasi suku bunga sentral, inflasi BPS, yield obligasi, dan siklus makro</p>
         </div>
       </div>
 
-      <!-- Macro Indicators Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] space-y-1">
-          <span class="text-[10px] text-slate-400 font-bold uppercase">SUKU BUNGA BI (7-DAY RR)</span>
+        <div class="p-4 rounded-xl card-theme border border-theme space-y-1">
+          <span class="text-[10px] text-theme-muted font-bold uppercase">SUKU BUNGA BI (7-DAY RR)</span>
           <div class="text-2xl font-extrabold font-mono text-amber-400">5.75%</div>
-          <div class="text-[10px] text-slate-500">Bank Indonesia · As of Aug 2026</div>
+          <div class="text-[10px] text-theme-muted">Bank Indonesia · Aug 2026</div>
         </div>
-
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] space-y-1">
-          <span class="text-[10px] text-slate-400 font-bold uppercase">FEDERAL FUNDS RATE (US)</span>
+        <div class="p-4 rounded-xl card-theme border border-theme space-y-1">
+          <span class="text-[10px] text-theme-muted font-bold uppercase">FEDERAL FUNDS RATE (US)</span>
           <div class="text-2xl font-extrabold font-mono text-cyan-400">5.25%</div>
-          <div class="text-[10px] text-slate-500">Federal Reserve (FOMC) · Aug 2026</div>
+          <div class="text-[10px] text-theme-muted">Federal Reserve (FOMC) · Aug 2026</div>
         </div>
-
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] space-y-1">
-          <span class="text-[10px] text-slate-400 font-bold uppercase">INFLASI CPI INDONESIA (YOY)</span>
+        <div class="p-4 rounded-xl card-theme border border-theme space-y-1">
+          <span class="text-[10px] text-theme-muted font-bold uppercase">INFLASI CPI INDONESIA (YOY)</span>
           <div class="text-2xl font-extrabold font-mono text-emerald-400">2.13%</div>
-          <div class="text-[10px] text-slate-500">Badan Pusat Statistik (BPS)</div>
+          <div class="text-[10px] text-theme-muted">Badan Pusat Statistik (BPS)</div>
         </div>
-
-        <div class="p-4 rounded-xl bg-[#0d111a] border border-[#1b2234] space-y-1">
-          <span class="text-[10px] text-slate-400 font-bold uppercase">10Y US TREASURY YIELD</span>
+        <div class="p-4 rounded-xl card-theme border border-theme space-y-1">
+          <span class="text-[10px] text-theme-muted font-bold uppercase">10Y US TREASURY YIELD</span>
           <div class="text-2xl font-extrabold font-mono text-slate-200" x-text="data.macro?.us10y + '%'"></div>
-          <div class="text-[10px] text-slate-500">CBOE / Benchmark Global Yield</div>
-        </div>
-
-      </div>
-
-      <!-- Quick Institutional Radar Links -->
-      <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] space-y-3">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-          <i data-lucide="external-link" class="w-4 h-4 text-amber-400"></i>
-          <span>PORTAL RADAR MAKRO & SIKLUS INSTITUSIONAL</span>
-        </h3>
-        
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
-          <a href="https://www.multpl.com/shiller-pe" target="_blank" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500 transition flex items-center justify-between text-slate-300">
-            <span>Shiller PE Ratio</span>
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </a>
-          <a href="https://www.blockchaincenter.net/en/bitcoin-rainbow-chart/" target="_blank" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500 transition flex items-center justify-between text-slate-300">
-            <span>BTC Rainbow</span>
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </a>
-          <a href="https://www.lookintobitcoin.com/charts/mvrv-zscore/" target="_blank" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500 transition flex items-center justify-between text-slate-300">
-            <span>MVRV Z-Score</span>
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </a>
-          <a href="https://companiesmarketcap.com/" target="_blank" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500 transition flex items-center justify-between text-slate-300">
-            <span>Companies MCap</span>
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </a>
-          <a href="https://www.bi.go.id/id/statistik/indikator/bi-7day-rr.aspx" target="_blank" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500 transition flex items-center justify-between text-slate-300">
-            <span>Bank Indonesia</span>
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </a>
-          <a href="https://www.federalreserve.gov/monetarypolicy/openmarket.htm" target="_blank" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500 transition flex items-center justify-between text-slate-300">
-            <span>Federal Reserve</span>
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500"></i>
-          </a>
+          <div class="text-[10px] text-theme-muted">CBOE / Benchmark Global Yield</div>
         </div>
       </div>
-
     </div>
 
     <!-- ======================================================================= -->
-    <!-- WORKSPACE 4: QUANTITATIVE RISK & STRESS TEST SCENARIOS                 -->
+    <!-- WORKSPACE 5: RISK & STRESS TEST                                         -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'risk'" class="space-y-6" x-cloak>
-      
-      <div class="p-4 rounded-2xl bg-[#0d111a] border border-[#1b2234] flex items-center justify-between">
+      <div class="p-4 rounded-2xl card-theme border border-theme flex items-center justify-between">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
             <span>MESIN RISIKO KUANTITATIF & SKENARIO STRESS TEST</span>
           </h2>
-          <p class="text-xs text-slate-400">Kontribusi risiko kovariansi (~100%), simulasi syok pasar historis, dan matematika pemulihan asimetris</p>
+          <p class="text-xs text-theme-muted">Kontribusi risiko kovariansi (~100%), simulasi syok pasar historis, dan matematika pemulihan asimetris</p>
         </div>
       </div>
 
-      <!-- Risk Contributions Table & Asymmetric Recovery Table -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Covariance Risk Contributions (Sum = 100%) -->
-        <div class="lg:col-span-7 p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
+        <div class="lg:col-span-7 p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-theme pb-2.5">
             <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2">
               <i data-lucide="percent" class="w-4 h-4 text-cyan-400"></i>
               <span>KONTRIBUSI RISIKO BERBASIS KOVARIANSI (% RC = 100%)</span>
             </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Marginal Risk Contribution</span>
+            <span class="text-[10px] text-theme-muted font-mono">Marginal Risk Contribution</span>
           </div>
 
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs whitespace-nowrap font-mono">
-              <thead class="border-b border-[#1b2234] text-[10px] uppercase text-slate-400">
+              <thead class="border-b border-theme text-[10px] uppercase text-theme-muted">
                 <tr>
                   <th class="py-2 px-3 font-sans">Ticker / Aset</th>
                   <th class="py-2 px-3 text-right">Bobot Portofolio</th>
@@ -858,7 +1084,7 @@
                   <th class="py-2 px-3 text-right">Kontribusi Risiko (% RC)</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-[#1b2234]">
+              <tbody class="divide-y divide-slate-800/40">
                 <template x-for="rc in data.risk_contributions" :key="rc.ticker">
                   <tr class="hover:bg-slate-900/40">
                     <td class="py-2 px-3 font-sans font-bold text-white" x-text="rc.ticker"></td>
@@ -872,14 +1098,13 @@
           </div>
         </div>
 
-        <!-- Asymmetric Recovery Math -->
-        <div class="lg:col-span-5 p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-[#1b2234] pb-2.5">
+        <div class="lg:col-span-5 p-5 rounded-2xl card-theme border border-theme shadow-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-theme pb-2.5">
             <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2">
               <i data-lucide="arrow-up-right" class="w-4 h-4 text-emerald-400"></i>
               <span>MATEMATIKA PEMULIHAN ASIMETRIS</span>
             </h3>
-            <span class="text-[10px] text-slate-400 font-mono">Loss vs Gain Needed</span>
+            <span class="text-[10px] text-theme-muted font-mono">Loss vs Gain Needed</span>
           </div>
 
           <div class="space-y-1.5 font-mono text-xs">
@@ -893,62 +1118,21 @@
             </template>
           </div>
         </div>
-
       </div>
-
-      <!-- 5 Stress Test Shock Scenarios -->
-      <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-[#1b2234] pb-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
-            <span>5 SKENARIO SIMULASI STRESS TEST PASAR (HYPOTHETICAL SHOCKS)</span>
-          </h3>
-          <span class="text-[10px] text-slate-400 font-mono">Hypothetical Simulation — Not A Forecast</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <template x-for="sc in data.stress_scenarios" :key="sc.id">
-            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
-              <div class="border-b border-slate-800 pb-2">
-                <h4 class="text-xs font-bold text-white" x-text="sc.name"></h4>
-                <p class="text-[10px] text-slate-400 mt-0.5" x-text="sc.desc"></p>
-              </div>
-
-              <div class="space-y-1.5 text-xs font-mono">
-                <div class="flex justify-between">
-                  <span class="text-slate-400">Potensi Penurunan:</span>
-                  <strong class="text-rose-400 font-bold" x-text="sc.total_loss_pct + '% (' + formatIDR(sc.total_loss_idr) + ')'"></strong>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-400">Nilai Pasca Syok:</span>
-                  <strong class="text-slate-200 font-bold" x-text="formatIDR(sc.scenario_val_idr)"></strong>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-400">Pemulihan Dibutuhkan:</span>
-                  <strong class="text-emerald-400 font-bold" x-text="'+' + sc.recovery_required_pct + '%'"></strong>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-      </div>
-
     </div>
 
     <!-- ======================================================================= -->
-    <!-- WORKSPACE 5: VALUATION MATRIX & AI RISK GAUGE                           -->
+    <!-- WORKSPACE 6: VALUATION & AI RISK                                        -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'valuation'" class="space-y-6" x-cloak>
-      
-      <!-- AI & Semiconductor Market Risk Gauge -->
-      <div class="p-6 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-[#1b2234] pb-3">
+      <div class="p-6 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-theme pb-3">
           <div>
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
               <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
               <span>AI & SEMICONDUCTOR MARKET RISK INDICATOR</span>
             </h3>
-            <p class="text-xs text-slate-400">Mengukur valuasi, capex hyperscaler, dan siklus semikonduktor secara kuantitatif</p>
+            <p class="text-xs text-theme-muted">Mengukur valuasi, capex hyperscaler, dan siklus semikonduktor secara kuantitatif</p>
           </div>
           <div class="text-right font-mono">
             <span class="text-2xl font-extrabold text-amber-400" x-text="data.ai_risk?.score + ' / 100'"></span>
@@ -961,226 +1145,138 @@
             <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
               <span class="text-xs font-bold text-slate-200" x-text="d.factor"></span>
               <div class="text-lg font-extrabold font-mono text-cyan-400" x-text="d.score + ' / 100'"></div>
-              <p class="text-[10px] text-slate-400" x-text="d.desc"></p>
+              <p class="text-[10px] text-theme-muted" x-text="d.desc"></p>
             </div>
           </template>
         </div>
       </div>
-
     </div>
 
     <!-- ======================================================================= -->
-    <!-- WORKSPACE 6: WEALTH LADDER & MONTE CARLO PROJECTIONS                    -->
+    <!-- WORKSPACE 7: WEALTH & MONTE CARLO                                       -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'wealth'" class="space-y-6" x-cloak>
-      
-      <!-- Monte Carlo Percentile Cones Chart -->
-      <div class="p-6 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#1b2234] pb-3">
+      <div class="p-6 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-theme pb-3">
           <div>
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
               <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
               <span>SIMULASI MONTE CARLO 1.000 JALUR (KERUCUT PERSENTIL WEALTH)</span>
             </h3>
-            <p class="text-xs text-slate-400">Distribusi probabilitas geometrik Brown: P10 (Skenario Terburuk), P50 (Median), P90 (Skenario Bull)</p>
+            <p class="text-xs text-theme-muted">Distribusi probabilitas geometrik Brown: P10 (Skenario Terburuk), P50 (Median), P90 (Skenario Bull)</p>
           </div>
-          <div class="flex items-center gap-3 font-mono text-xs">
-            <div class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-              <span>Probabilitas Target: </span>
-              <strong x-text="data.monte_carlo?.probability_reaching_target_pct + '%'"></strong>
-            </div>
+          <div class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold font-mono text-xs">
+            <span>Probabilitas Target: </span>
+            <strong x-text="data.monte_carlo?.probability_reaching_target_pct + '%'"></strong>
           </div>
         </div>
 
         <div class="h-72 relative">
           <canvas id="monteCarloCanvas"></canvas>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#1b2234] font-mono text-xs">
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-            <span class="text-slate-400">P10 (Worst-Case Outcome):</span>
-            <div class="text-base font-extrabold text-rose-400 mt-1" x-text="formatIDR(data.monte_carlo?.p10_worst_networth)"></div>
-          </div>
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-            <span class="text-slate-400">P50 (Median Expected Outcome):</span>
-            <div class="text-base font-extrabold text-cyan-400 mt-1" x-text="formatIDR(data.monte_carlo?.median_final_networth)"></div>
-          </div>
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-            <span class="text-slate-400">P90 (Bull-Case Outcome):</span>
-            <div class="text-base font-extrabold text-emerald-400 mt-1" x-text="formatIDR(data.monte_carlo?.p90_bull_networth)"></div>
-          </div>
-        </div>
       </div>
-
     </div>
 
     <!-- ======================================================================= -->
-    <!-- WORKSPACE 7: TRACK BULANAN & MULTI-YEAR RIWAYAT                         -->
+    <!-- WORKSPACE 8: TRACK BULANAN                                              -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'monthly'" class="space-y-6" x-cloak>
-      
-      <!-- Top Action Bar -->
-      <div class="p-4 rounded-2xl bg-[#0d111a] border border-[#1b2234] flex flex-wrap items-center justify-between gap-4">
+      <div class="p-4 rounded-2xl card-theme border border-theme flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i>
             <span>PELACAKAN PORTOFOLIO BULANAN & HEATMAP PERTUMBUHAN</span>
           </h2>
-          <p class="text-xs text-slate-400">Rekapitulasi pertumbuhan Net Worth, modal keluar, dan evaluasi PnL multi-tahun</p>
+          <p class="text-xs text-theme-muted">Rekapitulasi pertumbuhan Net Worth, modal keluar, dan evaluasi PnL multi-tahun</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Years Selector -->
-          <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-700 font-mono">
-            <span class="text-[10px] text-slate-400 px-1 font-semibold">TAHUN:</span>
-            <template x-for="yr in availableYears" :key="yr">
-              <button @click="switchYear(yr)" 
-                      class="px-2.5 py-1 rounded-lg text-xs font-bold transition"
-                      :class="selectedYear === yr ? 'bg-cyan-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800'"
-                      x-text="yr"></button>
-            </template>
-          </div>
-
-          <button @click="showAddYearModal = true" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-cyan-500/40 text-cyan-300 text-xs font-semibold">
-            + Tambah Tahun
-          </button>
-          
-          <button @click="openAddMonthlyModal()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow">
-            Update Data Bulan
-          </button>
+        <div class="flex items-center gap-2 font-mono">
+          <template x-for="yr in availableYears" :key="yr">
+            <button @click="switchYear(yr)" 
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold transition"
+                    :class="selectedYear === yr ? 'bg-cyan-600 text-white shadow' : 'bg-slate-900 text-slate-300 border border-slate-700'"
+                    x-text="yr"></button>
+          </template>
         </div>
       </div>
 
-      <!-- 12 Months Table & Heatmap Grid -->
-      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        
-        <!-- Table -->
-        <div class="xl:col-span-8 border border-[#1b2234] rounded-2xl bg-[#0d111a] shadow-xl overflow-hidden">
-          <div class="px-5 py-3 border-b border-[#1b2234] bg-[#090d15] flex items-center justify-between">
-            <span class="text-xs font-bold text-white font-mono" x-text="'REKAPITULASI BULANAN TAHUN ' + selectedYear"></span>
-            <span class="text-xs font-mono text-emerald-400 font-bold" x-text="'Total Injeksi: ' + formatIDR(calculateTotalInvestingPower())"></span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs whitespace-nowrap font-mono">
-              <thead class="border-b border-[#1b2234] bg-[#080b12] text-[10px] uppercase text-slate-400">
-                <tr>
-                  <th class="py-2.5 px-4 font-sans">Bulan</th>
-                  <th class="py-2.5 px-3 text-right">Modal Keluar</th>
-                  <th class="py-2.5 px-3 text-right">Current Networth</th>
-                  <th class="py-2.5 px-3 text-right">Injeksi Baru</th>
-                  <th class="py-2.5 px-3 text-right">Assets P&L</th>
-                  <th class="py-2.5 px-3 text-center">Growth %</th>
-                  <th class="py-2.5 px-3 text-center">Aksi</th>
+      <div class="border border-theme rounded-2xl card-theme shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs whitespace-nowrap font-mono">
+            <thead class="border-b border-theme bg-black/30 text-[10px] uppercase text-theme-muted">
+              <tr>
+                <th class="py-2.5 px-4 font-sans">Bulan</th>
+                <th class="py-2.5 px-3 text-right">Modal Keluar</th>
+                <th class="py-2.5 px-3 text-right">Current Networth</th>
+                <th class="py-2.5 px-3 text-right">Injeksi Baru</th>
+                <th class="py-2.5 px-3 text-right">Assets P&L</th>
+                <th class="py-2.5 px-3 text-center">Growth %</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/40">
+              <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
+                <tr class="hover:bg-slate-900/40">
+                  <td class="py-2.5 px-4 font-sans font-bold text-white" x-text="row.month_name"></td>
+                  <td class="py-2.5 px-3 text-right text-slate-300" x-text="row.total_outgoings > 0 ? formatIDR(row.total_outgoings) : '-'"></td>
+                  <td class="py-2.5 px-3 text-right font-bold text-white" x-text="row.current_networth > 0 ? formatIDR(row.current_networth) : '-'"></td>
+                  <td class="py-2.5 px-3 text-right font-bold text-emerald-400" x-text="row.investing_power > 0 ? formatIDR(row.investing_power) : '0'"></td>
+                  <td class="py-2.5 px-3 text-right font-bold"
+                      :class="row.pnl_idr >= 0 ? 'text-emerald-400' : 'text-rose-400'"
+                      x-text="row.total_outgoings > 0 ? ((row.pnl_idr >= 0 ? '+' : '') + formatIDR(row.pnl_idr) + ' (' + row.pnl_pct.toFixed(1) + '%)') : '-'"></td>
+                  <td class="py-2.5 px-3 text-center font-bold"
+                      :class="row.growth_pct > 0 ? 'text-emerald-400' : (row.growth_pct < 0 ? 'text-rose-400' : 'text-slate-500')"
+                      x-text="row.current_networth > 0 ? ((row.growth_pct > 0 ? '+' : '') + row.growth_pct.toFixed(2) + '%') : '-'"></td>
                 </tr>
-              </thead>
-              <tbody class="divide-y divide-[#151c2c]">
-                <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
-                  <tr class="hover:bg-slate-900/40">
-                    <td class="py-2.5 px-4 font-sans font-bold text-white" x-text="row.month_name"></td>
-                    <td class="py-2.5 px-3 text-right text-slate-300" x-text="row.total_outgoings > 0 ? formatIDR(row.total_outgoings) : '-'"></td>
-                    <td class="py-2.5 px-3 text-right font-bold text-white" x-text="row.current_networth > 0 ? formatIDR(row.current_networth) : '-'"></td>
-                    <td class="py-2.5 px-3 text-right font-bold text-emerald-400" x-text="row.investing_power > 0 ? formatIDR(row.investing_power) : '0'"></td>
-                    <td class="py-2.5 px-3 text-right font-bold"
-                        :class="row.pnl_idr >= 0 ? 'text-emerald-400' : 'text-rose-400'"
-                        x-text="row.total_outgoings > 0 ? ((row.pnl_idr >= 0 ? '+' : '') + formatIDR(row.pnl_idr) + ' (' + row.pnl_pct.toFixed(1) + '%)') : '-'"></td>
-                    <td class="py-2.5 px-3 text-center font-bold"
-                        :class="row.growth_pct > 0 ? 'text-emerald-400' : (row.growth_pct < 0 ? 'text-rose-400' : 'text-slate-500')"
-                        x-text="row.current_networth > 0 ? ((row.growth_pct > 0 ? '+' : '') + row.growth_pct.toFixed(2) + '%') : '-'"></td>
-                    <td class="py-2.5 px-3 text-center">
-                      <button @click="editMonthlyRecord(row)" class="p-1 rounded text-slate-400 hover:text-cyan-400">
-                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                      </button>
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Heatmap Grid -->
-        <div class="xl:col-span-4 space-y-4">
-          <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl">
-            <span class="text-xs font-bold uppercase text-white block mb-3" x-text="'MATRIKS PERTUMBUHAN (' + selectedYear + ')'"></span>
-            <div class="grid grid-cols-3 gap-2 font-mono text-center">
-              <template x-for="row in monthlyRecords" :key="row.month_index">
-                <div class="p-3 rounded-xl border flex flex-col justify-between"
-                     :class="getGrowthHeatmapClass(row)">
-                  <span class="text-[10px] font-bold uppercase" x-text="row.month_name.substring(0, 3)"></span>
-                  <div class="text-xs font-extrabold my-1"
-                       x-text="row.current_networth > 0 ? (row.growth_pct > 0 ? '+' : '') + row.growth_pct.toFixed(1) + '%' : '-'"></div>
-                  <span class="text-[9px] opacity-75" x-text="row.current_networth > 0 ? formatShortIDR(row.current_networth) : 'Pending'"></span>
-                </div>
               </template>
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
-
       </div>
-
     </div>
 
     <!-- ======================================================================= -->
-    <!-- WORKSPACE 8: INVESTMENT THESIS JOURNAL                                  -->
-    <!-- ======================================================================= -->
-    <div x-show="activeView === 'thesis'" class="space-y-6" x-cloak>
-      
-      <div class="p-4 rounded-2xl bg-[#0d111a] border border-[#1b2234] flex items-center justify-between">
-        <div>
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i>
-            <span>INVESTMENT THESIS JOURNAL</span>
-          </h2>
-          <p class="text-xs text-slate-400">Catatan tesis investasi, katalis, risiko pembatalan (invalidation), dan status integritas</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <template x-for="t in thesesList" :key="t.id || t.ticker">
-          <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-[#1b2234] pb-2">
-              <span class="font-extrabold font-mono text-cyan-400 text-sm" x-text="t.ticker"></span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                    :class="t.status === 'INTACT' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (t.status === 'WEAKENING' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400')"
-                    x-text="t.status"></span>
-            </div>
-
-            <div class="space-y-2 text-xs text-slate-300">
-              <p><strong class="text-slate-400">Tesis Kepemilikan:</strong> <span x-text="t.thesis"></span></p>
-              <p><strong class="text-emerald-400">Katalis Utama:</strong> <span x-text="t.catalysts"></span></p>
-              <p><strong class="text-rose-400">Risiko Pembatalan:</strong> <span x-text="t.risks"></span></p>
-            </div>
-          </div>
-        </template>
-      </div>
-
-    </div>
-
-    <!-- ======================================================================= -->
-    <!-- WORKSPACE 9: SETTINGS & INDONESIAN TAX FRAMEWORK                        -->
+    <!-- WORKSPACE 9: SETTINGS, TAX & THEMES                                     -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'settings'" class="space-y-6" x-cloak>
       
-      <div class="p-4 rounded-2xl bg-[#0d111a] border border-[#1b2234] flex items-center justify-between">
-        <div>
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
-            <i data-lucide="settings" class="w-4 h-4 text-cyan-400"></i>
-            <span>KERANGKA PAJAK INVESTASI INDONESIA & CENTRAL ASSUMPTIONS</span>
-          </h2>
-          <p class="text-xs text-slate-400">Aturan perpajakan berversi resmi (PPh Final 0.1%, SBN 10%, Dividen, Kripto, Emas)</p>
+      <!-- Theme & Appearance Center -->
+      <div class="p-6 rounded-2xl card-theme border border-theme shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-theme pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="palette" class="w-4 h-4 text-purple-400"></i>
+              <span>APPEARANCE & THEME CENTER (6 VISUAL THEMES)</span>
+            </h3>
+            <p class="text-xs text-theme-muted">Pilih gaya visual, mode terang/gelap, dan kerapatan tata letak antarmuka</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <template x-for="t in availableThemes" :key="t.id">
+            <button @click="setTheme(t.id)" 
+                    class="p-3.5 rounded-xl border text-left flex flex-col justify-between h-28 transition relative"
+                    :class="currentTheme === t.id ? 'border-purple-500 bg-purple-950/20 shadow-lg shadow-purple-500/20' : 'border-slate-800 bg-slate-900/60 hover:border-slate-600'">
+              <div>
+                <div class="w-4 h-4 rounded-full mb-2" :style="'background-color: ' + t.previewColor"></div>
+                <strong class="text-xs font-bold text-white block" x-text="t.name"></strong>
+                <span class="text-[10px] text-theme-muted block" x-text="t.desc"></span>
+              </div>
+              <span x-show="currentTheme === t.id" class="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-bold self-start mt-1">AKTIF</span>
+            </button>
+          </template>
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#0d111a] border border-[#1b2234] shadow-xl space-y-4">
-        <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2 border-b border-[#1b2234] pb-2">
+      <!-- Indonesian Tax Framework -->
+      <div class="p-6 rounded-2xl card-theme border border-theme shadow-xl space-y-4">
+        <h3 class="text-xs font-bold uppercase text-white flex items-center gap-2 border-b border-theme pb-2">
           <i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i>
-          <span>DAFTAR ATURAN PAJAK RESMI INDONESIA</span>
+          <span>KERANGKA PAJAK INVESTASI INDONESIA BERVERSI RESMI</span>
         </h3>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs whitespace-nowrap font-mono">
-            <thead class="border-b border-[#1b2234] text-[10px] uppercase text-slate-400">
+            <thead class="border-b border-theme text-[10px] uppercase text-theme-muted">
               <tr>
                 <th class="py-2 px-3">Instrumen</th>
                 <th class="py-2 px-3">Yurisdiksi</th>
@@ -1188,13 +1284,13 @@
                 <th class="py-2 px-3">Dasar Regulasi Resmi</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#1b2234]">
+            <tbody class="divide-y divide-slate-800/40">
               <template x-for="r in taxRulesList" :key="r.instrument_type">
                 <tr class="hover:bg-slate-900/40">
                   <td class="py-2.5 px-3 font-bold text-cyan-400" x-text="r.instrument_type"></td>
                   <td class="py-2.5 px-3 text-slate-300" x-text="r.jurisdiction"></td>
                   <td class="py-2.5 px-3 font-sans text-slate-200" x-text="r.base_desc"></td>
-                  <td class="py-2.5 px-3 text-slate-400" x-text="r.source"></td>
+                  <td class="py-2.5 px-3 text-theme-muted" x-text="r.source"></td>
                 </tr>
               </template>
             </tbody>
@@ -1207,14 +1303,106 @@
   </main>
 
   <!-- ========================================================================= -->
+  <!-- ASSET RESEARCH TERMINAL MODAL (DEEP DIVE + YAHOO FINANCE ↗)              -->
+  <!-- ========================================================================= -->
+  <div x-cloak x-show="showResearchModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div @click.away="showResearchModal = false" class="border border-purple-500/40 rounded-2xl max-w-3xl w-full card-theme shadow-2xl p-6 space-y-5">
+      
+      <!-- Research Modal Header -->
+      <div class="flex items-start justify-between border-b border-theme pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-xl font-extrabold font-mono text-cyan-400" x-text="selectedAsset?.ticker"></h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300" x-text="selectedAsset?.market"></span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300" x-text="selectedAsset?.sector"></span>
+          </div>
+          <h4 class="text-sm font-bold text-white mt-1" x-text="selectedAsset?.name"></h4>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- DIRECT YAHOO FINANCE LINK -->
+          <a :href="selectedAsset?.yahoo_url" target="_blank" 
+             class="px-3 py-1.5 rounded-lg bg-slate-900 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold flex items-center gap-1.5 hover:bg-slate-800 transition">
+            <span>Open Yahoo Finance</span>
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          </a>
+          <button @click="showResearchModal = false" class="text-slate-400 hover:text-white p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="grid grid-cols-4 gap-3 font-mono text-center text-xs">
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+          <span class="text-[10px] text-theme-muted block">OPPORTUNITY</span>
+          <span class="text-base font-extrabold text-purple-400" x-text="selectedAsset?.opportunity_score + '/100'"></span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+          <span class="text-[10px] text-theme-muted block">MULTIBAGGER</span>
+          <span class="text-base font-extrabold text-cyan-400" x-text="selectedAsset?.multibagger?.score + '/100'"></span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+          <span class="text-[10px] text-theme-muted block">QUALITY ROIC</span>
+          <span class="text-base font-extrabold text-emerald-400" x-text="selectedAsset?.quality?.score + '/100'"></span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+          <span class="text-[10px] text-theme-muted block">PORTFOLIO FIT</span>
+          <span class="text-base font-extrabold text-amber-400" x-text="selectedAsset?.portfolio_fit?.fit_score + '%'"></span>
+        </div>
+      </div>
+
+      <!-- Sensitivity Scenarios: Bear / Base / Bull -->
+      <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span class="text-xs font-bold text-white uppercase tracking-wider">SKENARIO MODEL VALUASI (BEAR / BASE / BULL)</span>
+          <span class="text-[10px] text-theme-muted font-mono">Sensitivity Bounds</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 font-mono text-center text-xs">
+          <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-800/40">
+            <span class="text-[10px] text-rose-400 block font-bold">BEAR CASE</span>
+            <strong class="text-base text-rose-300 font-extrabold" x-text="selectedAsset?.currency === 'IDR' ? formatIDR(selectedAsset?.bear_case_idr) : formatUSD(selectedAsset?.bear_case_usd)"></strong>
+          </div>
+          <div class="p-2.5 rounded-lg bg-cyan-950/30 border border-cyan-800/40">
+            <span class="text-[10px] text-cyan-400 block font-bold">BASE CASE (MEDIAN)</span>
+            <strong class="text-base text-cyan-300 font-extrabold" x-text="selectedAsset?.currency === 'IDR' ? formatIDR(selectedAsset?.base_case_idr) : formatUSD(selectedAsset?.base_case_usd)"></strong>
+          </div>
+          <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-800/40">
+            <span class="text-[10px] text-emerald-400 block font-bold">BULL CASE (UPSIDE)</span>
+            <strong class="text-base text-emerald-300 font-extrabold" x-text="selectedAsset?.currency === 'IDR' ? formatIDR(selectedAsset?.bull_case_idr) : formatUSD(selectedAsset?.bull_case_usd)"></strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invalidation Conditions -->
+      <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-800/40 text-xs space-y-1.5">
+        <strong class="text-rose-400 font-bold block flex items-center gap-1.5">
+          <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+          <span>WHAT WOULD PROVE THIS THESIS WRONG? (INVALIDATION)</span>
+        </strong>
+        <p class="text-slate-300 text-[11px]" x-text="selectedAsset?.invalidation_conditions"></p>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-xs font-mono text-theme-muted" x-text="'Gap analysis: ' + (selectedAsset?.portfolio_fit?.gap_filled || '-')"></span>
+        <button @click="showResearchModal = false" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow">
+          Tutup Terminal Riset
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- COMMAND PALETTE MODAL (CTRL + K)                                         -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showCommandPalette" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-start justify-center pt-20 p-4">
-    <div @click.away="showCommandPalette = false" class="border border-[#263147] rounded-2xl max-w-xl w-full bg-[#0d111a] shadow-2xl space-y-3 p-4">
+    <div @click.away="showCommandPalette = false" class="border border-[#263147] rounded-2xl max-w-xl w-full card-theme shadow-2xl space-y-3 p-4">
       <div class="relative">
         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-        <input type="text" x-model="commandSearch" placeholder="Cari perintah atau nama aset (NVDA, BBCA, Monte Carlo, Scan)..."
-               class="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-cyan-400">
+        <input type="text" x-model="commandSearch" placeholder="Cari perintah, ticker, atau tema (NVDA, BBCA, Discover, Scan)..."
+               class="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-white outline-none focus:border-purple-400">
       </div>
 
       <div class="space-y-1 text-xs font-mono max-h-64 overflow-y-auto">
@@ -1222,73 +1410,51 @@
           <span>⚡ Run Full Portfolio Scan</span>
           <span class="text-[10px] text-slate-500">Action</span>
         </button>
+        <button @click="activeView = 'discover'; showCommandPalette = false" class="w-full p-2 rounded-lg hover:bg-slate-800 text-left text-purple-300 font-bold">
+          <span>3. Buka Discover (Global Asset Scanner)</span>
+        </button>
         <button @click="activeView = 'radar'; showCommandPalette = false" class="w-full p-2 rounded-lg hover:bg-slate-800 text-left text-slate-300">
           <span>1. Buka Radar Exec Dashboard</span>
         </button>
         <button @click="activeView = 'portfolio'; showCommandPalette = false" class="w-full p-2 rounded-lg hover:bg-slate-800 text-left text-slate-300">
           <span>2. Buka Holdings & ETF Lookthrough</span>
         </button>
-        <button @click="activeView = 'risk'; showCommandPalette = false" class="w-full p-2 rounded-lg hover:bg-slate-800 text-left text-slate-300">
-          <span>4. Buka Risk & Stress Test</span>
-        </button>
-        <button @click="activeView = 'wealth'; showCommandPalette = false" class="w-full p-2 rounded-lg hover:bg-slate-800 text-left text-slate-300">
-          <span>6. Buka Wealth & Monte Carlo</span>
-        </button>
       </div>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- SIGNATURE FULL SCAN RESULTS MODAL                                        -->
+  <!-- APPEARANCE CENTER MODAL                                                  -->
   <!-- ========================================================================= -->
-  <div x-cloak x-show="showScanResultModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-    <div @click.away="showScanResultModal = false" class="border border-cyan-500/50 rounded-2xl max-w-2xl w-full bg-[#0d111a] shadow-2xl p-6 space-y-5">
-      <div class="flex items-center justify-between border-b border-[#1b2234] pb-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="scan-line" class="w-5 h-5 text-cyan-400"></i>
-          <div>
-            <h3 class="text-sm font-extrabold text-white">AUDIT PORTOFOLIO SELESAI (FULL SCAN AUDIT)</h3>
-            <p class="text-[10px] text-slate-400">Analisis Kuantitatif Menyeluruh dalam 10 Detik</p>
-          </div>
-        </div>
-        <button @click="showScanResultModal = false" class="text-slate-400 hover:text-white">
+  <div x-cloak x-show="showAppearanceModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showAppearanceModal = false" class="border border-[#263147] rounded-2xl max-w-lg w-full card-theme shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-theme pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="palette" class="w-4 h-4 text-purple-400"></i>
+          <span>Pilih Tema & Tampilan Antarmuka</span>
+        </h3>
+        <button @click="showAppearanceModal = false" class="text-slate-400 hover:text-white">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <!-- Quick Metrics Strip -->
-      <div class="grid grid-cols-3 gap-3 font-mono text-center">
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-[10px] text-slate-400 block">HEALTH SCORE</span>
-          <span class="text-xl font-extrabold text-cyan-400" x-text="data.health?.health_score + ' / 100'"></span>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-[10px] text-slate-400 block">AI MARKET RISK</span>
-          <span class="text-xl font-extrabold text-amber-400" x-text="data.ai_risk?.score + ' / 100'"></span>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-[10px] text-slate-400 block">PROB. TARGET FF</span>
-          <span class="text-xl font-extrabold text-emerald-400" x-text="data.monte_carlo?.probability_reaching_target_pct + '%'"></span>
-        </div>
-      </div>
-
-      <!-- Top 3 Priorities -->
-      <div class="space-y-2">
-        <span class="text-xs font-bold uppercase text-white tracking-wider block">TOP 3 PRIORITAS UTAMA RADAR:</span>
-        <template x-for="(p, i) in data.top_priorities" :key="i">
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs flex items-start gap-2.5">
-            <span class="font-mono font-bold text-cyan-400" x-text="(i+1) + '.'"></span>
+      <div class="grid grid-cols-2 gap-2.5">
+        <template x-for="t in availableThemes" :key="t.id">
+          <button @click="setTheme(t.id)" 
+                  class="p-3 rounded-xl border text-left flex items-center gap-3 transition"
+                  :class="currentTheme === t.id ? 'border-purple-500 bg-purple-950/20' : 'border-slate-800 bg-slate-900/60'">
+            <div class="w-4 h-4 rounded-full" :style="'background-color: ' + t.previewColor"></div>
             <div>
-              <strong class="text-white block font-bold" x-text="p.title"></strong>
-              <span class="text-slate-400 text-[11px]" x-text="p.desc"></span>
+              <strong class="text-xs font-bold text-white block" x-text="t.name"></strong>
+              <span class="text-[10px] text-theme-muted block" x-text="t.desc"></span>
             </div>
-          </div>
+          </button>
         </template>
       </div>
 
       <div class="flex justify-end pt-2">
-        <button @click="showScanResultModal = false" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold">
-          Tutup Laporan
+        <button @click="showAppearanceModal = false" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold">
+          Terapkan Tampilan
         </button>
       </div>
     </div>
@@ -1298,8 +1464,8 @@
   <!-- MODAL: ADD / EDIT ASSET                                                   -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showAssetModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div @click.away="showAssetModal = false" class="border border-[#263147] rounded-2xl max-w-lg w-full p-6 bg-[#0d111a] shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-[#1b2234] pb-3">
+    <div @click.away="showAssetModal = false" class="border border-[#263147] rounded-2xl max-w-lg w-full p-6 card-theme shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-theme pb-3">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
           <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
           <span x-text="assetForm.id ? 'Edit Posisi Aset' : 'Tambah Aset Baru'"></span>
@@ -1312,12 +1478,12 @@
       <form @submit.prevent="saveAsset()" class="space-y-3.5 text-xs">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block mb-1 text-slate-400">Simbol Ticker (Yahoo Finance)</label>
+            <label class="block mb-1 text-theme-muted">Simbol Ticker (Yahoo Finance)</label>
             <input type="text" x-model="assetForm.ticker" required placeholder="NVDA, BBCA.JK, BTC-USD"
                    class="w-full rounded-lg px-3 py-2 font-mono uppercase bg-slate-900 border border-slate-700 text-white outline-none focus:border-cyan-500">
           </div>
           <div>
-            <label class="block mb-1 text-slate-400">Kategori Radar</label>
+            <label class="block mb-1 text-theme-muted">Kategori Radar</label>
             <select x-model="assetForm.category" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700 text-white outline-none">
               <option value="core_radar">CORE RADAR (ETF)</option>
               <option value="war_nemesis">WAR NEMESIS (Crypto/Gold)</option>
@@ -1329,26 +1495,26 @@
         </div>
 
         <div>
-          <label class="block mb-1 text-slate-400">Nama / Peran Aset</label>
+          <label class="block mb-1 text-theme-muted">Nama / Peran Aset</label>
           <input type="text" x-model="assetForm.name" required placeholder="500 best US companies, Raja perbankan"
                  class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700 text-white outline-none">
         </div>
 
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block mb-1 text-slate-400">Mata Uang</label>
+            <label class="block mb-1 text-theme-muted">Mata Uang</label>
             <select x-model="assetForm.currency" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700 text-white outline-none">
               <option value="USD">USD ($)</option>
               <option value="IDR">IDR (Rp)</option>
             </select>
           </div>
           <div>
-            <label class="block mb-1 text-slate-400">Quantity</label>
+            <label class="block mb-1 text-theme-muted">Quantity</label>
             <input type="number" step="any" x-model="assetForm.quantity" placeholder="0"
                    class="w-full rounded-lg px-3 py-2 font-mono bg-slate-900 border border-slate-700 text-white outline-none">
           </div>
           <div>
-            <label class="block mb-1 text-slate-400">Satuan Lot / Shares</label>
+            <label class="block mb-1 text-theme-muted">Satuan</label>
             <select x-model="assetForm.is_lot" class="w-full rounded-lg px-3 py-2 bg-slate-900 border border-slate-700 text-white outline-none">
               <option :value="false">Shares / Coin</option>
               <option :value="true">Lot (100 Lembar)</option>
@@ -1358,12 +1524,12 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block mb-1 text-slate-400">Total Modal Keluar (IDR)</label>
+            <label class="block mb-1 text-theme-muted">Modal Terinvestasi (IDR)</label>
             <input type="number" step="any" x-model="assetForm.invested_idr" placeholder="Rp 0"
                    class="w-full rounded-lg px-3 py-2 font-mono bg-slate-900 border border-slate-700 text-white outline-none">
           </div>
           <div>
-            <label class="block mb-1 text-slate-400">Harga Beli Rata-rata</label>
+            <label class="block mb-1 text-theme-muted">Harga Beli Rata-rata</label>
             <input type="number" step="any" x-model="assetForm.avg_price" placeholder="0.00"
                    class="w-full rounded-lg px-3 py-2 font-mono bg-slate-900 border border-slate-700 text-white outline-none">
           </div>
@@ -1400,25 +1566,43 @@
         selectedYear: {{ current_year }} || 2026,
         thesesList: {{ theses | tojson | safe }} || [],
         taxRulesList: {{ tax_rules | tojson | safe }} || [],
-        
+        discoveredUniverse: {{ discovered_universe | tojson | safe }} || [],
+        filteredUniverse: {{ discovered_universe | tojson | safe }} || [],
+        themesList: {{ themes_data | tojson | safe }} || [],
+        appearance: {{ appearance | tojson | safe }} || {},
+
         activeView: 'radar',
+        discoverSubTab: 'scanner',
+        discoverMarketFilter: 'ALL',
+        discoverTypeFilter: 'ALL',
+        discoverStyleFilter: 'ALL',
+        discoverSearch: '',
+        
+        currentTheme: localStorage.getItem('radar_theme_v4') || 'terminal_dark',
+        appearanceMode: localStorage.getItem('radar_mode_v4') || 'dark',
+        currentDensity: localStorage.getItem('radar_density_v4') || 'compact',
+        
+        availableThemes: [
+          { id: 'terminal_dark', name: 'Terminal Dark', desc: 'Bloomberg Monospace Dense', previewColor: '#06b6d4' },
+          { id: 'modern_dark', name: 'Modern Dark', desc: 'Fintech Dark Minimal', previewColor: '#3b82f6' },
+          { id: 'classic_light', name: 'Classic Light', desc: 'Research Desk Light', previewColor: '#1e3a8a' },
+          { id: 'modern_light', name: 'Modern Light', desc: 'Bright Fintech Light', previewColor: '#059669' },
+          { id: 'midnight_blue', name: 'Midnight Blue', desc: 'Deep Navy Institutional', previewColor: '#38bdf8' },
+          { id: 'paper_research', name: 'Paper Research', desc: 'Warm Editorial Paper', previewColor: '#854d0e' }
+        ],
+
+        selectedAsset: null,
+        showResearchModal: false,
+        showAppearanceModal: false,
+        showCommandPalette: false,
+        commandSearch: '',
+        showAssetModal: false,
         isLoading: false,
         isScanning: false,
         currentTime: '',
         autoRefreshCountdown: 15,
         countdownTimer: null,
-        
-        showCommandPalette: false,
-        commandSearch: '',
-        showScanResultModal: false,
-        showAssetModal: false,
-        showAddYearModal: false,
         toast: { show: false, message: '' },
-
-        // Filter Performance Sub-columns (15y & 20y hidden by default)
-        perfColumns: JSON.parse(localStorage.getItem('portfolio_perf_cols_v3')) || {
-          '24h': true, '1w': true, '1m': true, '6m': true, '1y': true, '5y': true, '10y': true, '15y': false, '20y': false
-        },
 
         assetForm: {
           id: null, category: 'core_radar', ticker: '', name: '', currency: 'USD',
@@ -1432,8 +1616,7 @@
           setInterval(() => this.updateClock(), 1000);
           this.startAutoRefreshTimer();
           lucide.createIcons();
-          
-          // Keyboard shortcut for Command Palette
+
           window.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
               e.preventDefault();
@@ -1442,18 +1625,61 @@
           });
         },
 
-        activePerfTimeframes() {
-          const all = ['24h', '1w', '1m', '6m', '1y', '5y', '10y', '15y', '20y'];
-          const active = all.filter(tf => this.perfColumns[tf]);
-          localStorage.setItem('portfolio_perf_cols_v3', JSON.stringify(this.perfColumns));
-          return active;
+        getYahooUrl(ticker) {
+          if (!ticker) return 'https://finance.yahoo.com';
+          return `https://finance.yahoo.com/quote/${ticker.trim().toUpperCase()}/`;
         },
 
-        setAllPerf(enabled) {
-          ['24h', '1w', '1m', '6m', '1y', '5y', '10y', '15y', '20y'].forEach(tf => {
-            this.perfColumns[tf] = enabled;
+        getThemeName(themeId) {
+          const t = this.availableThemes.find(x => x.id === themeId);
+          return t ? t.name : 'Terminal Dark';
+        },
+
+        setTheme(themeId) {
+          this.currentTheme = themeId;
+          localStorage.setItem('radar_theme_v4', themeId);
+          this.saveAppearanceSettings();
+          this.showToast(`🎨 Tema ${this.getThemeName(themeId)} diterapkan!`);
+        },
+
+        async saveAppearanceSettings() {
+          try {
+            await fetch('/api/settings/appearance', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                selected_theme: this.currentTheme,
+                appearance_mode: this.appearanceMode,
+                density: this.currentDensity
+              })
+            });
+          } catch (e) { console.error(e); }
+        },
+
+        filterDiscoverUniverse() {
+          const q = this.discoverSearch.trim().toLowerCase();
+          this.filteredUniverse = this.discoveredUniverse.filter(item => {
+            if (q) {
+              const match = item.ticker.toLowerCase().includes(q) ||
+                            item.name.toLowerCase().includes(q) ||
+                            (item.sector && item.sector.toLowerCase().includes(q)) ||
+                            (item.themes && item.themes.some(t => t.toLowerCase().includes(q)));
+              if (!match) return false;
+            }
+            if (this.discoverMarketFilter !== 'ALL' && item.market !== this.discoverMarketFilter) return false;
+            if (this.discoverTypeFilter !== 'ALL' && item.asset_type !== this.discoverTypeFilter) return false;
+            if (this.discoverStyleFilter !== 'ALL' && (!item.style || !item.style.includes(this.discoverStyleFilter))) return false;
+            return true;
           });
-          localStorage.setItem('portfolio_perf_cols_v3', JSON.stringify(this.perfColumns));
+        },
+
+        openAssetResearch(ticker) {
+          const asset = this.discoveredUniverse.find(a => a.ticker.toUpperCase() === ticker.toUpperCase());
+          if (asset) {
+            this.selectedAsset = asset;
+            this.showResearchModal = true;
+            this.$nextTick(() => lucide.createIcons());
+          }
         },
 
         startAutoRefreshTimer() {
@@ -1504,8 +1730,7 @@
             const json = await res.json();
             if (json.status === 'success') {
               this.data = json.portfolio;
-              this.showScanResultModal = true;
-              this.showToast('⚡ Audit Kuantitatif Selesai dalam 10 Detik!');
+              this.showToast('⚡ Audit Kuantitatif Selesai!');
               this.$nextTick(() => lucide.createIcons());
             }
           } catch (e) {
@@ -1521,29 +1746,49 @@
             const res = await fetch(`/api/monthly?year=${this.selectedYear}`);
             const data = await res.json();
             this.monthlyRecords = data;
-            this.$nextTick(() => {
-              lucide.createIcons();
-            });
-          } catch (e) {
-            console.error(e);
-          }
+            this.$nextTick(() => lucide.createIcons());
+          } catch (e) { console.error(e); }
         },
 
-        calculateTotalInvestingPower() {
-          return (this.monthlyRecords || []).reduce((acc, curr) => acc + (curr.investing_power || 0), 0);
-        },
+        renderRiskRewardChart() {
+          const canvas = document.getElementById('riskRewardCanvas');
+          if (!canvas) return;
+          if (this.charts.riskReward) this.charts.riskReward.destroy();
 
-        getGrowthHeatmapClass(row) {
-          if (!row.current_networth || row.current_networth === 0) {
-            return 'bg-slate-900/40 border-slate-800 text-slate-500';
-          }
-          if (row.growth_pct > 0) {
-            return 'bg-emerald-950/60 border-emerald-700/60 text-emerald-400 font-bold';
-          } else if (row.growth_pct < 0) {
-            return 'bg-rose-950/70 border-rose-700/60 text-rose-300 font-bold';
-          } else {
-            return 'bg-slate-800/80 border-slate-600 text-white';
-          }
+          const scatterData = this.discoveredUniverse.map(a => ({
+            x: a.risk_reward_coords?.x_risk || 50,
+            y: a.risk_reward_coords?.y_upside || 50,
+            ticker: a.ticker
+          }));
+
+          this.charts.riskReward = new Chart(canvas.getContext('2d'), {
+            type: 'scatter',
+            data: {
+              datasets: [{
+                label: 'Global Assets',
+                data: scatterData,
+                backgroundColor: '#a855f7',
+                borderColor: '#c084fc',
+                pointRadius: 6,
+                pointHoverRadius: 8
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => `${ctx.raw.ticker}: Risk ${ctx.raw.x}, Upside ${ctx.raw.y}`
+                  }
+                }
+              },
+              scales: {
+                x: { min: 0, max: 100, title: { display: true, text: 'Risiko Terukur (0 = Rendah, 100 = Ekstrem)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { min: 0, max: 100, title: { display: true, text: 'Potensi Imbal Hasil Multibagger (0-100)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+              }
+            }
+          });
         },
 
         renderMonteCarloChart() {
@@ -1625,36 +1870,9 @@
           return 'Rp ' + Math.round(val).toLocaleString('id-ID');
         },
 
-        formatShortIDR(val) {
-          if (val === undefined || val === null || isNaN(val)) return 'Rp 0';
-          const a = Math.abs(val);
-          if (a >= 1e12) return 'Rp ' + (val / 1e12).toFixed(1) + 'T';
-          if (a >= 1e9) return 'Rp ' + (val / 1e9).toFixed(1) + ' Miliar';
-          if (a >= 1e6) return 'Rp ' + (val / 1e6).toFixed(0) + ' Juta';
-          return 'Rp ' + Math.round(val).toLocaleString('id-ID');
-        },
-
         formatUSD(val) {
           if (val === undefined || val === null || isNaN(val)) return '$0.00';
           return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        },
-
-        formatPct(val) {
-          if (val === undefined || val === null || isNaN(val)) return 'N/A';
-          return (val > 0 ? '+' : '') + Number(val).toFixed(1) + '%';
-        },
-
-        getPerfBg(val) {
-          if (val === undefined || val === null || isNaN(val)) {
-            return 'bg-slate-900/60 text-slate-500 border border-slate-800';
-          }
-          if (val > 0) {
-            return 'bg-emerald-950/70 text-emerald-400 border border-emerald-700/60 font-bold';
-          }
-          if (val < 0) {
-            return 'bg-rose-950/70 text-rose-300 border border-rose-700/60 font-bold';
-          }
-          return 'bg-slate-900/60 text-slate-400 border border-slate-800';
         }
       }
     }

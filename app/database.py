@@ -662,6 +662,10 @@ def init_db():
         risk_tolerance TEXT DEFAULT 'MODERATE_AGGRESSIVE',
         base_currency TEXT DEFAULT 'IDR',
         target_allocations_json TEXT DEFAULT '{}',
+        selected_theme TEXT DEFAULT 'terminal_dark',
+        appearance_mode TEXT DEFAULT 'dark',
+        density TEXT DEFAULT 'compact',
+        investor_persona TEXT DEFAULT 'BALANCED',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -680,7 +684,11 @@ def init_db():
         "withdrawal_rate": "REAL DEFAULT 4.0",
         "risk_tolerance": "TEXT DEFAULT 'MODERATE_AGGRESSIVE'",
         "base_currency": "TEXT DEFAULT 'IDR'",
-        "target_allocations_json": "TEXT DEFAULT '{}'"
+        "target_allocations_json": "TEXT DEFAULT '{}'",
+        "selected_theme": "TEXT DEFAULT 'terminal_dark'",
+        "appearance_mode": "TEXT DEFAULT 'dark'",
+        "density": "TEXT DEFAULT 'compact'",
+        "investor_persona": "TEXT DEFAULT 'BALANCED'"
     }
     for col_name, col_type in new_user_cols.items():
         if col_name not in existing_user_cols:
@@ -830,6 +838,34 @@ def init_db():
         effective_to TEXT,
         source TEXT,
         notes TEXT
+    )
+    """)
+
+    # 9. Table user_watchlists (User Watchlist & Price Alerts)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_watchlists (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        ticker TEXT,
+        name TEXT,
+        target_price REAL DEFAULT 0.0,
+        alert_conditions_json TEXT DEFAULT '{}',
+        notes TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    """)
+
+    # 10. Table saved_screens (Custom Saved Discovery Filters)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS saved_screens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT,
+        name TEXT,
+        filters_json TEXT DEFAULT '{}',
+        description TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
     )
     """)
 
@@ -1365,3 +1401,137 @@ def get_tax_rules() -> List[Dict[str, Any]]:
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+# Appearance & Theme Center Settings
+def get_user_appearance(user_id: str = "default_user") -> Dict[str, Any]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT selected_theme, appearance_mode, density, investor_persona FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {
+            "selected_theme": row["selected_theme"] or "terminal_dark",
+            "appearance_mode": row["appearance_mode"] or "dark",
+            "density": row["density"] or "compact",
+            "investor_persona": row["investor_persona"] or "BALANCED"
+        }
+    return {
+        "selected_theme": "terminal_dark",
+        "appearance_mode": "dark",
+        "density": "compact",
+        "investor_persona": "BALANCED"
+    }
+
+
+def update_user_appearance(
+    user_id: str,
+    selected_theme: Optional[str] = None,
+    appearance_mode: Optional[str] = None,
+    density: Optional[str] = None,
+    investor_persona: Optional[str] = None
+):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+    UPDATE users SET
+        selected_theme = COALESCE(?, selected_theme),
+        appearance_mode = COALESCE(?, appearance_mode),
+        density = COALESCE(?, density),
+        investor_persona = COALESCE(?, investor_persona)
+    WHERE id = ?
+    """, (selected_theme, appearance_mode, density, investor_persona, user_id))
+    conn.commit()
+    conn.close()
+
+
+# User Watchlists (Watchlist & Price Alerts)
+def get_user_watchlists(user_id: str = "default_user") -> List[Dict[str, Any]]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM user_watchlists WHERE user_id = ? ORDER BY id DESC", (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_watchlist_item(user_id: str, data: Dict[str, Any]):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    if data.get("id"):
+        cursor.execute("""
+        UPDATE user_watchlists SET
+            ticker = ?, name = ?, target_price = ?, alert_conditions_json = ?, notes = ?
+        WHERE id = ? AND user_id = ?
+        """, (
+            data.get("ticker"), data.get("name"), float(data.get("target_price") or 0.0),
+            data.get("alert_conditions_json", "{}"), data.get("notes", ""),
+            data.get("id"), user_id
+        ))
+    else:
+        cursor.execute("""
+        INSERT INTO user_watchlists (user_id, ticker, name, target_price, alert_conditions_json, notes)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            user_id, data.get("ticker"), data.get("name"), float(data.get("target_price") or 0.0),
+            data.get("alert_conditions_json", "{}"), data.get("notes", "")
+        ))
+    conn.commit()
+    conn.close()
+
+
+def delete_watchlist_item(user_id: str, item_id: int):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM user_watchlists WHERE id = ? AND user_id = ?", (item_id, user_id))
+    conn.commit()
+    conn.close()
+
+
+# Saved Screens
+def get_saved_screens(user_id: str = "default_user") -> List[Dict[str, Any]]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM saved_screens WHERE user_id = ? ORDER BY id DESC", (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def upsert_saved_screen(user_id: str, data: Dict[str, Any]):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    if data.get("id"):
+        cursor.execute("""
+        UPDATE saved_screens SET
+            name = ?, filters_json = ?, description = ?
+        WHERE id = ? AND user_id = ?
+        """, (data.get("name"), data.get("filters_json", "{}"), data.get("description", ""), data.get("id"), user_id))
+    else:
+        cursor.execute("""
+        INSERT INTO saved_screens (user_id, name, filters_json, description)
+        VALUES (?, ?, ?, ?)
+        """, (user_id, data.get("name"), data.get("filters_json", "{}"), data.get("description", "")))
+    conn.commit()
+    conn.close()
+
+
+def delete_saved_screen(user_id: str, screen_id: int):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM saved_screens WHERE id = ? AND user_id = ?", (screen_id, user_id))
+    conn.commit()
+    conn.close()
+

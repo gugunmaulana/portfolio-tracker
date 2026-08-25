@@ -25,6 +25,14 @@ from .database import (
     upsert_thesis,
     delete_thesis,
     get_tax_rules,
+    get_user_appearance,
+    update_user_appearance,
+    get_user_watchlists,
+    upsert_watchlist_item,
+    delete_watchlist_item,
+    get_saved_screens,
+    upsert_saved_screen,
+    delete_saved_screen,
     DEFAULT_PORTFOLIO_CONFIG
 )
 from .finance_engine import (
@@ -35,8 +43,14 @@ from .finance_engine import (
     compute_stress_test_scenarios,
     MARKET_CACHE
 )
+from .discover_engine import (
+    scan_global_universe,
+    get_thematic_discovery_data,
+    get_single_asset_research,
+    get_yahoo_finance_url
+)
 
-app = FastAPI(title="RADAR ASET 3.0 — Professional Investment Intelligence Terminal")
+app = FastAPI(title="RADAR ASET 4.0 — Global Asset Scanner & Investment Intelligence Terminal")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -90,6 +104,13 @@ class SettingsPayload(BaseModel):
     risk_tolerance: Optional[str] = "MODERATE_AGGRESSIVE"
 
 
+class AppearancePayload(BaseModel):
+    selected_theme: Optional[str] = "terminal_dark"
+    appearance_mode: Optional[str] = "dark"
+    density: Optional[str] = "compact"
+    investor_persona: Optional[str] = "BALANCED"
+
+
 class MonthlyPayload(BaseModel):
     id: Optional[int] = None
     year: int = 2026
@@ -124,6 +145,22 @@ class ThesisPayload(BaseModel):
     review_date: Optional[str] = ""
 
 
+class WatchlistPayload(BaseModel):
+    id: Optional[int] = None
+    ticker: str
+    name: str
+    target_price: float = 0.0
+    alert_conditions_json: Optional[str] = "{}"
+    notes: Optional[str] = ""
+
+
+class SavedScreenPayload(BaseModel):
+    id: Optional[int] = None
+    name: str
+    filters_json: str = "{}"
+    description: Optional[str] = ""
+
+
 # Web Pages
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request, user_id: str = "default_user", year: int = 2026):
@@ -136,6 +173,16 @@ async def index(request: Request, user_id: str = "default_user", year: int = 202
     theses = get_user_theses(user_id)
     liabilities = get_user_liabilities(user_id)
     tax_rules = get_tax_rules()
+    appearance = get_user_appearance(user_id)
+    watchlists = get_user_watchlists(user_id)
+    saved_screens = get_saved_screens(user_id)
+
+    # Discovered assets & themes for Discover Workspace
+    discovered_universe = scan_global_universe(
+        user_holdings=portfolio.get("all_holdings", []),
+        total_val_idr=portfolio.get("current_value_investment_idr", 0.0)
+    )
+    themes_data = get_thematic_discovery_data()
 
     # Net Worth calculation: Total Investable + Cash + Property - Liabilities
     total_liabilities_idr = sum(float(l.get("balance_idr", 0.0)) for l in liabilities)
@@ -152,6 +199,11 @@ async def index(request: Request, user_id: str = "default_user", year: int = 202
             "theses": theses,
             "liabilities": liabilities,
             "tax_rules": tax_rules,
+            "appearance": appearance,
+            "watchlists": watchlists,
+            "saved_screens": saved_screens,
+            "discovered_universe": discovered_universe,
+            "themes_data": themes_data,
             "total_liabilities_idr": total_liabilities_idr,
             "true_net_worth_idr": true_net_worth_idr,
             "user_id": user_id
@@ -173,6 +225,48 @@ async def api_refresh_data(user_id: str = "default_user"):
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
     return JSONResponse(content={"status": "success", "data": portfolio})
+
+
+# DISCOVER ENDPOINTS
+@app.get("/api/discover/universe")
+async def api_discover_universe(
+    user_id: str = "default_user",
+    market: str = "ALL",
+    asset_type: str = "ALL",
+    style: str = "ALL",
+    q: str = ""
+):
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    results = scan_global_universe(
+        user_holdings=portfolio.get("all_holdings", []),
+        total_val_idr=portfolio.get("current_value_investment_idr", 0.0),
+        filter_market=market,
+        filter_type=asset_type,
+        filter_style=style,
+        search_query=q
+    )
+    return JSONResponse(content={"status": "success", "count": len(results), "items": results})
+
+
+@app.get("/api/discover/themes")
+async def api_discover_themes():
+    themes = get_thematic_discovery_data()
+    return JSONResponse(content={"status": "success", "themes": themes})
+
+
+@app.get("/api/discover/asset/{ticker}")
+async def api_discover_single_asset(ticker: str, user_id: str = "default_user"):
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    asset_data = get_single_asset_research(
+        ticker_symbol=ticker,
+        user_holdings=portfolio.get("all_holdings", []),
+        total_val_idr=portfolio.get("current_value_investment_idr", 0.0)
+    )
+    if not asset_data:
+        raise HTTPException(status_code=404, detail="Asset not found in global universe")
+    return JSONResponse(content={"status": "success", "asset": asset_data})
 
 
 # Signature Feature: Full Portfolio Scan
@@ -231,6 +325,19 @@ async def api_update_settings(payload: SettingsPayload, user_id: str = "default_
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
     return JSONResponse(content={"status": "success", "data": portfolio})
+
+
+@app.post("/api/settings/appearance")
+async def api_update_appearance(payload: AppearancePayload, user_id: str = "default_user"):
+    update_user_appearance(
+        user_id=user_id,
+        selected_theme=payload.selected_theme,
+        appearance_mode=payload.appearance_mode,
+        density=payload.density,
+        investor_persona=payload.investor_persona
+    )
+    appearance = get_user_appearance(user_id)
+    return JSONResponse(content={"status": "success", "appearance": appearance})
 
 
 # Monthly Tracking APIs
@@ -303,6 +410,48 @@ async def api_delete_thesis(thesis_id: int, user_id: str = "default_user"):
     return JSONResponse(content={"status": "success", "data": theses})
 
 
+# Watchlist APIs
+@app.get("/api/watchlists")
+async def api_get_watchlists(user_id: str = "default_user"):
+    watchlists = get_user_watchlists(user_id)
+    return JSONResponse(content=watchlists)
+
+
+@app.post("/api/watchlists/upsert")
+async def api_upsert_watchlist(payload: WatchlistPayload, user_id: str = "default_user"):
+    upsert_watchlist_item(user_id, payload.dict())
+    watchlists = get_user_watchlists(user_id)
+    return JSONResponse(content={"status": "success", "data": watchlists})
+
+
+@app.delete("/api/watchlists/{item_id}")
+async def api_delete_watchlist(item_id: int, user_id: str = "default_user"):
+    delete_watchlist_item(user_id, item_id)
+    watchlists = get_user_watchlists(user_id)
+    return JSONResponse(content={"status": "success", "data": watchlists})
+
+
+# Saved Screens APIs
+@app.get("/api/screens")
+async def api_get_saved_screens(user_id: str = "default_user"):
+    screens = get_saved_screens(user_id)
+    return JSONResponse(content=screens)
+
+
+@app.post("/api/screens/upsert")
+async def api_upsert_saved_screen(payload: SavedScreenPayload, user_id: str = "default_user"):
+    upsert_saved_screen(user_id, payload.dict())
+    screens = get_saved_screens(user_id)
+    return JSONResponse(content={"status": "success", "data": screens})
+
+
+@app.delete("/api/screens/{screen_id}")
+async def api_delete_saved_screen(screen_id: int, user_id: str = "default_user"):
+    delete_saved_screen(user_id, screen_id)
+    screens = get_saved_screens(user_id)
+    return JSONResponse(content={"status": "success", "data": screens})
+
+
 # Tax Rules API
 @app.get("/api/tax/rules")
 async def api_get_tax_rules():
@@ -319,14 +468,14 @@ async def api_export_csv(user_id: str = "default_user"):
     output = io.StringIO()
     writer = csv.writer(output)
     
-    writer.writerow(["Category", "Ticker", "Name", "Currency", "Quantity", "Avg Price", "Current Price", "Invested IDR", "Current Value IDR", "PnL IDR", "PnL %", "Dislocation Zone", "PE"])
+    writer.writerow(["Category", "Ticker", "Name", "Currency", "Quantity", "Avg Price", "Current Price", "Invested IDR", "Current Value IDR", "PnL IDR", "PnL %", "Dislocation Zone", "PE", "Yahoo Finance Link"])
     for cat in portfolio["categories"]:
         for item in cat["items"]:
             writer.writerow([
                 cat["name"], item["ticker"], item["name"], item["currency"],
                 item["quantity"], item["avg_price"], item["current_price"],
                 item["invested_idr"], item["cur_val_idr"], item["pnl_idr"], item["pnl_pct"],
-                item["status_label"], item.get("pe", "N/A")
+                item["status_label"], item.get("pe", "N/A"), get_yahoo_finance_url(item["ticker"])
             ])
             
     output.seek(0)
