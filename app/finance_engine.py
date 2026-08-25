@@ -249,6 +249,7 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         "pe": FALLBACK_PE_RATIOS.get(ticker_symbol, None),
         "perf": {
             "24h": 0.0,
+            "5h": 0.0,
             "1w": 0.0,
             "1m": 0.0,
             "6m": 0.0,
@@ -256,7 +257,11 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             "5y": None,
             "10y": None,
             "15y": None,
-            "20y": None
+            "20y": None,
+            "5y_cagr": None,
+            "10y_cagr": None,
+            "15y_cagr": None,
+            "20y_cagr": None
         },
         "_timestamp": now
     }
@@ -318,9 +323,22 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                         return None
                     closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
                     if closest[1] and closest[1] > 0:
-                        # Pure Total Cumulative Profit Percentage (NO CAGR!)
+                        # Pure Total Cumulative Profit Percentage
                         ret = ((cur_close - closest[1]) / closest[1]) * 100.0
                         return round(ret, 1)
+                    return None
+
+                def get_cagr_pct(years: float) -> Optional[float]:
+                    days = int(years * 365)
+                    if total_span_days < (days * 0.85):
+                        return None
+                    target_ts = now_ts - (days * 86400)
+                    if target_ts < first_ts:
+                        return None
+                    closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
+                    if closest[1] and closest[1] > 0:
+                        cagr = ((cur_close / closest[1]) ** (1.0 / years) - 1.0) * 100.0
+                        return round(cagr, 1)
                     return None
 
                 # If 5h wasn't set by trading sessions, compute by 7 calendar days
@@ -332,10 +350,18 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                 result["perf"]["1m"] = get_total_profit_pct(30)
                 result["perf"]["6m"] = get_total_profit_pct(182)
                 result["perf"]["1y"] = get_total_profit_pct(365)
+                
+                # Pure Cumulative Total Profit %
                 result["perf"]["5y"] = get_total_profit_pct(5 * 365)
                 result["perf"]["10y"] = get_total_profit_pct(10 * 365)
                 result["perf"]["15y"] = get_total_profit_pct(15 * 365)
                 result["perf"]["20y"] = get_total_profit_pct(20 * 365)
+
+                # Compound Annual Growth Rate (CAGR %)
+                result["perf"]["5y_cagr"] = get_cagr_pct(5.0)
+                result["perf"]["10y_cagr"] = get_cagr_pct(10.0)
+                result["perf"]["15y_cagr"] = get_cagr_pct(15.0)
+                result["perf"]["20y_cagr"] = get_cagr_pct(20.0)
 
     except Exception as e:
         logger.debug(f"Fetch error for {ticker_symbol}: {e}")

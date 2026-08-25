@@ -168,16 +168,16 @@
           <i data-lucide="refresh-cw" class="w-4 h-4 text-sky-500" :class="{ 'animate-spin': isLoading }"></i>
         </button>
 
-        <!-- Dark / Light Mode Toggle -->
+        <!-- Dark / Light Mode Toggle (Fixed no-duplicate inline SVG) -->
         <button @click="toggleTheme()" 
-                class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700"
+                class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700 flex items-center justify-center"
                 :title="isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'">
-          <template x-if="isDark">
-            <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
-          </template>
-          <template x-if="!isDark">
-            <i data-lucide="moon" class="w-4 h-4 text-indigo-600"></i>
-          </template>
+          <svg x-show="isDark" class="w-4 h-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+          </svg>
+          <svg x-show="!isDark" class="w-4 h-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
         </button>
 
       </div>
@@ -288,7 +288,7 @@
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 transition active:scale-95">
             <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
             <span>⚙️ Pengaturan Kolom</span>
-            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]" x-text="activeColumnCount() + '/17'"></span>
+            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]" x-text="activeColumnCount() + '/21'"></span>
           </button>
 
           <!-- Quick Toggle Pills for Performance & Portfolio -->
@@ -378,7 +378,7 @@
                     <th class="py-3 px-3">Ticker</th>
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
                     
-                    <!-- 17 Fully Customizable Columns -->
+                    <!-- 21 Fully Customizable Columns -->
                     <th class="py-3 px-3 text-center" x-show="cols.perf24h">24H</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf5h">5H</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf1m">1M</th>
@@ -387,6 +387,12 @@
                     <th class="py-3 px-3 text-center" x-show="cols.perf10y">10Y</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf15y">15Y</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf20y">20Y</th>
+                    
+                    <!-- Toggleable CAGR Columns -->
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr5y">5Y (CAGR)</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr10y">10Y (CAGR)</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr15y">15Y (CAGR)</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr20y">20Y (CAGR)</th>
                     
                     <th class="py-3 px-3 text-right" x-show="cols.athPrice">ATH Price</th>
                     <th class="py-3 px-3 text-center" x-show="cols.athDrawdown">% from ATH</th>
@@ -477,6 +483,26 @@
                       <td class="py-3 px-3 text-center font-medium" x-show="cols.perf20y"
                           :class="item.perf?.['20y'] > 0 ? 'text-emerald-500' : (item.perf?.['20y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['20y'] !== null && item.perf?.['20y'] !== undefined ? ((item.perf?.['20y'] > 0 ? '+' : '') + item.perf?.['20y'] + '%') : 'N/A'"></td>
+
+                      <!-- 5Y CAGR -->
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr5y"
+                          :class="item.perf?.['5y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['5y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="item.perf?.['5y_cagr'] !== null && item.perf?.['5y_cagr'] !== undefined ? ((item.perf?.['5y_cagr'] > 0 ? '+' : '') + item.perf?.['5y_cagr'] + '%') : 'N/A'"></td>
+
+                      <!-- 10Y CAGR -->
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr10y"
+                          :class="item.perf?.['10y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['10y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="item.perf?.['10y_cagr'] !== null && item.perf?.['10y_cagr'] !== undefined ? ((item.perf?.['10y_cagr'] > 0 ? '+' : '') + item.perf?.['10y_cagr'] + '%') : 'N/A'"></td>
+
+                      <!-- 15Y CAGR -->
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr15y"
+                          :class="item.perf?.['15y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['15y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="item.perf?.['15y_cagr'] !== null && item.perf?.['15y_cagr'] !== undefined ? ((item.perf?.['15y_cagr'] > 0 ? '+' : '') + item.perf?.['15y_cagr'] + '%') : 'N/A'"></td>
+
+                      <!-- 20Y CAGR -->
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr20y"
+                          :class="item.perf?.['20y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['20y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="item.perf?.['20y_cagr'] !== null && item.perf?.['20y_cagr'] !== undefined ? ((item.perf?.['20y_cagr'] > 0 ? '+' : '') + item.perf?.['20y_cagr'] + '%') : 'N/A'"></td>
 
                       <!-- ATH Price -->
                       <td class="py-3 px-3 text-right text-slate-500" x-show="cols.athPrice"
@@ -816,7 +842,7 @@
             <span>Pengaturan Kolom Tabel</span>
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 17 kolom aktif'"></span>).
+            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 21 kolom aktif'"></span>).
           </p>
         </div>
         <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -828,10 +854,13 @@
       <div class="flex flex-wrap items-center gap-2 text-xs">
         <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
         <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Semua Kolom (17)
+          Semua Kolom (21)
         </button>
         <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
           Standar Rekomendasi (14)
+        </button>
+        <button @click="setColsPreset('cagr')" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/30 transition">
+          Dengan CAGR (18)
         </button>
         <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
           Ringkas Minimal (6)
@@ -841,11 +870,11 @@
       <!-- Column Groups Grid -->
       <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
         
-        <!-- Group 1: Indikator Performa Return -->
+        <!-- Group 1: Indikator Performa Return (% Profit) -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-            <span>1. Indikator Performa Return (% Profit)</span>
+            <span>1. Indikator Performa Return (% Profit Kumulatif)</span>
           </span>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
@@ -883,11 +912,37 @@
           </div>
         </div>
 
-        <!-- Group 2: Valuasi & ATH -->
+        <!-- Group 2: Indikator Compound Growth (CAGR Tahunan) -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+          <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="percent" class="w-3.5 h-3.5"></i>
+            <span>2. Indikator Compound Growth (CAGR Tahunan)</span>
+          </span>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
+              <input type="checkbox" x-model="cols.cagr5y" @change="saveColsPref()" class="rounded text-indigo-600">
+              <span class="font-bold">5Y CAGR</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
+              <input type="checkbox" x-model="cols.cagr10y" @change="saveColsPref()" class="rounded text-indigo-600">
+              <span class="font-bold">10Y CAGR</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
+              <input type="checkbox" x-model="cols.cagr15y" @change="saveColsPref()" class="rounded text-indigo-600">
+              <span class="font-bold">15Y CAGR</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
+              <input type="checkbox" x-model="cols.cagr20y" @change="saveColsPref()" class="rounded text-indigo-600">
+              <span class="font-bold">20Y CAGR</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Group 3: Valuasi & ATH -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="target" class="w-3.5 h-3.5"></i>
-            <span>2. Valuasi & ATH Radar</span>
+            <span>3. Valuasi & ATH Radar</span>
           </span>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
@@ -909,11 +964,11 @@
           </div>
         </div>
 
-        <!-- Group 3: Portofolio & Posisi -->
+        <!-- Group 4: Portofolio & Posisi -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
-            <span>3. Portofolio & Posisi Investasi</span>
+            <span>4. Portofolio & Posisi Investasi</span>
           </span>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
@@ -1066,7 +1121,7 @@
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
-      // Load saved column preferences or default
+      // Load saved column preferences or default (21 total columns)
       const defaultCols = {
         perf24h: true,
         perf5h: true,
@@ -1076,6 +1131,10 @@
         perf10y: true,
         perf15y: false,
         perf20y: false,
+        cagr5y: false,
+        cagr10y: false,
+        cagr15y: false,
+        cagr20y: false,
         athPrice: true,
         athDrawdown: true,
         athZone: true,
@@ -1105,7 +1164,7 @@
         activeView: 'portfolio',
         searchQuery: '',
         
-        // 17 Fully Configurable Columns
+        // 21 Fully Configurable Columns
         cols: savedCols,
         showColumnModal: false,
         
@@ -1179,6 +1238,15 @@
             this.cols = {
               perf24h: true, perf5h: true, perf1m: true, perf1y: true, perf5y: true, perf10y: true,
               perf15y: false, perf20y: false,
+              cagr5y: false, cagr10y: false, cagr15y: false, cagr20y: false,
+              athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
+              investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
+            };
+          } else if (preset === 'cagr') {
+            this.cols = {
+              perf24h: true, perf5h: true, perf1m: true, perf1y: true, perf5y: true, perf10y: true,
+              perf15y: false, perf20y: false,
+              cagr5y: true, cagr10y: true, cagr15y: true, cagr20y: true,
               athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
               investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
             };
@@ -1186,6 +1254,7 @@
             this.cols = {
               perf24h: true, perf5h: true, perf1m: false, perf1y: true, perf5y: false, perf10y: false,
               perf15y: false, perf20y: false,
+              cagr5y: false, cagr10y: false, cagr15y: false, cagr20y: false,
               athPrice: false, athDrawdown: false, athZone: false, peValuation: false,
               investedIdr: false, quantity: false, avgPrice: false, curVal: true, pnl: true
             };
