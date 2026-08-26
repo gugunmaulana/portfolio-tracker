@@ -237,7 +237,7 @@
         <span>2. TRACK BULANAN (MULTI-TAHUN)</span>
       </button>
 
-      <button @click="activeView = 'calculator'; initFFCalculator();" 
+      <button @click="openCalculatorTab()" 
               class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'calculator' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="calculator" class="w-4 h-4"></i>
@@ -342,7 +342,7 @@
           <button @click="showColumnModal = true" 
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-600 dark:text-sky-400 font-bold border border-sky-200 dark:border-sky-800 transition active:scale-95">
             <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-            <span>⚙️ Pengaturan & Urutan Kolom (<span x-text="activeColumnCount() + '/24'"></span>)</span>
+            <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/24'"></span>)</span>
           </button>
 
           <!-- Quick Return Pillars -->
@@ -436,26 +436,53 @@
 
             </div>
 
-            <!-- Modern Clean Cryptorank-style Table -->
+            <!-- Modern Clean Cryptorank-style Table with Explicit Rock-Solid Columns -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50/80 dark:bg-[#0d1527]/80 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80">
                   <tr>
-                    <!-- AKSI DI PALING KIRI (SEBELAH KIRI ANGKA #) -->
+                    <!-- 1. AKSI (DI PALING KIRI) -->
                     <th class="py-3 px-3 text-center w-16">Aksi</th>
+                    <!-- 2. # -->
                     <th class="py-3 px-3 w-8">#</th>
+                    <!-- 3. NAMA ASET -->
                     <th class="py-3 px-4">Nama Aset</th>
+                    <!-- 4. TICKER -->
                     <th class="py-3 px-3">Ticker</th>
+                    <!-- 5. HARGA PASAR -->
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
                     
-                    <!-- Configurable & Draggable Columns in User Sequence -->
-                    <template x-for="colKey in columnOrder" :key="colKey">
-                      <th class="py-3 px-3 cursor-grab"
-                          :class="['perf24h','perf5h','perf1m','perf6m','perf1y','perf5y','perf10y','perf15y','perf20y','cagr5y','cagr10y','cagr15y','cagr20y','athDrawdown','athZone','peValuation'].includes(colKey) ? 'text-center' : 'text-right'"
-                          x-show="cols[colKey]"
-                          x-text="getColumnLabel(colKey)"
-                          :title="'Klik untuk geser posisi kolom'"></th>
-                    </template>
+                    <!-- 6-14. RETURN COLUMNS -->
+                    <th class="py-3 px-3 text-center" x-show="cols.perf24h">24H</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf5h">5H</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf1m">1M</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf6m">6M</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf1y">1Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf5y">5Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf10y">10Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf15y">15Y</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf20y">20Y</th>
+                    
+                    <!-- 15-18. CAGR COLUMNS -->
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr5y">5Y CAGR</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr10y">10Y CAGR</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr15y">15Y CAGR</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.cagr20y">20Y CAGR</th>
+                    
+                    <!-- 19-24. ATH, VALUATION, MCAP, VOLUME -->
+                    <th class="py-3 px-3 text-right" x-show="cols.athPrice">ATH Price</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.athDrawdown">% from ATH</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.athZone">Zonasi ATH</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.peValuation">Valuasi P/E</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.marketCap">Market Cap</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.volume">Volume (24H)</th>
+                    
+                    <!-- 25-29. PORTFOLIO POSITION COLUMNS -->
+                    <th class="py-3 px-3 text-right" x-show="cols.investedIdr">Modal Terinvestasi</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.quantity">Quantity</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.avgPrice">AVG Price</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.curVal">Nilai Berjalan</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.pnl">Floating PnL</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono tabular-nums">
@@ -467,7 +494,7 @@
                         @drop="onAssetDrop($event, item, category)"
                         :class="{ 'opacity-40 bg-sky-50/50 dark:bg-sky-950/20': draggedItem && draggedItem.id === item.id }">
                       
-                      <!-- AKSI (DI PALING KIRI) -->
+                      <!-- 1. AKSI (DI PALING KIRI) -->
                       <td class="py-3 px-3 text-center">
                         <div class="flex items-center justify-center gap-1">
                           <button @click="editAsset(item, category.id)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-sky-600 dark:text-sky-400" title="Edit Aset / Pindahkan Kategori">
@@ -476,19 +503,18 @@
                           <button @click="deleteAsset(item)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400" title="Hapus Aset">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                           </button>
-                          <span class="p-1 text-slate-300 dark:text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-500" title="Tarik untuk memindahkan aset / ubah urutan">
+                          <span class="p-1 text-slate-300 dark:text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-500" title="Tarik untuk memindahkan aset / susun urutan">
                             <i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>
                           </span>
                         </div>
                       </td>
 
-                      <!-- Index Number -->
+                      <!-- 2. Index Number -->
                       <td class="py-3 px-3 text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
                       
-                      <!-- Logo & Name (Cryptorank style) -->
+                      <!-- 3. Logo & Name (Cryptorank style) -->
                       <td class="py-3 px-4 font-sans font-medium text-slate-900 dark:text-slate-100">
                         <div class="flex items-center gap-2.5">
-                          <!-- Logo Image with Fallback Badge -->
                           <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             <img :src="item.logo_url" 
                                  :alt="item.ticker"
@@ -502,7 +528,7 @@
                         </div>
                       </td>
 
-                      <!-- Ticker Badge with Direct Yahoo Link -->
+                      <!-- 4. Ticker Badge with Direct Yahoo Link -->
                       <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400">
                         <div class="flex items-center gap-1">
                           <span x-text="item.ticker"></span>
@@ -510,136 +536,131 @@
                         </div>
                       </td>
 
-                      <!-- Current Price -->
+                      <!-- 5. Current Price -->
                       <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white">
                         <span x-text="item.currency === 'USD' ? formatUSD(item.current_price) : formatIDR(item.current_price)"></span>
                       </td>
 
-                      <!-- DYNAMIC REORDERABLE COLUMNS -->
-                      <template x-for="colKey in columnOrder" :key="colKey">
-                        
-                        <!-- 24H -->
-                        <td x-show="colKey === 'perf24h' && cols.perf24h" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                            x-text="formatPct(item.perf['24h'])"></td>
+                      <!-- 6. 24H -->
+                      <td x-show="cols.perf24h" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                          x-text="formatPct(item.perf['24h'])"></td>
 
-                        <!-- 5H -->
-                        <td x-show="colKey === 'perf5h' && cols.perf5h" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['5h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                            x-text="formatPct(item.perf['5h'])"></td>
+                      <!-- 7. 5H -->
+                      <td x-show="cols.perf5h" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['5h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                          x-text="formatPct(item.perf['5h'])"></td>
 
-                        <!-- 1M -->
-                        <td x-show="colKey === 'perf1m' && cols.perf1m" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['1m'] >= 0 ? 'text-emerald-500' : (item.perf['1m'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['1m'])"></td>
+                      <!-- 8. 1M -->
+                      <td x-show="cols.perf1m" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['1m'] >= 0 ? 'text-emerald-500' : (item.perf['1m'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['1m'])"></td>
 
-                        <!-- 6M -->
-                        <td x-show="colKey === 'perf6m' && cols.perf6m" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['6m'] >= 0 ? 'text-emerald-500' : (item.perf['6m'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['6m'])"></td>
+                      <!-- 9. 6M -->
+                      <td x-show="cols.perf6m" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['6m'] >= 0 ? 'text-emerald-500' : (item.perf['6m'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['6m'])"></td>
 
-                        <!-- 1Y -->
-                        <td x-show="colKey === 'perf1y' && cols.perf1y" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['1y'] >= 0 ? 'text-emerald-500' : (item.perf['1y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['1y'])"></td>
+                      <!-- 10. 1Y -->
+                      <td x-show="cols.perf1y" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['1y'] >= 0 ? 'text-emerald-500' : (item.perf['1y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['1y'])"></td>
 
-                        <!-- 5Y -->
-                        <td x-show="colKey === 'perf5y' && cols.perf5y" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['5y'] >= 0 ? 'text-emerald-500' : (item.perf['5y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['5y'])"></td>
+                      <!-- 11. 5Y -->
+                      <td x-show="cols.perf5y" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['5y'] >= 0 ? 'text-emerald-500' : (item.perf['5y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['5y'])"></td>
 
-                        <!-- 10Y -->
-                        <td x-show="colKey === 'perf10y' && cols.perf10y" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['10y'] >= 0 ? 'text-emerald-500' : (item.perf['10y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['10y'])"></td>
+                      <!-- 12. 10Y -->
+                      <td x-show="cols.perf10y" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['10y'] >= 0 ? 'text-emerald-500' : (item.perf['10y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['10y'])"></td>
 
-                        <!-- 15Y -->
-                        <td x-show="colKey === 'perf15y' && cols.perf15y" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['15y'] >= 0 ? 'text-emerald-500' : (item.perf['15y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['15y'])"></td>
+                      <!-- 13. 15Y -->
+                      <td x-show="cols.perf15y" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['15y'] >= 0 ? 'text-emerald-500' : (item.perf['15y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['15y'])"></td>
 
-                        <!-- 20Y -->
-                        <td x-show="colKey === 'perf20y' && cols.perf20y" class="py-3 px-3 text-center font-semibold"
-                            :class="item.perf['20y'] >= 0 ? 'text-emerald-500' : (item.perf['20y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                            x-text="formatPct(item.perf['20y'])"></td>
+                      <!-- 14. 20Y -->
+                      <td x-show="cols.perf20y" class="py-3 px-3 text-center font-semibold"
+                          :class="item.perf['20y'] >= 0 ? 'text-emerald-500' : (item.perf['20y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="formatPct(item.perf['20y'])"></td>
 
-                        <!-- 5Y CAGR -->
-                        <td x-show="colKey === 'cagr5y' && cols.cagr5y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                            x-text="formatPct(item.perf['5y_cagr'])"></td>
+                      <!-- 15. 5Y CAGR -->
+                      <td x-show="cols.cagr5y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                          x-text="formatPct(item.perf['5y_cagr'])"></td>
 
-                        <!-- 10Y CAGR -->
-                        <td x-show="colKey === 'cagr10y' && cols.cagr10y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                            x-text="formatPct(item.perf['10y_cagr'])"></td>
+                      <!-- 16. 10Y CAGR -->
+                      <td x-show="cols.cagr10y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                          x-text="formatPct(item.perf['10y_cagr'])"></td>
 
-                        <!-- 15Y CAGR -->
-                        <td x-show="colKey === 'cagr15y' && cols.cagr15y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                            x-text="formatPct(item.perf['15y_cagr'])"></td>
+                      <!-- 17. 15Y CAGR -->
+                      <td x-show="cols.cagr15y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                          x-text="formatPct(item.perf['15y_cagr'])"></td>
 
-                        <!-- 20Y CAGR -->
-                        <td x-show="colKey === 'cagr20y' && cols.cagr20y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                            x-text="formatPct(item.perf['20y_cagr'])"></td>
+                      <!-- 18. 20Y CAGR -->
+                      <td x-show="cols.cagr20y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                          x-text="formatPct(item.perf['20y_cagr'])"></td>
 
-                        <!-- ATH Price -->
-                        <td x-show="colKey === 'athPrice' && cols.athPrice" class="py-3 px-3 text-right text-slate-500"
-                            x-text="item.currency === 'USD' ? formatUSD(item.ath_price) : formatIDR(item.ath_price)"></td>
+                      <!-- 19. ATH Price -->
+                      <td x-show="cols.athPrice" class="py-3 px-3 text-right text-slate-500"
+                          x-text="item.currency === 'USD' ? formatUSD(item.ath_price) : formatIDR(item.ath_price)"></td>
 
-                        <!-- % from ATH -->
-                        <td x-show="colKey === 'athDrawdown' && cols.athDrawdown" class="py-3 px-3 text-center font-semibold"
-                            :class="item.ath_drawdown_pct < -20 ? 'text-rose-500' : 'text-amber-500'"
-                            x-text="item.ath_drawdown_pct + '%'"></td>
+                      <!-- 20. % from ATH -->
+                      <td x-show="cols.athDrawdown" class="py-3 px-3 text-center font-semibold"
+                          :class="item.ath_drawdown_pct < -20 ? 'text-rose-500' : 'text-amber-500'"
+                          x-text="item.ath_drawdown_pct + '%'"></td>
 
-                        <!-- Zonasi ATH -->
-                        <td x-show="colKey === 'athZone' && cols.athZone" class="py-3 px-3 text-center">
-                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
-                                :class="getZoneClass(item.ath_zone)"
-                                x-text="item.ath_zone"></span>
-                        </td>
+                      <!-- 21. Zonasi ATH -->
+                      <td x-show="cols.athZone" class="py-3 px-3 text-center">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                              :class="getZoneClass(item.ath_zone)"
+                              x-text="item.ath_zone"></span>
+                      </td>
 
-                        <!-- Valuasi P/E -->
-                        <td x-show="colKey === 'peValuation' && cols.peValuation" class="py-3 px-3 text-center">
-                          <template x-if="item.pe_ratio">
-                            <div class="flex items-center justify-center gap-1">
-                              <span class="font-bold text-slate-700 dark:text-slate-300" x-text="item.pe_ratio.toFixed(1) + 'x'"></span>
-                              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold"
-                                    :class="getPEValuationClass(item.pe_ratio, item.pe_thresholds)"
-                                    x-text="getPEValuationLabel(item.pe_ratio, item.pe_thresholds)"></span>
-                            </div>
-                          </template>
-                          <template x-if="!item.pe_ratio">
-                            <span class="text-slate-400 text-[10px]">N/A</span>
-                          </template>
-                        </td>
+                      <!-- 22. Valuasi P/E -->
+                      <td x-show="cols.peValuation" class="py-3 px-3 text-center">
+                        <template x-if="item.pe_ratio">
+                          <div class="flex items-center justify-center gap-1">
+                            <span class="font-bold text-slate-700 dark:text-slate-300" x-text="item.pe_ratio.toFixed(1) + 'x'"></span>
+                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold"
+                                  :class="getPEValuationClass(item.pe_ratio, item.pe_thresholds)"
+                                  x-text="getPEValuationLabel(item.pe_ratio, item.pe_thresholds)"></span>
+                          </div>
+                        </template>
+                        <template x-if="!item.pe_ratio">
+                          <span class="text-slate-400 text-[10px]">N/A</span>
+                        </template>
+                      </td>
 
-                        <!-- Market Cap -->
-                        <td x-show="colKey === 'marketCap' && cols.marketCap" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
-                            x-text="item.market_cap_formatted || 'N/A'"></td>
+                      <!-- 23. Market Cap -->
+                      <td x-show="cols.marketCap" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
+                          x-text="item.market_cap_formatted || 'N/A'"></td>
 
-                        <!-- Volume (24H) -->
-                        <td x-show="colKey === 'volume' && cols.volume" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
-                            x-text="item.volume_formatted || 'N/A'"></td>
+                      <!-- 24. Volume (24H) -->
+                      <td x-show="cols.volume" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
+                          x-text="item.volume_formatted || 'N/A'"></td>
 
-                        <!-- Modal Terinvestasi -->
-                        <td x-show="colKey === 'investedIdr' && cols.investedIdr" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
-                            x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
+                      <!-- 25. Modal Terinvestasi -->
+                      <td x-show="cols.investedIdr" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                          x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
 
-                        <!-- Quantity -->
-                        <td x-show="colKey === 'quantity' && cols.quantity" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
-                            x-text="item.quantity > 0 ? item.quantity.toLocaleString('id-ID', {maximumFractionDigits: 6}) : '-'"></td>
+                      <!-- 26. Quantity -->
+                      <td x-show="cols.quantity" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                          x-text="item.quantity > 0 ? item.quantity.toLocaleString('id-ID', {maximumFractionDigits: 6}) : '-'"></td>
 
-                        <!-- AVG Price -->
-                        <td x-show="colKey === 'avgPrice' && cols.avgPrice" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
-                            x-text="item.avg_price > 0 ? (item.currency === 'USD' ? formatUSD(item.avg_price) : formatIDR(item.avg_price)) : '-'"></td>
+                      <!-- 27. AVG Price -->
+                      <td x-show="cols.avgPrice" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                          x-text="item.avg_price > 0 ? (item.currency === 'USD' ? formatUSD(item.avg_price) : formatIDR(item.avg_price)) : '-'"></td>
 
-                        <!-- Nilai Berjalan -->
-                        <td x-show="colKey === 'curVal' && cols.curVal" class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
-                            x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
+                      <!-- 28. Nilai Berjalan -->
+                      <td x-show="cols.curVal" class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
+                          x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
 
-                        <!-- Floating PnL -->
-                        <td x-show="colKey === 'pnl' && cols.pnl" class="py-3 px-3 text-right font-bold"
-                            :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                            x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct.toFixed(1) + '%)') : '-'"></td>
-
-                      </template>
+                      <!-- 29. Floating PnL -->
+                      <td x-show="cols.pnl" class="py-3 px-3 text-right font-bold"
+                          :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                          x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct.toFixed(1) + '%)') : '-'"></td>
 
                     </tr>
                   </template>
@@ -654,7 +675,7 @@
     </div>
 
     <!-- ======================================================================= -->
-    <!-- VIEW 2: TRACK BULANAN (MULTI-TAHUN)                                     -->
+    <!-- VIEW 2: TRACK BULANAN (MULTI-TAHUN) — REALTIME SYNC                     -->
     <!-- ======================================================================= -->
     <div x-show="activeView === 'monthly'" class="space-y-6" x-cloak>
       
@@ -665,7 +686,7 @@
             <i data-lucide="calendar" class="w-4 h-4 text-sky-500"></i>
             <span>PELACAKAN HISTORIS NET WORTH & MODAL KELUAR</span>
           </h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Tercatat realtime dari data portofolio aktif. Rollover otomatis setiap akhir bulan pk 23:59:59 WIB.</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Bulan saat ini tercatat persis realtime mengikuti data portofolio aktif. Rollover otomatis setiap akhir bulan pk 23:59:59 WIB.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -706,23 +727,46 @@
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
               <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
-                <tr class="crypto-row transition">
-                  <td class="py-3 px-4 font-sans font-bold text-slate-900 dark:text-white" x-text="row.month_name"></td>
-                  <td class="py-3 px-4 text-right text-slate-700 dark:text-slate-300" x-text="row.total_outgoings > 0 ? formatIDR(row.total_outgoings) : '-'"></td>
-                  <td class="py-3 px-4 text-right font-bold text-slate-900 dark:text-white" x-text="row.current_networth > 0 ? formatIDR(row.current_networth) : '-'"></td>
-                  <td class="py-3 px-4 text-right font-semibold text-sky-600 dark:text-sky-400" x-text="row.investing_power > 0 ? formatIDR(row.investing_power) : '0'"></td>
+                <tr class="crypto-row transition" :class="isCurrentMonthRow(row) ? 'bg-sky-50/40 dark:bg-sky-950/20 font-semibold' : ''">
+                  
+                  <!-- Month Name -->
+                  <td class="py-3 px-4 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span x-text="row.month_name"></span>
+                    <span x-show="isCurrentMonthRow(row)" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 uppercase">Live</span>
+                  </td>
+
+                  <!-- Outgoings -->
+                  <td class="py-3 px-4 text-right text-slate-700 dark:text-slate-300" 
+                      x-text="getMonthlyOutgoings(row) > 0 ? formatIDR(getMonthlyOutgoings(row)) : '-'"></td>
+
+                  <!-- Current Networth -->
+                  <td class="py-3 px-4 text-right font-bold text-slate-900 dark:text-white" 
+                      x-text="getMonthlyNetworth(row) > 0 ? formatIDR(getMonthlyNetworth(row)) : '-'"></td>
+
+                  <!-- Investing Power -->
+                  <td class="py-3 px-4 text-right font-semibold text-sky-600 dark:text-sky-400" 
+                      x-text="getMonthlyInvestingPower(row) > 0 ? formatIDR(getMonthlyInvestingPower(row)) : '0'"></td>
+
+                  <!-- Assets PnL (Realtime for current month) -->
                   <td class="py-3 px-4 text-right font-bold"
-                      :class="row.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                      x-text="row.total_outgoings > 0 ? ((row.pnl_idr >= 0 ? '+' : '') + formatIDR(row.pnl_idr) + ' (' + (row.pnl_pct ? row.pnl_pct.toFixed(1) : '0.0') + '%)') : '-'"></td>
+                      :class="getMonthlyPnLIDR(row) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                      x-text="getMonthlyOutgoings(row) > 0 ? ((getMonthlyPnLIDR(row) >= 0 ? '+' : '') + formatIDR(getMonthlyPnLIDR(row)) + ' (' + (getMonthlyPnLPct(row) ? getMonthlyPnLPct(row).toFixed(2) : '0.00') + '%)') : '-'"></td>
+
+                  <!-- Networth Growth % -->
                   <td class="py-3 px-4 text-center font-bold"
-                      :class="row.growth_pct > 0 ? 'text-emerald-500' : (row.growth_pct < 0 ? 'text-rose-500' : 'text-slate-400')"
-                      x-text="row.current_networth > 0 ? ((row.growth_pct > 0 ? '+' : '') + row.growth_pct.toFixed(2) + '%') : '-'"></td>
+                      :class="getMonthlyGrowth(row) > 0 ? 'text-emerald-500' : (getMonthlyGrowth(row) < 0 ? 'text-rose-500' : 'text-slate-400')"
+                      x-text="getMonthlyNetworth(row) > 0 ? ((getMonthlyGrowth(row) > 0 ? '+' : '') + getMonthlyGrowth(row).toFixed(2) + '%') : '-'"></td>
+
+                  <!-- Notes -->
                   <td class="py-3 px-4 font-sans text-xs text-slate-500 truncate max-w-xs" x-text="row.notes || '-'"></td>
+
+                  <!-- Action -->
                   <td class="py-3 px-4 text-center">
                     <button @click="editMonthlyRow(row)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-xs font-sans font-semibold">
                       Edit
                     </button>
                   </td>
+
                 </tr>
               </template>
             </tbody>
@@ -781,7 +825,7 @@
             <button type="button" @click="setFFPorto(50e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 50e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">50 Jt</button>
             <button type="button" @click="setFFPorto(100e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 100e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">100 Jt</button>
             <button type="button" @click="setFFPorto(200e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 200e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">200 Jt</button>
-            <button type="button" @click="setFFPorto(500e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 50e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">500 Jt</button>
+            <button type="button" @click="setFFPorto(500e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 500e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">500 Jt</button>
             <button type="button" @click="setFFPorto(1e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 1e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">1 M</button>
             <button type="button" @click="setFFPorto(2e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 2e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">2 M</button>
             <button type="button" @click="setFFPorto(5e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 5e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">5 M</button>
@@ -939,14 +983,14 @@
 
         <div x-show="ffTab === 'growth'" class="space-y-2">
           <p class="text-xs text-slate-500 dark:text-slate-400">Area biru = total portfolio. Garis hijau putus = akumulasi investasimu. Gap keduanya = keajaiban compounding.</p>
-          <div class="relative h-72 w-full">
+          <div class="relative w-full h-[320px] bg-slate-50/50 dark:bg-slate-900/30 rounded-xl p-2">
             <canvas id="ffGrowthChart"></canvas>
           </div>
         </div>
 
         <div x-show="ffTab === 'hustle'" class="space-y-2">
-          <p class="text-xs text-slate-500 dark:text-slate-400">Balok ungu = investasimu. Balok hijau = hasil kerja uangmu. Garis teal = return/thn. Garis oranye = tabungan/thn. Titik merah = Crossover point.</p>
-          <div class="relative h-72 w-full">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Balok ungu = investasimu. Balok hijau = hasil kerja uangmu. Garis teal = return/thn. Garis oranye = tabungan/thn. Garis merah putus = Titik Crossover.</p>
+          <div class="relative w-full h-[320px] bg-slate-50/50 dark:bg-slate-900/30 rounded-xl p-2">
             <canvas id="ffHustleChart"></canvas>
           </div>
         </div>
@@ -1004,7 +1048,7 @@
           <button class="text-xs font-semibold text-sky-600 dark:text-sky-400" x-text="ffCollapse.gap ? 'Maximize ▲' : 'Minimize ▼'"></button>
         </div>
         <div x-show="!ffCollapse.gap" class="p-4">
-          <div class="relative h-60 w-full">
+          <div class="relative w-full h-[260px] bg-slate-50/50 dark:bg-slate-900/30 rounded-xl p-2">
             <canvas id="ffGapChart"></canvas>
           </div>
         </div>
@@ -1247,20 +1291,20 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: PENGATURAN & URUTAN KOLOM (CUSTOMIZE & REORDER COLUMNS)            -->
+  <!-- MODAL: PENGATURAN VISIBILITAS KOLOM (CUSTOMIZE COLUMNS)                   -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showColumnModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div @click.away="showColumnModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5">
+    <div @click.away="showColumnModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5">
       
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
         <div>
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <i data-lucide="sliders-horizontal" class="w-4 h-4 text-sky-500"></i>
-            <span>Pengaturan & Urutan Kolom Tabel</span>
+            <span>Pengaturan Kolom Tabel</span>
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Aktifkan kolom dan atur urutan posisi (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 24 kolom aktif'"></span>).
+            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 24 kolom aktif'"></span>).
           </p>
         </div>
         <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -1270,47 +1314,29 @@
 
       <!-- Quick Preset Buttons -->
       <div class="flex flex-wrap items-center gap-2 text-xs">
-        <span class="text-slate-400 font-semibold text-[11px]">PRESET:</span>
+        <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
         <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Semua (24)
+          Semua Kolom (24)
         </button>
         <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
-          Standar (15)
+          Standar Rekomendasi (15)
         </button>
         <button @click="setColsPreset('cagr')" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/30 transition">
           Dengan CAGR (19)
         </button>
         <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Ringkas (6)
+          Ringkas Minimal (6)
         </button>
       </div>
 
-      <!-- Urutan Kolom & Checkbox Grid -->
+      <!-- Column Groups Grid -->
       <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
         
-        <!-- Reorder list of active columns -->
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2">
-          <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="move" class="w-3.5 h-3.5"></i>
-            <span>Susun Urutan Posisi Kolom (Geser Kiri / Kanan)</span>
-          </span>
-          <div class="flex flex-wrap gap-1.5 text-xs">
-            <template x-for="(colKey, cIdx) in columnOrder" :key="colKey">
-              <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg border"
-                   :class="cols[colKey] ? 'bg-white dark:bg-slate-900 border-sky-500/50 text-slate-900 dark:text-white' : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-400 opacity-60'">
-                <button type="button" @click="moveColOrder(cIdx, -1)" class="text-slate-400 hover:text-sky-500 text-[10px]">◀</button>
-                <span class="font-semibold text-[11px]" x-text="getColumnLabel(colKey)"></span>
-                <button type="button" @click="moveColOrder(cIdx, 1)" class="text-slate-400 hover:text-sky-500 text-[10px]">▶</button>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <!-- Group 1: Return % -->
+        <!-- Group 1: Indikator Performa Return (% Profit) -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-            <span>1. Indikator Performa Return (% Profit)</span>
+            <span>1. Indikator Performa Return (% Profit Kumulatif)</span>
           </span>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
@@ -1352,7 +1378,7 @@
           </div>
         </div>
 
-        <!-- Group 2: CAGR -->
+        <!-- Group 2: Indikator Compound Growth (CAGR Tahunan) -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="percent" class="w-3.5 h-3.5"></i>
@@ -1378,7 +1404,7 @@
           </div>
         </div>
 
-        <!-- Group 3: Valuasi & Pasar -->
+        <!-- Group 3: Valuasi, ATH & Data Pasar -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="target" class="w-3.5 h-3.5"></i>
@@ -1412,7 +1438,7 @@
           </div>
         </div>
 
-        <!-- Group 4: Posisi Portofolio -->
+        <!-- Group 4: Portofolio & Posisi -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
@@ -1560,7 +1586,7 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- ALPINE.JS LOGIC & PROTOKOL NAGA INTEGRATION                               -->
+  <!-- ALPINE.JS APP SCRIPT                                                      -->
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
@@ -1592,20 +1618,10 @@
         pnl: true
       };
 
-      const defaultOrder = [
-        'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'perf15y', 'perf20y',
-        'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y',
-        'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'marketCap', 'volume',
-        'investedIdr', 'quantity', 'avgPrice', 'curVal', 'pnl'
-      ];
-
       let savedCols = defaultCols;
-      let savedOrder = defaultOrder;
       try {
         const stored = localStorage.getItem('radar_cols_v4');
         if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
-        const storedOrder = localStorage.getItem('radar_col_order_v4');
-        if (storedOrder) savedOrder = JSON.parse(storedOrder);
       } catch (e) {
         console.error(e);
       }
@@ -1620,9 +1636,8 @@
         activeView: 'portfolio',
         searchQuery: '',
         
-        // 24 Configurable Columns & Custom Ordering
+        // 24 Configurable Columns
         cols: savedCols,
-        columnOrder: savedOrder,
         showColumnModal: false,
         
         draggedItem: null,
@@ -1733,10 +1748,13 @@
           lucide.createIcons();
         },
 
-        initFFCalculator() {
+        openCalculatorTab() {
+          this.activeView = 'calculator';
           this.$nextTick(() => {
-            this.recalcFF();
-            lucide.createIcons();
+            setTimeout(() => {
+              this.recalcFF();
+              lucide.createIcons();
+            }, 60);
           });
         },
 
@@ -1969,7 +1987,10 @@
           // 1. Growth Chart
           const ctxGrowth = document.getElementById('ffGrowthChart');
           if (ctxGrowth) {
-            if (this.ffGrowthChartInstance) this.ffGrowthChartInstance.destroy();
+            if (this.ffGrowthChartInstance) {
+              this.ffGrowthChartInstance.destroy();
+              this.ffGrowthChartInstance = null;
+            }
             this.ffGrowthChartInstance = new Chart(ctxGrowth, {
               type: 'line',
               data: {
@@ -1982,7 +2003,14 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (c) => c.dataset.label + ': ' + this.formatIDR(c.parsed.y)
+                    }
+                  }
+                },
                 scales: {
                   x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
                   y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } }
@@ -1994,7 +2022,10 @@
           // 2. Hustle Chart
           const ctxHustle = document.getElementById('ffHustleChart');
           if (ctxHustle) {
-            if (this.ffHustleChartInstance) this.ffHustleChartInstance.destroy();
+            if (this.ffHustleChartInstance) {
+              this.ffHustleChartInstance.destroy();
+              this.ffHustleChartInstance = null;
+            }
             this.ffHustleChartInstance = new Chart(ctxHustle, {
               type: 'bar',
               data: {
@@ -2009,7 +2040,14 @@
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (c) => c.dataset.label + ': ' + this.formatIDR(c.parsed.y)
+                    }
+                  }
+                },
                 scales: {
                   x: { stacked: true, ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
                   y: { stacked: true, position: 'left', ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } },
@@ -2022,7 +2060,10 @@
           // 3. Gap Chart
           const ctxGap = document.getElementById('ffGapChart');
           if (ctxGap) {
-            if (this.ffGapChartInstance) this.ffGapChartInstance.destroy();
+            if (this.ffGapChartInstance) {
+              this.ffGapChartInstance.destroy();
+              this.ffGapChartInstance = null;
+            }
             const gLbls = this.ffMilestonesRaw.map(m => m.l.replace('Rp ', '').replace(' miliar', 'M').replace(' juta', 'jt'));
             const gData = gaps.map((g, i) => hit[i] === 0 ? 0 : (g === null ? 50 : +g.toFixed(1)));
             const gColors = gaps.map((g, i) => hit[i] === 0 ? '#10b981' : (g === null ? '#3D0A0A' : (g > 10 ? '#ef4444' : (g > 5 ? '#f97316' : (g > 2 ? '#f59e0b' : '#38bdf8')))));
@@ -2055,7 +2096,68 @@
         },
 
         // =====================================================================
-        // COLUMN VISIBILITY & ORDERING
+        // TRACK BULANAN REALTIME SYNC HELPERS
+        // =====================================================================
+        isCurrentMonthRow(row) {
+          const now = new Date();
+          const curMonth = now.getMonth() + 1;
+          const curYear = now.getFullYear();
+          return row.month_index === curMonth && (this.selectedYear === curYear || row.year === curYear);
+        },
+
+        getMonthlyOutgoings(row) {
+          if (this.isCurrentMonthRow(row)) {
+            return this.data.total_outgoings_idr || row.total_outgoings;
+          }
+          return row.total_outgoings;
+        },
+
+        getMonthlyNetworth(row) {
+          if (this.isCurrentMonthRow(row)) {
+            return this.data.current_net_worth_idr || row.current_networth;
+          }
+          return row.current_networth;
+        },
+
+        getMonthlyInvestingPower(row) {
+          if (this.isCurrentMonthRow(row)) {
+            const curIdx = row.month_index;
+            const prevRow = this.monthlyRecords.find(m => m.month_index === curIdx - 1);
+            if (prevRow && prevRow.total_outgoings > 0 && this.data.total_outgoings_idr >= prevRow.total_outgoings) {
+              return this.data.total_outgoings_idr - prevRow.total_outgoings;
+            }
+            return row.investing_power || 3075471.0;
+          }
+          return row.investing_power;
+        },
+
+        getMonthlyPnLIDR(row) {
+          if (this.isCurrentMonthRow(row)) {
+            return this.data.total_pnl_idr !== undefined ? this.data.total_pnl_idr : row.pnl_idr;
+          }
+          return row.pnl_idr;
+        },
+
+        getMonthlyPnLPct(row) {
+          if (this.isCurrentMonthRow(row)) {
+            return this.data.total_pnl_pct !== undefined ? this.data.total_pnl_pct : (row.pnl_pct || 0.0);
+          }
+          return row.pnl_pct || 0.0;
+        },
+
+        getMonthlyGrowth(row) {
+          if (this.isCurrentMonthRow(row)) {
+            const curIdx = row.month_index;
+            const prevRow = this.monthlyRecords.find(m => m.month_index === curIdx - 1);
+            if (prevRow && prevRow.current_networth > 0 && this.data.current_net_worth_idr > 0) {
+              return ((this.data.current_net_worth_idr - prevRow.current_networth) / prevRow.current_networth) * 100.0;
+            }
+          }
+          return row.growth_pct || 0.0;
+        },
+
+        // =====================================================================
+        // COLUMN VISIBILITY PRESETS
         // =====================================================================
         toggleCol(colKey) {
           if (this.cols[colKey] !== undefined) {
@@ -2064,30 +2166,9 @@
           }
         },
 
-        moveColOrder(index, direction) {
-          const targetIndex = index + direction;
-          if (targetIndex < 0 || targetIndex >= this.columnOrder.length) return;
-          const temp = this.columnOrder[index];
-          this.columnOrder[index] = this.columnOrder[targetIndex];
-          this.columnOrder[targetIndex] = temp;
-          this.saveColsPref();
-        },
-
-        getColumnLabel(key) {
-          const map = {
-            perf24h: '24H', perf5h: '5H', perf1m: '1M', perf6m: '6M', perf1y: '1Y', perf5y: '5Y', perf10y: '10Y', perf15y: '15Y', perf20y: '20Y',
-            cagr5y: '5Y CAGR', cagr10y: '10Y CAGR', cagr15y: '15Y CAGR', cagr20y: '20Y CAGR',
-            athPrice: 'ATH Price', athDrawdown: '% from ATH', athZone: 'Zonasi ATH', peValuation: 'Valuasi P/E',
-            marketCap: 'Market Cap', volume: 'Volume (24H)',
-            investedIdr: 'Modal Terinvestasi', quantity: 'Quantity', avgPrice: 'AVG Price', curVal: 'Nilai Berjalan', pnl: 'Floating PnL'
-          };
-          return map[key] || key;
-        },
-
         saveColsPref() {
           try {
             localStorage.setItem('radar_cols_v4', JSON.stringify(this.cols));
-            localStorage.setItem('radar_col_order_v4', JSON.stringify(this.columnOrder));
           } catch (e) {}
         },
 
@@ -2139,7 +2220,6 @@
           const fromCatId = this.draggedCategory.id;
           const toCatId = targetCategory.id;
 
-          // Reorder locally
           const sourceCategory = this.data.categories.find(c => c.id === fromCatId);
           const destCategory = this.data.categories.find(c => c.id === toCatId);
           
@@ -2160,7 +2240,6 @@
           this.draggedItem = null;
           this.draggedCategory = null;
 
-          // Persist move to backend
           try {
             await fetch('/api/assets/move', {
               method: 'POST',
@@ -2365,10 +2444,10 @@
             year: this.selectedYear,
             month_index: row.month_index,
             month_name: row.month_name,
-            total_outgoings: row.total_outgoings,
-            current_networth: row.current_networth,
-            investing_power: row.investing_power,
-            growth_pct: row.growth_pct,
+            total_outgoings: this.getMonthlyOutgoings(row),
+            current_networth: this.getMonthlyNetworth(row),
+            investing_power: this.getMonthlyInvestingPower(row),
+            growth_pct: this.getMonthlyGrowth(row),
             notes: row.notes || ''
           };
           this.showMonthlyModal = true;
