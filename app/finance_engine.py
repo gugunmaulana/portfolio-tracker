@@ -181,33 +181,33 @@ def get_macro_and_fx() -> Dict[str, Any]:
     data = {}
     
     def fetch_single(t):
-        res = fetch_direct_yahoo_chart(t, "1y")
+        res = fetch_direct_yahoo_chart(t, "5d")
         if res:
             meta = res.get("meta", {})
-            price = meta.get("regularMarketPrice")
-            prev_close = meta.get("chartPreviousClose")
-            
             quotes = res.get("indicators", {}).get("quote", [{}])[0]
-            closes = [c for c in quotes.get("close", []) if c is not None]
-            if not price and closes:
-                price = closes[-1]
-            if not prev_close and len(closes) > 1:
-                prev_close = closes[-2]
+            closes = [c for c in quotes.get("close", []) if c is not None and not math.isnan(c)]
+            price = meta.get("regularMarketPrice") or (closes[-1] if closes else None)
+            prev_close = meta.get("regularMarketPreviousClose") or meta.get("previousClose") or (closes[-2] if len(closes) >= 2 else None)
                 
             chg_pct = 0.0
             if price and prev_close and prev_close > 0:
                 chg_pct = ((price - prev_close) / prev_close) * 100.0
                 
-            return t, {
-                "price": round(price, 2) if price < 10000 else round(price, 0),
-                "change_pct": round(chg_pct, 2)
-            }
+            if price:
+                return t, {
+                    "price": round(price, 2) if price < 10000 else round(price, 0),
+                    "change_pct": round(chg_pct, 2)
+                }
         return t, {"price": FALLBACK_PRICES.get(t, 1.0), "change_pct": 0.0}
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         results = executor.map(fetch_single, tickers)
         for t, val in results:
             data[t] = val
+
+    # Dynamic live benchmark data
+    ihsg_data = fetch_ticker_market_data("^JKSE")
+    sp500_data = fetch_ticker_market_data("^GSPC")
             
     return {
         "usd_idr": data.get("USDIDR=X", {}).get("price", 17688.0),
@@ -222,14 +222,14 @@ def get_macro_and_fx() -> Dict[str, Any]:
             "ihsg": {
                 "name": "IHSG (IDX COMPOSITE)",
                 "symbol": "^JKSE",
-                "price": data.get("^JKSE", {}).get("price", 6499.07),
-                "perf": {"24h": 0.17, "1w": -2.31, "1m": 0.41, "6m": -9.37, "1y": -7.31, "5y": 6.96, "10y": 20.63}
+                "price": ihsg_data.get("price", 6501.67),
+                "perf": ihsg_data.get("perf", {"24h": 0.17, "1w": -2.31, "1m": 0.41, "6m": -9.37, "1y": -7.31, "5y": 6.96, "10y": 20.63})
             },
             "sp500": {
                 "name": "S&P 500 (INDEXSP:.INX)",
                 "symbol": "^GSPC",
-                "price": data.get("^GSPC", {}).get("price", 5924.37),
-                "perf": {"24h": 0.43, "1w": -0.91, "1m": 3.92, "6m": 1.28, "1y": 19.33, "5y": 71.32, "10y": 250.92}
+                "price": sp500_data.get("price", 5924.37),
+                "perf": sp500_data.get("perf", {"24h": 0.43, "1w": -0.91, "1m": 3.92, "6m": 1.28, "1y": 19.33, "5y": 71.32, "10y": 250.92})
             }
         }
     }
