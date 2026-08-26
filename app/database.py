@@ -989,3 +989,20 @@ def reorder_portfolio_items(user_id: str, item_orders: List[Dict[str, Any]]):
             """, (category, sort_order, item_id, user_id))
     conn.commit()
     conn.close()
+
+
+def reorder_categories(user_id: str, category_orders: List[Dict[str, Any]]):
+    """Update sort order of multiple categories."""
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    for cat in category_orders:
+        cat_id = cat.get("id")
+        sort_order = cat.get("sort_order", 0)
+        if cat_id:
+            cursor.execute("""
+            UPDATE categories SET sort_order = ?
+            WHERE id = ? AND user_id = ?
+            """, (sort_order, cat_id, user_id))
+    conn.commit()
+    conn.close()

@@ -336,59 +336,46 @@
                  class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white outline-none focus:border-sky-500">
         </div>
 
-        <!-- Column Customizer Button & Quick Toggles -->
+        <!-- Column Customizer Button -->
         <div class="flex flex-wrap items-center gap-2">
-          
           <button @click="showColumnModal = true" 
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-600 dark:text-sky-400 font-bold border border-sky-200 dark:border-sky-800 transition active:scale-95">
+                  class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-600 dark:text-sky-400 font-bold border border-sky-200 dark:border-sky-800 transition active:scale-95">
             <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-            <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/25'"></span>)</span>
+            <span>⚙️ Pengaturan Kolom (<span x-text="activeVisibleColumns().length + '/25'"></span>)</span>
           </button>
-
-          <!-- Quick Return Pillars -->
-          <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-            <button @click="toggleCol('signal')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.signal ? 'bg-white dark:bg-slate-900 shadow-sm text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">Sinyal AI</button>
-            <button @click="toggleCol('perf24h')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf24h ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">24H</button>
-            <button @click="toggleCol('perf5h')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf5h ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">5H</button>
-            <button @click="toggleCol('perf1m')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf1m ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">1M</button>
-            <button @click="toggleCol('perf6m')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf6m ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">6M</button>
-            <button @click="toggleCol('perf1y')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf1y ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">1Y</button>
-            <button @click="toggleCol('perf5y')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf5y ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">5Y</button>
-            <button @click="toggleCol('perf10y')" 
-                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
-                    :class="cols.perf10y ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">10Y</button>
-          </div>
-
         </div>
 
       </div>
 
-      <!-- Categories Container -->
+      <!-- Categories Container (Supports Move Up/Down) -->
       <div class="space-y-6">
-        <template x-for="category in data.categories" :key="category.id">
+        <template x-for="(category, catIndex) in data.categories" :key="category.id">
           <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"
                x-show="filteredCategoryItems(category).length > 0 || !searchQuery"
                @dragover.prevent="onCategoryDragOver($event)"
                @drop="onCategoryDrop($event, category)">
             
-            <!-- Category Header Banner (Editable + Add Asset Right Button) -->
+            <!-- Category Header Banner (With Move Up / Down Buttons) -->
             <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex flex-wrap items-center justify-between gap-3">
               
               <div class="flex items-center gap-3">
+                
+                <!-- Category Move Up / Down Buttons -->
+                <div class="flex items-center gap-1 bg-slate-200/70 dark:bg-slate-800 p-0.5 rounded-lg">
+                  <button @click="moveCategory(category.id, 'up')" 
+                          :disabled="catIndex === 0"
+                          class="p-1 rounded hover:bg-sky-500 hover:text-white text-slate-500 dark:text-slate-400 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
+                          title="Pindahkan Kategori ke Atas">
+                    <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button @click="moveCategory(category.id, 'down')" 
+                          :disabled="catIndex === data.categories.length - 1"
+                          class="p-1 rounded hover:bg-sky-500 hover:text-white text-slate-500 dark:text-slate-400 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400"
+                          title="Pindahkan Kategori ke Bawah">
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+
                 <!-- Category Color Indicator -->
                 <div class="w-3 h-3 rounded-full"
                      :class="{
@@ -439,56 +426,22 @@
 
             </div>
 
-            <!-- Modern Clean Cryptorank-style Table with Explicit Rock-Solid Columns -->
+            <!-- Dynamic Reorderable Columns Table -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50/80 dark:bg-[#0d1527]/80 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80">
                   <tr>
-                    <!-- 1. AKSI (DI PALING KIRI) -->
+                    <!-- Frozen Left Columns -->
                     <th class="py-3 px-3 text-center w-16">Aksi</th>
-                    <!-- 2. # -->
                     <th class="py-3 px-3 w-8">#</th>
-                    <!-- 3. NAMA ASET -->
                     <th class="py-3 px-4">Nama Aset</th>
-                    <!-- 4. TICKER -->
                     <th class="py-3 px-3">Ticker</th>
-                    <!-- 5. HARGA PASAR -->
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
                     
-                    <!-- 6. SINYAL AKUMULASI (AI) -->
-                    <th class="py-3 px-3 text-center" x-show="cols.signal">Sinyal Akumulasi (AI)</th>
-
-                    <!-- 7-15. RETURN COLUMNS -->
-                    <th class="py-3 px-3 text-center" x-show="cols.perf24h">24H</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf5h">5H</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf1m">1M</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf6m">6M</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf1y">1Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf5y">5Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf10y">10Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf15y">15Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf20y">20Y</th>
-                    
-                    <!-- 16-19. CAGR COLUMNS -->
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr5y">5Y CAGR</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr10y">10Y CAGR</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr15y">15Y CAGR</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr20y">20Y CAGR</th>
-                    
-                    <!-- 20-25. ATH, VALUATION, MCAP, VOLUME -->
-                    <th class="py-3 px-3 text-right" x-show="cols.athPrice">ATH Price</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.athDrawdown">% from ATH</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.athZone">Zonasi ATH</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.peValuation">Valuasi P/E</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.marketCap">Market Cap</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.volume">Volume (24H)</th>
-                    
-                    <!-- 26-30. PORTFOLIO POSITION COLUMNS -->
-                    <th class="py-3 px-3 text-right" x-show="cols.investedIdr">Modal Terinvestasi</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.quantity">Quantity</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.avgPrice">AVG Price</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.curVal">Nilai Berjalan</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.pnl">Floating PnL</th>
+                    <!-- Dynamic Dynamic Reordered Columns -->
+                    <template x-for="col in activeVisibleColumns()" :key="col.key">
+                      <th class="py-3 px-3" :class="getColHeaderClass(col)" x-text="col.label"></th>
+                    </template>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono tabular-nums">
@@ -552,134 +505,87 @@
                         <span x-text="item.currency === 'USD' ? formatUSD(item.current_price) : formatIDR(item.current_price)"></span>
                       </td>
 
-                      <!-- 6. SINYAL AKUMULASI (AI DIP-BUYING) -->
-                      <td x-show="cols.signal" class="py-3 px-3 text-center">
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide cursor-help inline-block shadow-sm"
-                              :class="item.signal_bg || 'bg-slate-100 text-slate-600'"
-                              :title="item.signal_desc"
-                              x-text="item.signal_label || '⚪ Hold'"></span>
-                      </td>
+                      <!-- Dynamic Columns Cells rendered strictly by active columns order -->
+                      <template x-for="col in activeVisibleColumns()" :key="col.key">
+                        
+                        <!-- Col Type: Signal -->
+                        <td x-show="col.type === 'signal'" class="py-3 px-3 text-center">
+                          <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide cursor-help inline-block shadow-sm"
+                                :class="item.signal_bg || 'bg-slate-100 text-slate-600'"
+                                :title="item.signal_desc"
+                                x-text="item.signal_label || '⚪ Hold'"></span>
+                        </td>
 
-                      <!-- 7. 24H -->
-                      <td x-show="cols.perf24h" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                          x-text="formatPct(item.perf['24h'])"></td>
+                        <!-- Col Type: Perf Return -->
+                        <td x-show="col.type === 'perf'" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf && item.perf[col.field] >= 0 ? 'text-emerald-500' : (item.perf && item.perf[col.field] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="item.perf ? formatPct(item.perf[col.field]) : 'N/A'"></td>
 
-                      <!-- 8. 5H -->
-                      <td x-show="cols.perf5h" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['5h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                          x-text="formatPct(item.perf['5h'])"></td>
+                        <!-- Col Type: CAGR Return -->
+                        <td x-show="col.type === 'cagr'" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                            x-text="item.perf ? formatPct(item.perf[col.field]) : 'N/A'"></td>
 
-                      <!-- 9. 1M -->
-                      <td x-show="cols.perf1m" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['1m'] >= 0 ? 'text-emerald-500' : (item.perf['1m'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['1m'])"></td>
+                        <!-- Col Type: ATH Price -->
+                        <td x-show="col.type === 'ath_price'" class="py-3 px-3 text-right text-slate-500"
+                            x-text="item.currency === 'USD' ? formatUSD(item.ath_price || item.ath) : formatIDR(item.ath_price || item.ath)"></td>
 
-                      <!-- 10. 6M -->
-                      <td x-show="cols.perf6m" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['6m'] >= 0 ? 'text-emerald-500' : (item.perf['6m'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['6m'])"></td>
+                        <!-- Col Type: ATH Drawdown -->
+                        <td x-show="col.type === 'ath_drawdown'" class="py-3 px-3 text-center font-semibold font-mono"
+                            :class="getDrawdownClass(item)"
+                            x-text="getDrawdownText(item)"></td>
 
-                      <!-- 11. 1Y -->
-                      <td x-show="cols.perf1y" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['1y'] >= 0 ? 'text-emerald-500' : (item.perf['1y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['1y'])"></td>
+                        <!-- Col Type: ATH Zone -->
+                        <td x-show="col.type === 'ath_zone'" class="py-3 px-3 text-center">
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                :class="item.status_bg || getZoneClass(item)"
+                                x-text="item.status_label || getZoneLabel(item)"></span>
+                        </td>
 
-                      <!-- 12. 5Y -->
-                      <td x-show="cols.perf5y" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['5y'] >= 0 ? 'text-emerald-500' : (item.perf['5y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['5y'])"></td>
+                        <!-- Col Type: PE Valuation -->
+                        <td x-show="col.type === 'pe_valuation'" class="py-3 px-3 text-center">
+                          <template x-if="item.pe_ratio">
+                            <div class="flex items-center justify-center gap-1">
+                              <span class="font-bold text-slate-700 dark:text-slate-300" x-text="item.pe_ratio.toFixed(1) + 'x'"></span>
+                              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold"
+                                    :class="item.pe_color || getPEValuationClass(item.pe_ratio, item.pe_thresholds)"
+                                    x-text="item.pe_status || getPEValuationLabel(item.pe_ratio, item.pe_thresholds)"></span>
+                            </div>
+                          </template>
+                          <template x-if="!item.pe_ratio">
+                            <span class="text-slate-400 text-[10px]">N/A</span>
+                          </template>
+                        </td>
 
-                      <!-- 13. 10Y -->
-                      <td x-show="cols.perf10y" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['10y'] >= 0 ? 'text-emerald-500' : (item.perf['10y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['10y'])"></td>
+                        <!-- Col Type: Market Cap -->
+                        <td x-show="col.type === 'mcap'" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
+                            x-text="item.market_cap_formatted || 'N/A'"></td>
 
-                      <!-- 14. 15Y -->
-                      <td x-show="cols.perf15y" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['15y'] >= 0 ? 'text-emerald-500' : (item.perf['15y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['15y'])"></td>
+                        <!-- Col Type: Volume -->
+                        <td x-show="col.type === 'volume'" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
+                            x-text="item.volume_formatted || 'N/A'"></td>
 
-                      <!-- 15. 20Y -->
-                      <td x-show="cols.perf20y" class="py-3 px-3 text-center font-semibold"
-                          :class="item.perf['20y'] >= 0 ? 'text-emerald-500' : (item.perf['20y'] !== null ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="formatPct(item.perf['20y'])"></td>
+                        <!-- Col Type: Invested IDR -->
+                        <td x-show="col.type === 'invested'" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                            x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
 
-                      <!-- 16. 5Y CAGR -->
-                      <td x-show="cols.cagr5y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                          x-text="formatPct(item.perf['5y_cagr'])"></td>
+                        <!-- Col Type: Quantity -->
+                        <td x-show="col.type === 'quantity'" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                            x-text="item.quantity > 0 ? item.quantity.toLocaleString('id-ID', {maximumFractionDigits: 6}) : '-'"></td>
 
-                      <!-- 17. 10Y CAGR -->
-                      <td x-show="cols.cagr10y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                          x-text="formatPct(item.perf['10y_cagr'])"></td>
+                        <!-- Col Type: Avg Price -->
+                        <td x-show="col.type === 'avg_price'" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                            x-text="item.avg_price > 0 ? (item.currency === 'USD' ? formatUSD(item.avg_price) : formatIDR(item.avg_price)) : '-'"></td>
 
-                      <!-- 18. 15Y CAGR -->
-                      <td x-show="cols.cagr15y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                          x-text="formatPct(item.perf['15y_cagr'])"></td>
+                        <!-- Col Type: Current Value -->
+                        <td x-show="col.type === 'cur_val'" class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
+                            x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
 
-                      <!-- 19. 20Y CAGR -->
-                      <td x-show="cols.cagr20y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
-                          x-text="formatPct(item.perf['20y_cagr'])"></td>
+                        <!-- Col Type: PnL -->
+                        <td x-show="col.type === 'pnl'" class="py-3 px-3 text-right font-bold"
+                            :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                            x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct.toFixed(1) + '%)') : '-'"></td>
 
-                      <!-- 20. ATH Price -->
-                      <td x-show="cols.athPrice" class="py-3 px-3 text-right text-slate-500"
-                          x-text="item.currency === 'USD' ? formatUSD(item.ath_price) : formatIDR(item.ath_price)"></td>
-
-                      <!-- 21. % from ATH -->
-                      <td x-show="cols.athDrawdown" class="py-3 px-3 text-center font-semibold font-mono"
-                          :class="getDrawdownClass(item)"
-                          x-text="getDrawdownText(item)"></td>
-
-                      <!-- 22. Zonasi ATH (Adaptive) -->
-                      <td x-show="cols.athZone" class="py-3 px-3 text-center">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
-                              :class="item.status_bg || getZoneClass(item)"
-                              x-text="item.status_label || getZoneLabel(item)"></span>
-                      </td>
-
-                      <!-- 23. Valuasi P/E -->
-                      <td x-show="cols.peValuation" class="py-3 px-3 text-center">
-                        <template x-if="item.pe_ratio">
-                          <div class="flex items-center justify-center gap-1">
-                            <span class="font-bold text-slate-700 dark:text-slate-300" x-text="item.pe_ratio.toFixed(1) + 'x'"></span>
-                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold"
-                                  :class="item.pe_color || getPEValuationClass(item.pe_ratio, item.pe_thresholds)"
-                                  x-text="item.pe_status || getPEValuationLabel(item.pe_ratio, item.pe_thresholds)"></span>
-                          </div>
-                        </template>
-                        <template x-if="!item.pe_ratio">
-                          <span class="text-slate-400 text-[10px]">N/A</span>
-                        </template>
-                      </td>
-
-                      <!-- 24. Market Cap -->
-                      <td x-show="cols.marketCap" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
-                          x-text="item.market_cap_formatted || 'N/A'"></td>
-
-                      <!-- 25. Volume (24H) -->
-                      <td x-show="cols.volume" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
-                          x-text="item.volume_formatted || 'N/A'"></td>
-
-                      <!-- 26. Modal Terinvestasi -->
-                      <td x-show="cols.investedIdr" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
-                          x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
-
-                      <!-- 27. Quantity -->
-                      <td x-show="cols.quantity" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
-                          x-text="item.quantity > 0 ? item.quantity.toLocaleString('id-ID', {maximumFractionDigits: 6}) : '-'"></td>
-
-                      <!-- 28. AVG Price -->
-                      <td x-show="cols.avgPrice" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
-                          x-text="item.avg_price > 0 ? (item.currency === 'USD' ? formatUSD(item.avg_price) : formatIDR(item.avg_price)) : '-'"></td>
-
-                      <!-- 29. Nilai Berjalan -->
-                      <td x-show="cols.curVal" class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
-                          x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
-
-                      <!-- 30. Floating PnL -->
-                      <td x-show="cols.pnl" class="py-3 px-3 text-right font-bold"
-                          :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                          x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct.toFixed(1) + '%)') : '-'"></td>
+                      </template>
 
                     </tr>
                   </template>
@@ -986,13 +892,13 @@
       <div class="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
         
         <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 text-xs">
-          <button type="button" @click="ffTab = 'growth'; refreshFFCharts();"
+          <button type="button" @click="setFFTab('growth')"
                   class="px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition"
                   :class="ffTab === 'growth' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'">
             <i data-lucide="trending-up" class="w-4 h-4"></i>
             <span>Proyeksi Pertumbuhan Portfolio</span>
           </button>
-          <button type="button" @click="ffTab = 'hustle'; refreshFFCharts();"
+          <button type="button" @click="setFFTab('hustle')"
                   class="px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition"
                   :class="ffTab === 'hustle' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'">
             <i data-lucide="swords" class="w-4 h-4"></i>
@@ -1059,7 +965,7 @@
       <!-- Collapsible Card: Gap Chart -->
       <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
         <div class="p-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between cursor-pointer"
-             @click="ffCollapse.gap = !ffCollapse.gap; if(!ffCollapse.gap) setTimeout(() => refreshFFCharts(), 100);">
+             @click="ffCollapse.gap = !ffCollapse.gap; if(!ffCollapse.gap) setTimeout(() => recalcFF(), 100);">
           <div>
             <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">📊 Kesulitan Antar Milestone (Gap Waktu)</h3>
             <p class="text-[11px] text-slate-500">Munger Effect: Gap level pertama adalah yang paling berat, setelah itu percepatan compounding terjadi.</p>
@@ -1329,7 +1235,7 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: PENGATURAN VISIBILITAS KOLOM (CUSTOMIZE COLUMNS)                   -->
+  <!-- MODAL: PENGATURAN VISIBILITAS & URUTAN KOLOM (CUSTOMIZE & REORDER)        -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showColumnModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showColumnModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5">
@@ -1339,10 +1245,10 @@
         <div>
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <i data-lucide="sliders-horizontal" class="w-4 h-4 text-sky-500"></i>
-            <span>Pengaturan Kolom Tabel</span>
+            <span>Pengaturan & Urutan Kolom Tabel</span>
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 25 kolom aktif'"></span>).
+            Gunakan tombol <span class="font-bold text-sky-500">◀</span> (Kiri) dan <span class="font-bold text-sky-500">▶</span> (Kanan) untuk memindahkan urutan kolom.
           </p>
         </div>
         <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -1354,176 +1260,64 @@
       <div class="flex flex-wrap items-center gap-2 text-xs">
         <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
         <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Semua Kolom (25)
+          Semua (25)
         </button>
         <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
-          Standar Rekomendasi (16)
+          Rekomendasi (16)
         </button>
         <button @click="setColsPreset('cagr')" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/30 transition">
           Dengan CAGR (20)
         </button>
-        <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Ringkas Minimal (7)
+        <button @click="resetColsOrderDefault()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
+          Reset Urutan Asal
         </button>
       </div>
 
-      <!-- Column Groups Grid -->
-      <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-        
-        <!-- Group 0: Sinyal AI & Dislokasi -->
-        <div class="p-3.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 space-y-2.5">
-          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-            <span>Sinyal AI & Rekomendasi Akumulasi</span>
-          </span>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500 col-span-2">
-              <input type="checkbox" x-model="cols.signal" @change="saveColsPref()" class="rounded text-emerald-600">
-              <span class="font-bold">Sinyal Akumulasi (AI Dip-Buying)</span>
+      <!-- Interactive Column List with Left/Right Reordering Controls -->
+      <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+        <template x-for="(col, colIdx) in columns" :key="col.key">
+          <div class="flex items-center justify-between p-2.5 rounded-xl border transition"
+               :class="col.show ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-sm' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800 opacity-60'">
+            
+            <!-- Left: Checkbox & Label -->
+            <label class="flex items-center gap-2.5 cursor-pointer flex-1">
+              <input type="checkbox" x-model="col.show" @change="saveColsPref()" class="rounded text-sky-600">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold" :class="col.show ? 'text-slate-900 dark:text-white' : 'text-slate-400'" x-text="col.label"></span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono uppercase font-semibold"
+                      :class="{
+                        'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400': col.group === 'ai',
+                        'bg-sky-500/10 text-sky-600 dark:text-sky-400': col.group === 'return',
+                        'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400': col.group === 'cagr',
+                        'bg-amber-500/10 text-amber-600 dark:text-amber-400': col.group === 'ath',
+                        'bg-purple-500/10 text-purple-600 dark:text-purple-400': col.group === 'portfolio'
+                      }"
+                      x-text="col.group"></span>
+              </div>
             </label>
-          </div>
-        </div>
 
-        <!-- Group 1: Indikator Performa Return (% Profit) -->
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
-          <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-            <span>1. Indikator Performa Return (% Profit Kumulatif)</span>
-          </span>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf24h" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">24H</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf5h" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">5H</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf1m" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">1M</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf6m" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">6M</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf1y" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">1Y</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf5y" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">5Y</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf10y" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">10Y</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf15y" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">15Y</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.perf20y" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">20Y</span>
-            </label>
-          </div>
-        </div>
+            <!-- Right: Reorder Left / Right Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button @click="moveColumn(colIdx, 'left')" 
+                      :disabled="colIdx === 0"
+                      class="px-2 py-1 rounded bg-slate-100 hover:bg-sky-500 hover:text-white dark:bg-slate-800 dark:hover:bg-sky-500 text-slate-600 dark:text-slate-300 text-xs font-bold transition disabled:opacity-25"
+                      title="Geser Kolom ke Kiri (Sebelumnya)">
+                ◀ Kiri
+              </button>
+              <button @click="moveColumn(colIdx, 'right')" 
+                      :disabled="colIdx === columns.length - 1"
+                      class="px-2 py-1 rounded bg-slate-100 hover:bg-sky-500 hover:text-white dark:bg-slate-800 dark:hover:bg-sky-500 text-slate-600 dark:text-slate-300 text-xs font-bold transition disabled:opacity-25"
+                      title="Geser Kolom ke Kanan (Berikutnya)">
+                Kanan ▶
+              </button>
+            </div>
 
-        <!-- Group 2: Indikator Compound Growth (CAGR Tahunan) -->
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
-          <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="percent" class="w-3.5 h-3.5"></i>
-            <span>2. Indikator Compound Growth (CAGR Tahunan)</span>
-          </span>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
-              <input type="checkbox" x-model="cols.cagr5y" @change="saveColsPref()" class="rounded text-indigo-600">
-              <span class="font-bold">5Y CAGR</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
-              <input type="checkbox" x-model="cols.cagr10y" @change="saveColsPref()" class="rounded text-indigo-600">
-              <span class="font-bold">10Y CAGR</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
-              <input type="checkbox" x-model="cols.cagr15y" @change="saveColsPref()" class="rounded text-indigo-600">
-              <span class="font-bold">15Y CAGR</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-indigo-500">
-              <input type="checkbox" x-model="cols.cagr20y" @change="saveColsPref()" class="rounded text-indigo-600">
-              <span class="font-bold">20Y CAGR</span>
-            </label>
           </div>
-        </div>
-
-        <!-- Group 3: Valuasi, ATH & Data Pasar -->
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
-          <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="target" class="w-3.5 h-3.5"></i>
-            <span>3. Valuasi, ATH Radar & Data Pasar</span>
-          </span>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.athPrice" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">ATH Price</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.athDrawdown" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">% from ATH</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.athZone" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">Zonasi ATH</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.peValuation" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">Valuasi P/E</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.marketCap" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">Market Cap</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.volume" @change="saveColsPref()" class="rounded text-sky-600">
-              <span class="font-bold">Volume (24H)</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Group 4: Portofolio & Posisi -->
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
-          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
-            <span>4. Portofolio & Posisi Investasi</span>
-          </span>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
-              <input type="checkbox" x-model="cols.investedIdr" @change="saveColsPref()" class="rounded text-emerald-600">
-              <span class="font-bold">Modal Terinvestasi</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
-              <input type="checkbox" x-model="cols.quantity" @change="saveColsPref()" class="rounded text-emerald-600">
-              <span class="font-bold">Quantity</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
-              <input type="checkbox" x-model="cols.avgPrice" @change="saveColsPref()" class="rounded text-emerald-600">
-              <span class="font-bold">AVG Price</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
-              <input type="checkbox" x-model="cols.curVal" @change="saveColsPref()" class="rounded text-emerald-600">
-              <span class="font-bold">Nilai Berjalan</span>
-            </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
-              <input type="checkbox" x-model="cols.pnl" @change="saveColsPref()" class="rounded text-emerald-600">
-              <span class="font-bold">Floating PnL</span>
-            </label>
-          </div>
-        </div>
-
+        </template>
       </div>
 
       <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-        <button type="button" @click="resetColsDefault()" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-semibold">Reset ke Default</button>
+        <span class="text-xs text-slate-500" x-text="activeVisibleColumns().length + ' kolom aktif'"></span>
         <button type="button" @click="showColumnModal = false" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20">Selesai</button>
       </div>
 
@@ -1642,41 +1436,59 @@
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
-      // 25 total configurable columns
-      const defaultCols = {
-        signal: true,
-        perf24h: true,
-        perf5h: true,
-        perf1m: true,
-        perf6m: true,
-        perf1y: true,
-        perf5y: true,
-        perf10y: true,
-        perf15y: false,
-        perf20y: false,
-        cagr5y: false,
-        cagr10y: false,
-        cagr15y: false,
-        cagr20y: false,
-        athPrice: true,
-        athDrawdown: true,
-        athZone: true,
-        peValuation: true,
-        marketCap: false,
-        volume: false,
-        investedIdr: true,
-        quantity: true,
-        avgPrice: false,
-        curVal: true,
-        pnl: true
-      };
+      // Complete initial 25 columns list with ordering & types
+      const initialColumns = [
+        { key: 'signal', label: 'Sinyal Akumulasi (AI)', show: true, type: 'signal', group: 'ai', align: 'center' },
+        { key: 'perf24h', label: '24H', show: true, type: 'perf', field: '24h', group: 'return', align: 'center' },
+        { key: 'perf5h', label: '5H', show: true, type: 'perf', field: '5h', group: 'return', align: 'center' },
+        { key: 'perf1m', label: '1M', show: true, type: 'perf', field: '1m', group: 'return', align: 'center' },
+        { key: 'perf6m', label: '6M', show: true, type: 'perf', field: '6m', group: 'return', align: 'center' },
+        { key: 'perf1y', label: '1Y', show: true, type: 'perf', field: '1y', group: 'return', align: 'center' },
+        { key: 'perf5y', label: '5Y', show: true, type: 'perf', field: '5y', group: 'return', align: 'center' },
+        { key: 'perf10y', label: '10Y', show: true, type: 'perf', field: '10y', group: 'return', align: 'center' },
+        { key: 'perf15y', label: '15Y', show: false, type: 'perf', field: '15y', group: 'return', align: 'center' },
+        { key: 'perf20y', label: '20Y', show: false, type: 'perf', field: '20y', group: 'return', align: 'center' },
+        { key: 'cagr5y', label: '5Y CAGR', show: false, type: 'cagr', field: '5y_cagr', group: 'cagr', align: 'center' },
+        { key: 'cagr10y', label: '10Y CAGR', show: false, type: 'cagr', field: '10y_cagr', group: 'cagr', align: 'center' },
+        { key: 'cagr15y', label: '15Y CAGR', show: false, type: 'cagr', field: '15y_cagr', group: 'cagr', align: 'center' },
+        { key: 'cagr20y', label: '20Y CAGR', show: false, type: 'cagr', field: '20y_cagr', group: 'cagr', align: 'center' },
+        { key: 'athPrice', label: 'ATH Price', show: true, type: 'ath_price', group: 'ath', align: 'right' },
+        { key: 'athDrawdown', label: '% from ATH', show: true, type: 'ath_drawdown', group: 'ath', align: 'center' },
+        { key: 'athZone', label: 'Zonasi ATH', show: true, type: 'ath_zone', group: 'ath', align: 'center' },
+        { key: 'peValuation', label: 'Valuasi P/E', show: true, type: 'pe_valuation', group: 'ath', align: 'center' },
+        { key: 'marketCap', label: 'Market Cap', show: false, type: 'mcap', group: 'ath', align: 'right' },
+        { key: 'volume', label: 'Volume (24H)', show: false, type: 'volume', group: 'ath', align: 'right' },
+        { key: 'investedIdr', label: 'Modal Terinvestasi', show: true, type: 'invested', group: 'portfolio', align: 'right' },
+        { key: 'quantity', label: 'Quantity', show: true, type: 'quantity', group: 'portfolio', align: 'right' },
+        { key: 'avgPrice', label: 'AVG Price', show: false, type: 'avg_price', group: 'portfolio', align: 'right' },
+        { key: 'curVal', label: 'Nilai Berjalan', show: true, type: 'cur_val', group: 'portfolio', align: 'right' },
+        { key: 'pnl', label: 'Floating PnL', show: true, type: 'pnl', group: 'portfolio', align: 'right' }
+      ];
 
-      let savedCols = defaultCols;
+      // Restore custom column order & visibility from localStorage if available
+      let storedCols = initialColumns;
       try {
-        const stored = localStorage.getItem('radar_cols_v5');
-        if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
+        const raw = localStorage.getItem('radar_cols_ordered_v6');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // merge keys
+            const keyMap = new Map(initialColumns.map(c => [c.key, c]));
+            const restored = [];
+            parsed.forEach(p => {
+              if (keyMap.has(p.key)) {
+                const base = keyMap.get(p.key);
+                restored.push({ ...base, show: p.show !== undefined ? p.show : base.show });
+                keyMap.delete(p.key);
+              }
+            });
+            // add any new keys that were missing
+            keyMap.forEach(v => restored.push(v));
+            storedCols = restored;
+          }
+        }
       } catch (e) {
-        console.error(e);
+        console.error('Failed to load column order:', e);
       }
 
       return {
@@ -1689,8 +1501,8 @@
         activeView: 'portfolio',
         searchQuery: '',
         
-        // 25 Configurable Columns
-        cols: savedCols,
+        // 25 Ordered & Reorderable Columns
+        columns: storedCols,
         showColumnModal: false,
         
         draggedItem: null,
@@ -1731,7 +1543,7 @@
         },
 
         // =====================================================================
-        // PROTOKOL NAGA (KALKULATOR FF) STATE & CALCULATION ENGINE
+        // PROTOKOL NAGA (KALKULATOR FF) PERSISTENT ENGINE
         // =====================================================================
         ffTab: 'growth',
         ffCollapse: { whatif: false, gap: false, ms: false, tier: false },
@@ -1810,7 +1622,17 @@
             setTimeout(() => {
               this.recalcFF();
               lucide.createIcons();
-            }, 60);
+            }, 50);
+          });
+        },
+
+        setFFTab(tabName) {
+          this.ffTab = tabName;
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.recalcFF();
+              lucide.createIcons();
+            }, 40);
           });
         },
 
@@ -1860,24 +1682,24 @@
         },
 
         recalcFF() {
-          const retDec = this.ff.ret / 100.0;
-          const wrDec = this.ff.wr / 100.0;
-          const ipgDec = this.ff.ipg / 100.0;
+          const retDec = (this.ff.ret || 0) / 100.0;
+          const wrDec = (this.ff.wr || 0) / 100.0;
+          const ipgDec = (this.ff.ipg || 0) / 100.0;
           const maxYears = 100;
           
-          let p = this.ff.cur;
-          let inv = this.ff.cur;
+          let p = this.ff.cur || 0;
+          let inv = this.ff.cur || 0;
           const hit = this.ffMilestonesRaw.map(() => null);
-          const yrP = [], yrI = [], annRet = [Math.max(0, this.ff.cur * (retDec - wrDec))], annSav = [this.ff.mo * 12];
+          const yrP = [], yrI = [], annRet = [Math.max(0, p * (retDec - wrDec))], annSav = [(this.ff.mo || 0) * 12];
 
           this.ffMilestonesRaw.forEach((ms, i) => { if (p >= ms.v) hit[i] = 0; });
 
-          let pPrev = this.ff.cur;
+          let pPrev = p;
           let yrContrib = 0;
 
           for (let m = 1; m <= maxYears * 12; m++) {
             const yrIdx = Math.floor((m - 1) / 12);
-            const moNow = this.ff.mo * Math.pow(1 + ipgDec, yrIdx);
+            const moNow = (this.ff.mo || 0) * Math.pow(1 + ipgDec, yrIdx);
             p = p * (1 + retDec / 12) - p * (wrDec / 12) + moNow;
             inv += moNow;
             yrContrib += moNow;
@@ -1905,8 +1727,8 @@
           }
 
           // Passive calculations
-          this.ffPassiveGross = (this.ff.cur * retDec) / 12.0;
-          this.ffPassiveNet = Math.max(0, (this.ff.cur * (retDec - wrDec)) / 12.0);
+          this.ffPassiveGross = ((this.ff.cur || 0) * retDec) / 12.0;
+          this.ffPassiveNet = Math.max(0, ((this.ff.cur || 0) * (retDec - wrDec)) / 12.0);
 
           // Status bar text
           if (wrDec > retDec) {
@@ -2043,11 +1865,11 @@
             };
           });
 
-          // Render Chart.js
-          this.renderFFCharts(yrP, yrI, annRet, annSav, gaps, hit, crossY);
+          // Non-destructive Chart.js updates
+          this.updateFFChartsData(yrP, yrI, annRet, annSav, gaps, hit, crossY);
         },
 
-        renderFFCharts(yrP, yrI, annRet, annSav, gaps, hit, crossY) {
+        updateFFChartsData(yrP, yrI, annRet, annSav, gaps, hit, crossY) {
           const H = Math.min(this.ff.horizon, yrP.length);
           const xLbls = Array.from({ length: H }, (_, i) => 'Usia ' + (this.ff.age + i + 1));
           const dPort = yrP.slice(0, H);
@@ -2063,112 +1885,194 @@
           // 1. Growth Chart
           const ctxGrowth = document.getElementById('ffGrowthChart');
           if (ctxGrowth) {
-            if (this.ffGrowthChartInstance) {
-              this.ffGrowthChartInstance.destroy();
-              this.ffGrowthChartInstance = null;
-            }
-            this.ffGrowthChartInstance = new Chart(ctxGrowth, {
-              type: 'line',
-              data: {
-                labels: xLbls,
-                datasets: [
-                  { label: 'Portfolio', data: dPort, borderColor: '#0284c7', backgroundColor: 'rgba(14,165,233,0.15)', borderWidth: 2.5, pointRadius: 0, fill: true, tension: 0.35 },
-                  { label: 'Total Investasi', data: dInv, borderColor: '#10b981', borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, fill: false, tension: 0.35 }
-                ]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: (c) => c.dataset.label + ': ' + this.formatIDR(c.parsed.y)
-                    }
-                  }
+            if (!this.ffGrowthChartInstance) {
+              this.ffGrowthChartInstance = new Chart(ctxGrowth, {
+                type: 'line',
+                data: {
+                  labels: xLbls,
+                  datasets: [
+                    { label: 'Portfolio', data: dPort, borderColor: '#0284c7', backgroundColor: 'rgba(14,165,233,0.15)', borderWidth: 2.5, pointRadius: 0, fill: true, tension: 0.35 },
+                    { label: 'Total Investasi', data: dInv, borderColor: '#10b981', borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, fill: false, tension: 0.35 }
+                  ]
                 },
-                scales: {
-                  x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
-                  y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } }
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } }
+                  }
                 }
-              }
-            });
+              });
+            } else {
+              this.ffGrowthChartInstance.data.labels = xLbls;
+              this.ffGrowthChartInstance.data.datasets[0].data = dPort;
+              this.ffGrowthChartInstance.data.datasets[1].data = dInv;
+              this.ffGrowthChartInstance.options.scales.x.ticks.color = textColor;
+              this.ffGrowthChartInstance.options.scales.y.ticks.color = textColor;
+              this.ffGrowthChartInstance.options.scales.y.grid.color = gridColor;
+              this.ffGrowthChartInstance.update('none');
+            }
           }
 
           // 2. Hustle Chart
           const ctxHustle = document.getElementById('ffHustleChart');
           if (ctxHustle) {
-            if (this.ffHustleChartInstance) {
-              this.ffHustleChartInstance.destroy();
-              this.ffHustleChartInstance = null;
-            }
-            this.ffHustleChartInstance = new Chart(ctxHustle, {
-              type: 'bar',
-              data: {
-                labels: xLbls,
-                datasets: [
-                  { label: 'Investasimu', type: 'bar', data: dInvPortion, backgroundColor: 'rgba(99,102,241,0.7)', stack: 's', yAxisID: 'y' },
-                  { label: 'Kerja Uangmu', type: 'bar', data: dCompReturn, backgroundColor: 'rgba(16,185,129,0.8)', stack: 's', yAxisID: 'y' },
-                  { label: 'Return/thn', type: 'line', data: dAnnRet, borderColor: '#0ea5e9', borderWidth: 2, pointRadius: 0, yAxisID: 'y2' },
-                  { label: 'Tabungan/thn', type: 'line', data: dAnnSav, borderColor: '#f97316', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, yAxisID: 'y2' }
-                ]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: (c) => c.dataset.label + ': ' + this.formatIDR(c.parsed.y)
-                    }
-                  }
+            if (!this.ffHustleChartInstance) {
+              this.ffHustleChartInstance = new Chart(ctxHustle, {
+                type: 'bar',
+                data: {
+                  labels: xLbls,
+                  datasets: [
+                    { label: 'Investasimu', type: 'bar', data: dInvPortion, backgroundColor: 'rgba(99,102,241,0.7)', stack: 's', yAxisID: 'y' },
+                    { label: 'Kerja Uangmu', type: 'bar', data: dCompReturn, backgroundColor: 'rgba(16,185,129,0.8)', stack: 's', yAxisID: 'y' },
+                    { label: 'Return/thn', type: 'line', data: dAnnRet, borderColor: '#0ea5e9', borderWidth: 2, pointRadius: 0, yAxisID: 'y2' },
+                    { label: 'Tabungan/thn', type: 'line', data: dAnnSav, borderColor: '#f97316', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, yAxisID: 'y2' }
+                  ]
                 },
-                scales: {
-                  x: { stacked: true, ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
-                  y: { stacked: true, position: 'left', ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } },
-                  y2: { position: 'right', ticks: { color: '#0ea5e9', font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { display: false } }
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { stacked: true, ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                    y: { stacked: true, position: 'left', ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } },
+                    y2: { position: 'right', ticks: { color: '#0ea5e9', font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { display: false } }
+                  }
                 }
-              }
-            });
+              });
+            } else {
+              this.ffHustleChartInstance.data.labels = xLbls;
+              this.ffHustleChartInstance.data.datasets[0].data = dInvPortion;
+              this.ffHustleChartInstance.data.datasets[1].data = dCompReturn;
+              this.ffHustleChartInstance.data.datasets[2].data = dAnnRet;
+              this.ffHustleChartInstance.data.datasets[3].data = dAnnSav;
+              this.ffHustleChartInstance.options.scales.x.ticks.color = textColor;
+              this.ffHustleChartInstance.options.scales.y.ticks.color = textColor;
+              this.ffHustleChartInstance.options.scales.y.grid.color = gridColor;
+              this.ffHustleChartInstance.update('none');
+            }
           }
 
           // 3. Gap Chart
           const ctxGap = document.getElementById('ffGapChart');
           if (ctxGap) {
-            if (this.ffGapChartInstance) {
-              this.ffGapChartInstance.destroy();
-              this.ffGapChartInstance = null;
-            }
             const gLbls = this.ffMilestonesRaw.map(m => m.l.replace('Rp ', '').replace(' miliar', 'M').replace(' juta', 'jt'));
             const gData = gaps.map((g, i) => hit[i] === 0 ? 0 : (g === null ? 50 : +g.toFixed(1)));
             const gColors = gaps.map((g, i) => hit[i] === 0 ? '#10b981' : (g === null ? '#3D0A0A' : (g > 10 ? '#ef4444' : (g > 5 ? '#f97316' : (g > 2 ? '#f59e0b' : '#38bdf8')))));
-            
-            this.ffGapChartInstance = new Chart(ctxGap, {
-              type: 'bar',
-              data: {
-                labels: gLbls,
-                datasets: [{ data: gData, backgroundColor: gColors, borderRadius: 4 }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 55 }, grid: { display: false } },
-                  y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => v + ' thn' }, grid: { color: gridColor } }
+
+            if (!this.ffGapChartInstance) {
+              this.ffGapChartInstance = new Chart(ctxGap, {
+                type: 'bar',
+                data: {
+                  labels: gLbls,
+                  datasets: [{ data: gData, backgroundColor: gColors, borderRadius: 4 }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 55 }, grid: { display: false } },
+                    y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => v + ' thn' }, grid: { color: gridColor } }
+                  }
                 }
-              }
-            });
+              });
+            } else {
+              this.ffGapChartInstance.data.labels = gLbls;
+              this.ffGapChartInstance.data.datasets[0].data = gData;
+              this.ffGapChartInstance.data.datasets[0].backgroundColor = gColors;
+              this.ffGapChartInstance.options.scales.x.ticks.color = textColor;
+              this.ffGapChartInstance.options.scales.y.ticks.color = textColor;
+              this.ffGapChartInstance.options.scales.y.grid.color = gridColor;
+              this.ffGapChartInstance.update('none');
+            }
           }
         },
 
-        refreshFFCharts() {
-          this.$nextTick(() => {
-            if (this.ffGrowthChartInstance) this.ffGrowthChartInstance.resize();
-            if (this.ffHustleChartInstance) this.ffHustleChartInstance.resize();
-            if (this.ffGapChartInstance) this.ffGapChartInstance.resize();
-          });
+        // =====================================================================
+        // CATEGORY REORDERING (MOVE UP / DOWN)
+        // =====================================================================
+        async moveCategory(catId, direction) {
+          const idx = this.data.categories.findIndex(c => c.id === catId);
+          if (idx === -1) return;
+          const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+          if (targetIdx < 0 || targetIdx >= this.data.categories.length) return;
+
+          const movedCat = this.data.categories[idx];
+          this.data.categories.splice(idx, 1);
+          this.data.categories.splice(targetIdx, 0, movedCat);
+
+          const payload = {
+            categories: this.data.categories.map((c, i) => ({ id: c.id, sort_order: i + 1 }))
+          };
+
+          try {
+            const res = await fetch('/api/categories/reorder', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.portfolio;
+              this.showToast('Urutan kategori diperbarui!');
+              this.$nextTick(() => lucide.createIcons());
+            }
+          } catch (e) {
+            console.error('Category reorder error:', e);
+          }
+        },
+
+        // =====================================================================
+        // COLUMN REORDERING & VISIBILITY (MOVE LEFT / RIGHT)
+        // =====================================================================
+        activeVisibleColumns() {
+          return this.columns.filter(c => c.show);
+        },
+
+        getColHeaderClass(col) {
+          if (col.align === 'right') return 'text-right';
+          if (col.align === 'left') return 'text-left';
+          return 'text-center';
+        },
+
+        moveColumn(colIdx, direction) {
+          const targetIdx = direction === 'left' ? colIdx - 1 : colIdx + 1;
+          if (targetIdx < 0 || targetIdx >= this.columns.length) return;
+
+          const moved = this.columns[colIdx];
+          this.columns.splice(colIdx, 1);
+          this.columns.splice(targetIdx, 0, moved);
+          this.saveColsPref();
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        saveColsPref() {
+          try {
+            localStorage.setItem('radar_cols_ordered_v6', JSON.stringify(this.columns));
+          } catch (e) {}
+        },
+
+        resetColsOrderDefault() {
+          this.columns = initialColumns;
+          this.saveColsPref();
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        setColsPreset(type) {
+          if (type === 'all') {
+            this.columns.forEach(c => c.show = true);
+          } else if (type === 'default') {
+            const activeKeys = ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'];
+            this.columns.forEach(c => c.show = activeKeys.includes(c.key));
+          } else if (type === 'cagr') {
+            const activeKeys = ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'];
+            this.columns.forEach(c => c.show = activeKeys.includes(c.key));
+          }
+          this.saveColsPref();
+          this.$nextTick(() => lucide.createIcons());
         },
 
         // =====================================================================
@@ -2233,47 +2137,7 @@
         },
 
         // =====================================================================
-        // COLUMN VISIBILITY PRESETS
-        // =====================================================================
-        toggleCol(colKey) {
-          if (this.cols[colKey] !== undefined) {
-            this.cols[colKey] = !this.cols[colKey];
-            this.saveColsPref();
-          }
-        },
-
-        saveColsPref() {
-          try {
-            localStorage.setItem('radar_cols_v5', JSON.stringify(this.cols));
-          } catch (e) {}
-        },
-
-        resetColsDefault() {
-          this.setColsPreset('default');
-        },
-
-        setColsPreset(type) {
-          if (type === 'all') {
-            Object.keys(this.cols).forEach(k => this.cols[k] = true);
-          } else if (type === 'default') {
-            Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
-          } else if (type === 'cagr') {
-            Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
-          } else if (type === 'compact') {
-            Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['signal', 'perf24h', 'perf1y', 'athZone', 'investedIdr', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
-          }
-          this.saveColsPref();
-        },
-
-        activeColumnCount() {
-          return Object.values(this.cols).filter(Boolean).length;
-        },
-
-        // =====================================================================
-        // ASSET DRAG & DROP AND CATEGORY REORDERING
+        // ASSET DRAG & DROP
         // =====================================================================
         onAssetDragStart(e, item, category) {
           this.draggedItem = item;

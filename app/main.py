@@ -21,6 +21,7 @@ from .database import (
     get_user_categories,
     upsert_category,
     delete_category,
+    reorder_categories,
     DEFAULT_PORTFOLIO_CONFIG
 )
 from .finance_engine import (
@@ -150,6 +151,19 @@ async def api_upsert_category(payload: CategoryPayload, user_id: str = "default_
 @app.delete("/api/categories/{category_id}")
 async def api_delete_category(category_id: str, user_id: str = "default_user"):
     delete_category(user_id, category_id)
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    categories = get_user_categories(user_id)
+    return JSONResponse(content={"status": "success", "portfolio": portfolio, "categories": categories})
+
+
+class ReorderCategoriesPayload(BaseModel):
+    categories: List[Dict[str, Any]]
+
+
+@app.post("/api/categories/reorder")
+async def api_reorder_categories(payload: ReorderCategoriesPayload, user_id: str = "default_user"):
+    reorder_categories(user_id, payload.categories)
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
     categories = get_user_categories(user_id)
