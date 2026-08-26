@@ -288,7 +288,7 @@
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 transition active:scale-95">
             <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
             <span>⚙️ Pengaturan Kolom</span>
-            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]" x-text="activeColumnCount() + '/21'"></span>
+            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]" x-text="activeColumnCount() + '/24'"></span>
           </button>
 
           <!-- Quick Toggle Pills for Performance & Portfolio -->
@@ -299,6 +299,8 @@
                     :class="cols.perf5h ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">5H</button>
             <button @click="toggleCol('perf1m')" class="px-2 py-0.5 rounded-lg border transition"
                     :class="cols.perf1m ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">1M</button>
+            <button @click="toggleCol('perf6m')" class="px-2 py-0.5 rounded-lg border transition"
+                    :class="cols.perf6m ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">6M</button>
             <button @click="toggleCol('perf1y')" class="px-2 py-0.5 rounded-lg border transition"
                     :class="cols.perf1y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">1Y</button>
             <button @click="toggleCol('perf5y')" class="px-2 py-0.5 rounded-lg border transition"
@@ -378,10 +380,11 @@
                     <th class="py-3 px-3">Ticker</th>
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
                     
-                    <!-- 21 Fully Customizable Columns -->
+                    <!-- 24 Fully Customizable Columns -->
                     <th class="py-3 px-3 text-center" x-show="cols.perf24h">24H</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf5h">5H</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf1m">1M</th>
+                    <th class="py-3 px-3 text-center" x-show="cols.perf6m">6M</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf1y">1Y</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf5y">5Y</th>
                     <th class="py-3 px-3 text-center" x-show="cols.perf10y">10Y</th>
@@ -398,6 +401,10 @@
                     <th class="py-3 px-3 text-center" x-show="cols.athDrawdown">% from ATH</th>
                     <th class="py-3 px-3 text-center" x-show="cols.athZone">Zonasi ATH</th>
                     <th class="py-3 px-3 text-center" x-show="cols.peValuation">Valuasi P/E</th>
+                    
+                    <!-- Market Cap & Volume (Toggleable) -->
+                    <th class="py-3 px-3 text-right" x-show="cols.marketCap">Market Cap</th>
+                    <th class="py-3 px-3 text-right" x-show="cols.volume">Volume (24H)</th>
                     
                     <th class="py-3 px-3 text-right" x-show="cols.investedIdr">Modal Terinvestasi</th>
                     <th class="py-3 px-3 text-right" x-show="cols.quantity">Quantity</th>
@@ -458,6 +465,11 @@
                       <td class="py-3 px-3 text-center font-medium" x-show="cols.perf1m"
                           :class="item.perf?.['1m'] > 0 ? 'text-emerald-500' : (item.perf?.['1m'] < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="item.perf?.['1m'] !== null && item.perf?.['1m'] !== undefined ? ((item.perf?.['1m'] > 0 ? '+' : '') + item.perf?.['1m'] + '%') : 'N/A'"></td>
+
+                      <!-- 6M % (Displayed by default) -->
+                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf6m"
+                          :class="item.perf?.['6m'] > 0 ? 'text-emerald-500' : (item.perf?.['6m'] < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="item.perf?.['6m'] !== null && item.perf?.['6m'] !== undefined ? ((item.perf?.['6m'] > 0 ? '+' : '') + item.perf?.['6m'] + '%') : 'N/A'"></td>
 
                       <!-- 1Y % -->
                       <td class="py-3 px-3 text-center font-medium" x-show="cols.perf1y"
@@ -526,6 +538,14 @@
                           <span class="text-slate-400 text-xs">N/A</span>
                         </template>
                       </td>
+
+                      <!-- Market Cap (Toggleable, Hidden by Default) -->
+                      <td class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300" x-show="cols.marketCap"
+                          x-text="item.market_cap_formatted || 'N/A'"></td>
+
+                      <!-- Volume 24H (Toggleable, Hidden by Default) -->
+                      <td class="py-3 px-3 text-right font-medium text-slate-600 dark:text-slate-400" x-show="cols.volume"
+                          x-text="item.volume_formatted || 'N/A'"></td>
 
                       <!-- Modal Terinvestasi -->
                       <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold" x-show="cols.investedIdr"
@@ -842,7 +862,7 @@
             <span>Pengaturan Kolom Tabel</span>
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 21 kolom aktif'"></span>).
+            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 24 kolom aktif'"></span>).
           </p>
         </div>
         <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -854,13 +874,13 @@
       <div class="flex flex-wrap items-center gap-2 text-xs">
         <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
         <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Semua Kolom (21)
+          Semua Kolom (24)
         </button>
         <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
-          Standar Rekomendasi (14)
+          Standar Rekomendasi (15)
         </button>
         <button @click="setColsPreset('cagr')" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/30 transition">
-          Dengan CAGR (18)
+          Dengan CAGR (19)
         </button>
         <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
           Ringkas Minimal (6)
@@ -938,11 +958,11 @@
           </div>
         </div>
 
-        <!-- Group 3: Valuasi & ATH -->
+        <!-- Group 3: Valuasi, ATH & Data Pasar -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="target" class="w-3.5 h-3.5"></i>
-            <span>3. Valuasi & ATH Radar</span>
+            <span>3. Valuasi, ATH Radar & Data Pasar</span>
           </span>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
@@ -960,6 +980,14 @@
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
               <input type="checkbox" x-model="cols.peValuation" @change="saveColsPref()" class="rounded text-sky-600">
               <span class="font-bold">Valuasi P/E</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.marketCap" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Market Cap</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.volume" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">Volume (24H)</span>
             </label>
           </div>
         </div>
@@ -1121,11 +1149,12 @@
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
-      // Load saved column preferences or default (21 total columns)
+      // Load saved column preferences or default (24 total columns)
       const defaultCols = {
         perf24h: true,
         perf5h: true,
         perf1m: true,
+        perf6m: true, // TAMPIL SECARA DEFAULT
         perf1y: true,
         perf5y: true,
         perf10y: true,
@@ -1139,6 +1168,8 @@
         athDrawdown: true,
         athZone: true,
         peValuation: true,
+        marketCap: false, // TIDAK PERLU DITAMPILKAN SECARA DEFAULT
+        volume: false,    // TIDAK PERLU DITAMPILKAN SECARA DEFAULT
         investedIdr: true,
         quantity: true,
         avgPrice: false,
@@ -1148,7 +1179,7 @@
 
       let savedCols = defaultCols;
       try {
-        const stored = localStorage.getItem('radar_cols_v2');
+        const stored = localStorage.getItem('radar_cols_v3');
         if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
       } catch (e) {
         console.error(e);
@@ -1164,7 +1195,7 @@
         activeView: 'portfolio',
         searchQuery: '',
         
-        // 21 Fully Configurable Columns
+        // 24 Fully Configurable Columns
         cols: savedCols,
         showColumnModal: false,
         
@@ -1220,7 +1251,7 @@
 
         saveColsPref() {
           try {
-            localStorage.setItem('radar_cols_v2', JSON.stringify(this.cols));
+            localStorage.setItem('radar_cols_v3', JSON.stringify(this.cols));
           } catch (e) {
             console.error(e);
           }
@@ -1236,26 +1267,29 @@
             Object.keys(this.cols).forEach(k => this.cols[k] = true);
           } else if (preset === 'default') {
             this.cols = {
-              perf24h: true, perf5h: true, perf1m: true, perf1y: true, perf5y: true, perf10y: true,
+              perf24h: true, perf5h: true, perf1m: true, perf6m: true, perf1y: true, perf5y: true, perf10y: true,
               perf15y: false, perf20y: false,
               cagr5y: false, cagr10y: false, cagr15y: false, cagr20y: false,
               athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
+              marketCap: false, volume: false,
               investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
             };
           } else if (preset === 'cagr') {
             this.cols = {
-              perf24h: true, perf5h: true, perf1m: true, perf1y: true, perf5y: true, perf10y: true,
+              perf24h: true, perf5h: true, perf1m: true, perf6m: true, perf1y: true, perf5y: true, perf10y: true,
               perf15y: false, perf20y: false,
               cagr5y: true, cagr10y: true, cagr15y: true, cagr20y: true,
               athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
+              marketCap: false, volume: false,
               investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
             };
           } else if (preset === 'compact') {
             this.cols = {
-              perf24h: true, perf5h: true, perf1m: false, perf1y: true, perf5y: false, perf10y: false,
+              perf24h: true, perf5h: true, perf1m: false, perf6m: false, perf1y: true, perf5y: false, perf10y: false,
               perf15y: false, perf20y: false,
               cagr5y: false, cagr10y: false, cagr15y: false, cagr20y: false,
               athPrice: false, athDrawdown: false, athZone: false, peValuation: false,
+              marketCap: false, volume: false,
               investedIdr: false, quantity: false, avgPrice: false, curVal: true, pnl: true
             };
           }

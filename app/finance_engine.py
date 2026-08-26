@@ -160,6 +160,77 @@ FALLBACK_PE_RATIOS = {
     "VRT": 59.28
 }
 
+SHARES_OUTSTANDING = {
+    "NVDA": 24.5e9,
+    "AAPL": 15.2e9,
+    "MSFT": 7.44e9,
+    "AMZN": 10.5e9,
+    "GOOGL": 12.3e9,
+    "META": 2.54e9,
+    "BRK-B": 2.18e9,
+    "TSM": 5.18e9,
+    "AVGO": 4.70e9,
+    "COST": 4.43e8,
+    "JPM": 2.84e9,
+    "V": 1.99e9,
+    "ASML": 3.91e8,
+    "LLY": 9.48e8,
+    "KLAC": 1.34e8,
+    "AMAT": 8.16e8,
+    "LRCX": 1.29e8,
+    "ETN": 3.96e8,
+    "RTX": 1.33e9,
+    "SNPS": 1.54e8,
+    "CEG": 3.14e8,
+    "PWR": 1.51e8,
+    "CCJ": 4.36e8,
+    "VRT": 3.78e8,
+    "MSTR": 2.45e8,
+    "BBCA.JK": 123.28e9,
+    "BBRI.JK": 151.56e9,
+    "BMRI.JK": 93.33e9,
+    "UNTR.JK": 3.73e9,
+    "BREN.JK": 133.79e9,
+    "BTC-USD": 19.8e6,
+    "ETH-USD": 120.4e6,
+    "VOO": 8.2e8,
+    "QQQ": 4.4e8,
+    "SMH": 5.2e7
+}
+
+
+def format_mcap_str(val: Optional[float], curr: str = "USD") -> str:
+    """Format market cap into concise human-readable representation."""
+    if not val or val <= 0:
+        return "N/A"
+    if curr == "IDR":
+        if val >= 1e12:
+            return f"Rp {val/1e12:.1f}T"
+        elif val >= 1e9:
+            return f"Rp {val/1e9:.1f}M"
+        return f"Rp {val:,.0f}"
+    else:
+        if val >= 1e12:
+            return f"${val/1e12:.2f}T"
+        elif val >= 1e9:
+            return f"${val/1e9:.1f}B"
+        elif val >= 1e6:
+            return f"${val/1e6:.1f}M"
+        return f"${val:,.0f}"
+
+
+def format_volume_str(val: Optional[int]) -> str:
+    """Format trading volume into concise human-readable representation."""
+    if not val or val <= 0:
+        return "N/A"
+    if val >= 1e9:
+        return f"{val/1e9:.2f}B"
+    elif val >= 1e6:
+        return f"{val/1e6:.2f}M"
+    elif val >= 1e3:
+        return f"{val/1e3:.1f}K"
+    return f"{val:,}"
+
 
 def fetch_direct_yahoo_chart(ticker: str, range_str: str = "10y", interval: str = "1d") -> Optional[Dict[str, Any]]:
     """Directly fetch chart data from Yahoo Finance API with robust browser headers."""
@@ -399,6 +470,22 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             result["perf"]["15y_cagr"] = get_cagr_pct(15.0)
             result["perf"]["20y_cagr"] = get_cagr_pct(20.0)
 
+            # Volume
+            vol = meta.get("regularMarketVolume")
+            if not vol and chart_daily:
+                vol_list = chart_daily.get("indicators", {}).get("quote", [{}])[0].get("volume", [])
+                valid_vols = [v for v in vol_list if v is not None and not math.isnan(v) and v > 0]
+                if valid_vols:
+                    vol = valid_vols[-1]
+            result["volume"] = int(vol) if vol else 0
+
+            # Market Cap
+            shares = SHARES_OUTSTANDING.get(ticker_symbol)
+            if shares:
+                result["market_cap"] = round(cur_price * shares, 2)
+            else:
+                result["market_cap"] = meta.get("marketCap", None)
+
     except Exception as e:
         logger.debug(f"Fetch error for {ticker_symbol}: {e}")
 
@@ -409,6 +496,10 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         result["ath"] = round(result["price"] * 1.1, 2)
     if result["pe"] is None:
         result["pe"] = FALLBACK_PE_RATIOS.get(ticker_symbol, None)
+    if result.get("market_cap") is None:
+        shares = SHARES_OUTSTANDING.get(ticker_symbol)
+        if shares:
+            result["market_cap"] = round(result["price"] * shares, 2)
 
     MARKET_CACHE[ticker_symbol] = result
     return result
@@ -430,7 +521,9 @@ def fetch_all_tickers_parallel(tickers: List[str]) -> Dict[str, Dict[str, Any]]:
                     "price": FALLBACK_PRICES.get(t, 100.0),
                     "ath": FALLBACK_PRICES.get(t, 100.0) * 1.1,
                     "pe": FALLBACK_PE_RATIOS.get(t, None),
-                    "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None, "15y": None, "20y": None}
+                    "volume": 0,
+                    "market_cap": None,
+                    "perf": {"24h": 0.0, "5h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None, "15y": None, "20y": None}
                 }
     return results
 
@@ -547,7 +640,9 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
                 "price": FALLBACK_PRICES.get(ticker, 100.0),
                 "ath": FALLBACK_PRICES.get(ticker, 100.0) * 1.1,
                 "pe": None,
-                "perf": {"24h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None, "15y": None, "20y": None}
+                "volume": 0,
+                "market_cap": None,
+                "perf": {"24h": 0.0, "5h": 0.0, "1w": 0.0, "1m": 0.0, "6m": 0.0, "1y": 0.0, "5y": None, "10y": None, "15y": None, "20y": None}
             })
             
             current_price = mkt["price"]
@@ -604,6 +699,10 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
                 "pe": pe,
                 "pe_status": disloc["pe_status"],
                 "pe_color": disloc["pe_color"],
+                "market_cap": mkt.get("market_cap"),
+                "market_cap_formatted": format_mcap_str(mkt.get("market_cap"), currency),
+                "volume": mkt.get("volume", 0),
+                "volume_formatted": format_volume_str(mkt.get("volume", 0)),
                 "cur_val_idr": cur_val_idr,
                 "cur_val_usd": cur_val_usd,
                 "invested_usd": invested_usd,
