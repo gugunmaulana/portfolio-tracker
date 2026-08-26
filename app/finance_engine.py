@@ -506,6 +506,12 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         if shares:
             result["market_cap"] = round(result["price"] * shares, 2)
 
+    prof = detect_volatility_profile(ticker_symbol)
+    result["volatility_profile"] = prof["profile"]
+    result["volatility_label"] = prof["label"]
+    result["volatility_bg"] = prof["badge_bg"]
+    result["smart_pe_thresholds"] = prof["default_pe"]
+
     MARKET_CACHE[ticker_symbol] = result
     return result
 
@@ -533,57 +539,181 @@ def fetch_all_tickers_parallel(tickers: List[str]) -> Dict[str, Dict[str, Any]]:
     return results
 
 
+def detect_volatility_profile(ticker: str) -> Dict[str, Any]:
+    """Classify asset into Stabil, Moderat Growth, or Volatil Kripto and return adaptive thresholds & PE bounds."""
+    t_upper = (ticker or "").upper()
+
+    # 1. Crypto & Ultra-High Beta
+    if "-USD" in t_upper or "BTC" in t_upper or "ETH" in t_upper or "SOL" in t_upper or t_upper in ["MSTR", "BREN.JK"]:
+        return {
+            "profile": "VOLATIL_CRYPTO",
+            "label": "⚡ Volatil Kripto",
+            "badge_bg": "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30",
+            "thresholds": {
+                "z1": -25.0,
+                "z2": -45.0,
+                "z3": -65.0
+            },
+            "default_pe": None
+        }
+
+    # 2. Stable Broad Indices, Mega-cap Defensives, Commodities, Indo Big Banks
+    if t_upper in ["VOO", "SPY", "IVV", "BRK-B", "COST", "JPM", "V", "PG", "GC=F"] or (t_upper.endswith(".JK") and any(t_upper.startswith(p) for p in ["BBCA", "BMRI", "UNTR", "TLKM"])):
+        if ".JK" in t_upper and ("BBCA" in t_upper or "BMRI" in t_upper):
+            pe_bounds = {"great": 13.0, "good": 18.0, "expensive": 23.0}
+        elif ".JK" in t_upper and "UNTR" in t_upper:
+            pe_bounds = {"great": 5.0, "good": 8.0, "expensive": 12.0}
+        elif t_upper == "GC=F":
+            pe_bounds = None
+        else: # VOO, BRK-B, COST, JPM, V
+            pe_bounds = {"great": 19.0, "good": 24.0, "expensive": 30.0}
+
+        return {
+            "profile": "STABIL",
+            "label": "🛡️ Stabil",
+            "badge_bg": "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30",
+            "thresholds": {
+                "z1": -8.0,
+                "z2": -15.0,
+                "z3": -25.0
+            },
+            "default_pe": pe_bounds
+        }
+
+    # 3. Moderate / High-Growth Tech & Semiconductor Stocks
+    if any(k in t_upper for k in ["SMH", "NVDA", "TSM", "AVGO", "ASML", "KLAC", "AMAT", "LRCX", "VRT", "SNPS", "CEG", "PWR", "CCJ"]):
+        pe_bounds = {"great": 28.0, "good": 38.0, "expensive": 50.0}
+    elif any(k in t_upper for k in ["QQQ", "AAPL", "MSFT", "GOOGL", "META", "AMZN", "ETN", "RTX"]):
+        pe_bounds = {"great": 24.0, "good": 32.0, "expensive": 42.0}
+    else:
+        pe_bounds = {"great": 20.0, "good": 28.0, "expensive": 38.0}
+
+    return {
+        "profile": "MODERAT_GROWTH",
+        "label": "🚀 Growth",
+        "badge_bg": "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30",
+        "thresholds": {
+            "z1": -15.0,
+            "z2": -25.0,
+            "z3": -35.0
+        },
+        "default_pe": pe_bounds
+    }
+
+
 def calculate_dislocation_and_valuation(
     price: float,
     ath: float,
     pe: Optional[float],
     pe_great: Optional[float],
     pe_good: Optional[float],
-    pe_exp: Optional[float]
+    pe_exp: Optional[float],
+    ticker: str = ""
 ) -> Dict[str, Any]:
-    """Calculate ATH drawdown, Z1-Z4 Dislocation Zone, and PE Valuation rating tailored per asset."""
+    """Calculate ATH drawdown, adaptive Z1-Z4 Dislocation Zone, smart PE Valuation rating, and AI Dip Buying Signal."""
+    prof = detect_volatility_profile(ticker)
+    th = prof["thresholds"]
+
     if ath > 0:
         drawdown = ((price - ath) / ath) * 100.0
     else:
         drawdown = 0.0
     drawdown = round(drawdown, 2)
 
-    if drawdown >= -15.0:
+    # 1. Adaptive Drawdown Dislocation Z1-Z4
+    if drawdown >= th["z1"]:
         status_code = "Z1"
-        status_label = "Z1: Hold"
+        status_label = "Z1: Hold (Normal)"
         status_color = "slate"
-        status_bg = "bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 font-semibold"
-    elif drawdown >= -25.0:
+        status_bg = "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-semibold"
+    elif drawdown >= th["z2"]:
         status_code = "Z2"
         status_label = "Z2: Watch/Scout"
         status_color = "yellow"
-        status_bg = "bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40 font-semibold"
-    elif drawdown >= -40.0:
+        status_bg = "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-semibold"
+    elif drawdown >= th["z3"]:
         status_code = "Z3"
         status_label = "Z3: High Dislocation"
         status_color = "green"
-        status_bg = "bg-emerald-50 text-emerald-900 border-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 font-bold"
+        status_bg = "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 font-bold"
     else:
         status_code = "Z4"
         status_label = "Z4: Extreme Stress"
         status_color = "teal"
-        status_bg = "bg-cyan-50 text-cyan-900 border-cyan-400 dark:bg-cyan-500/25 dark:text-cyan-300 dark:border-cyan-400 font-extrabold"
+        status_bg = "bg-cyan-500/25 text-cyan-800 dark:text-cyan-300 border border-cyan-500/40 font-extrabold"
 
+    # 2. Sectoral Smart PE Valuation
+    def_pe = prof["default_pe"] or {}
+    g_great = pe_great if (pe_great is not None and pe_great > 0) else def_pe.get("great")
+    g_good = pe_good if (pe_good is not None and pe_good > 0) else def_pe.get("good")
+    g_exp = pe_exp if (pe_exp is not None and pe_exp > 0) else def_pe.get("expensive")
+
+    pe_state = "NA" # 'GREAT', 'GOOD', 'FAIR', 'EXPENSIVE', 'NA'
     pe_status = "N/A"
     pe_color = "text-slate-400 dark:text-slate-500 font-normal"
+
     if pe is not None and pe > 0:
-        if pe_great is not None and pe <= pe_great:
+        if g_great is not None and pe <= g_great:
+            pe_state = "GREAT"
             pe_status = "Diskon / Murah"
             pe_color = "text-emerald-700 bg-emerald-50 border-emerald-300 dark:text-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-600/50 font-bold px-2 py-0.5 rounded border"
-        elif pe_good is not None and pe <= pe_good:
+        elif g_good is not None and pe <= g_good:
+            pe_state = "GOOD"
             pe_status = "Harga Wajar"
             pe_color = "text-blue-700 bg-blue-50 border-blue-300 dark:text-blue-300 dark:bg-blue-950/40 dark:border-blue-600/50 font-semibold px-2 py-0.5 rounded border"
-        elif pe_exp is not None and pe >= pe_exp:
+        elif g_exp is not None and pe >= g_exp:
+            pe_state = "EXPENSIVE"
             pe_status = "Mahal / Overvalued"
             pe_color = "text-rose-700 bg-rose-50 border-rose-300 dark:text-rose-300 dark:bg-rose-950/40 dark:border-rose-600/50 font-bold px-2 py-0.5 rounded border"
         else:
-            pe_status = "Fair"
+            pe_state = "FAIR"
+            pe_status = "Wajar"
             pe_color = "text-slate-700 bg-slate-100 border-slate-300 dark:text-slate-300 dark:bg-slate-800 dark:border-slate-700 font-medium px-2 py-0.5 rounded border"
+
+    # 3. Composite Smart Dip-Buying Signal
+    if status_code in ["Z3", "Z4"]:
+        if pe_state in ["GREAT", "GOOD"] or pe_state == "NA":
+            signal_code = "PRIME_BUY"
+            signal_label = "🟢 Prime Buy"
+            signal_bg = "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 font-bold shadow-sm"
+            signal_desc = "Diskon ATH dalam & Valuasi Murah/Wajar (Double Discount)"
+        elif pe_state == "EXPENSIVE":
+            signal_code = "ACCUMULATE"
+            signal_label = "🟡 Cicil DCA"
+            signal_bg = "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 font-semibold"
+            signal_desc = "Diskon harga bagus tapi P/E masih agak premium"
+        else:
+            signal_code = "PRIME_BUY"
+            signal_label = "🟢 Prime Buy"
+            signal_bg = "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 font-bold"
+            signal_desc = "Penurunan tajam dari ATH (Peluang Akumulasi Besar)"
+    elif status_code == "Z2":
+        if pe_state == "EXPENSIVE":
+            signal_code = "HOLD"
+            signal_label = "⚪ Hold"
+            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-medium"
+            signal_desc = "Koreksi wajar namun valuasi masih tinggi"
+        else:
+            signal_code = "ACCUMULATE"
+            signal_label = "🟡 Cicil DCA"
+            signal_bg = "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-semibold"
+            signal_desc = "Pullback sehat & valuasi bersahabat"
+    else:  # Z1 (Near ATH)
+        if pe_state == "EXPENSIVE":
+            signal_code = "WAIT"
+            signal_label = "🔴 Wait / Mahal"
+            signal_bg = "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-semibold"
+            signal_desc = "Harga di puncak ATH dan P/E overvalued"
+        elif pe_state == "GREAT":
+            signal_code = "ACCUMULATE"
+            signal_label = "🟡 Cicil DCA"
+            signal_bg = "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 font-semibold"
+            signal_desc = "Meskipun dekat ATH, pertumbuhan laba membuat P/E murah"
+        else:
+            signal_code = "HOLD"
+            signal_label = "⚪ Hold"
+            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-medium"
+            signal_desc = "Harga stabil di zona normal"
 
     return {
         "drawdown": drawdown,
@@ -592,7 +722,20 @@ def calculate_dislocation_and_valuation(
         "status_color": status_color,
         "status_bg": status_bg,
         "pe_status": pe_status,
-        "pe_color": pe_color
+        "pe_color": pe_color,
+        "pe_state": pe_state,
+        "volatility_profile": prof["profile"],
+        "volatility_label": prof["label"],
+        "volatility_bg": prof["badge_bg"],
+        "smart_pe_thresholds": {
+            "great": g_great,
+            "good": g_good,
+            "expensive": g_exp
+        },
+        "signal_code": signal_code,
+        "signal_label": signal_label,
+        "signal_bg": signal_bg,
+        "signal_desc": signal_desc
     }
 
 
@@ -661,7 +804,8 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
                 pe=pe,
                 pe_great=item.get("pe_great"),
                 pe_good=item.get("pe_good"),
-                pe_exp=item.get("pe_exp")
+                pe_exp=item.get("pe_exp"),
+                ticker=ticker
             )
             
             units = quantity * 100.0 if is_lot else quantity
@@ -696,14 +840,27 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
                 "logo_url": logo_url,
                 "current_price": current_price,
                 "ath": ath,
+                "ath_price": ath,
                 "drawdown": disloc["drawdown"],
+                "ath_drawdown_pct": disloc["drawdown"],
                 "status_code": disloc["status_code"],
                 "status_label": disloc["status_label"],
                 "status_color": disloc["status_color"],
                 "status_bg": disloc["status_bg"],
+                "ath_zone": disloc["status_label"],
+                "volatility_profile": disloc["volatility_profile"],
+                "volatility_label": disloc["volatility_label"],
+                "volatility_bg": disloc["volatility_bg"],
                 "pe": pe,
+                "pe_ratio": pe,
                 "pe_status": disloc["pe_status"],
                 "pe_color": disloc["pe_color"],
+                "pe_state": disloc["pe_state"],
+                "smart_pe_thresholds": disloc["smart_pe_thresholds"],
+                "signal_code": disloc["signal_code"],
+                "signal_label": disloc["signal_label"],
+                "signal_bg": disloc["signal_bg"],
+                "signal_desc": disloc["signal_desc"],
                 "market_cap": mkt.get("market_cap"),
                 "market_cap_formatted": format_mcap_str(mkt.get("market_cap"), currency),
                 "volume": mkt.get("volume", 0),
