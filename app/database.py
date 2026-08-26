@@ -561,6 +561,15 @@ def init_db():
     )
     """)
     
+    # Add sort_order column to portfolio_items if not present
+    try:
+        cursor.execute("ALTER TABLE portfolio_items ADD COLUMN sort_order INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    # Ensure BMRI is removed from core_radar
+    cursor.execute("DELETE FROM portfolio_items WHERE UPPER(ticker) LIKE '%BMRI%' AND category = 'core_radar'")
+
     # Seed default user if not exists
     cursor.execute("SELECT id FROM users WHERE id = 'default_user'")
     if not cursor.fetchone():
@@ -571,10 +580,12 @@ def init_db():
         
         for category in DEFAULT_PORTFOLIO_CONFIG["categories"]:
             for item in category["items"]:
+                if "BMRI" in item.get("ticker", "").upper() and category.get("id") == "core_radar":
+                    continue
                 avg_p = item.get("avg_price_usd") if item.get("currency") == "USD" else item.get("avg_price_idr", 0.0)
                 cursor.execute("""
-                INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, pe_great, pe_good, pe_exp)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, pe_great, pe_good, pe_exp, sort_order)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
                 """, (
                     "default_user",
                     item.get("category"),
@@ -622,6 +633,59 @@ def init_db():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, ("default_user", 2026, m_idx, m_name, outg, netw, inv_pwr, pnl_idr, pnl_pct, growth))
     
+    conn.commit()
+    conn.close()
+
+
+def sync_realtime_monthly_snapshot(user_id: str = "default_user", portfolio_data: Optional[Dict[str, Any]] = None):
+    """Sync current month's record in WIB (UTC+7) with realtime portfolio metrics and rollover at end of month."""
+    if not portfolio_data:
+        return
+    import datetime
+    now_wib = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7)))
+    cur_year = now_wib.year
+    cur_month_idx = now_wib.month
+
+    init_db()
+    create_year_records(user_id, cur_year)
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    outg = float(portfolio_data.get("total_outgoings_idr") or portfolio_data.get("total_outgoings", 0.0))
+    netw = float(portfolio_data.get("current_net_worth_idr") or portfolio_data.get("current_net_worth", 0.0))
+    pnl_idr = float(portfolio_data.get("total_pnl_idr", 0.0))
+    pnl_pct = float(portfolio_data.get("total_pnl_pct", 0.0))
+
+    prev_month_idx = cur_month_idx - 1
+    prev_year = cur_year
+    if prev_month_idx < 1:
+        prev_month_idx = 12
+        prev_year = cur_year - 1
+
+    cursor.execute("SELECT current_networth, total_outgoings FROM monthly_records WHERE user_id = ? AND year = ? AND month_index = ?", (user_id, prev_year, prev_month_idx))
+    prev_row = cursor.fetchone()
+    prev_netw = float(prev_row[0]) if prev_row and prev_row[0] else 0.0
+    prev_outg = float(prev_row[1]) if prev_row and prev_row[1] else 0.0
+
+    growth_pct = 0.0
+    if prev_netw > 0 and netw > 0:
+        growth_pct = ((netw - prev_netw) / prev_netw) * 100.0
+
+    inv_pwr = (outg - prev_outg) if (prev_outg > 0 and outg >= prev_outg) else 3075471.0
+    if inv_pwr <= 0:
+        inv_pwr = 3075471.0
+
+    cursor.execute("""
+    UPDATE monthly_records SET
+        total_outgoings = ?,
+        current_networth = ?,
+        investing_power = ?,
+        pnl_idr = ?,
+        pnl_pct = ?,
+        growth_pct = ?
+    WHERE user_id = ? AND year = ? AND month_index = ?
+    """, (outg, netw, inv_pwr, pnl_idr, pnl_pct, round(growth_pct, 2), user_id, cur_year, cur_month_idx))
     conn.commit()
     conn.close()
 
@@ -686,7 +750,7 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
     cursor.execute("SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order ASC, id ASC", (user_id,))
     cat_rows = cursor.fetchall()
     
-    cursor.execute("SELECT * FROM portfolio_items WHERE user_id = ?", (user_id,))
+    cursor.execute("SELECT * FROM portfolio_items WHERE user_id = ? ORDER BY sort_order ASC, id ASC", (user_id,))
     rows = cursor.fetchall()
     conn.close()
     
@@ -707,7 +771,8 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
             "is_lot": bool(r["is_lot"]),
             "pe_great": r["pe_great"],
             "pe_good": r["pe_good"],
-            "pe_exp": r["pe_exp"]
+            "pe_exp": r["pe_exp"],
+            "sort_order": r["sort_order"] if "sort_order" in r.keys() else 0
         })
     
     categories = []
@@ -891,5 +956,36 @@ def delete_portfolio_item(user_id: str, item_id: int):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM portfolio_items WHERE id = ? AND user_id = ?", (item_id, user_id))
+    conn.commit()
+    conn.close()
+
+
+def move_portfolio_item(user_id: str, item_id: int, target_category: str, target_sort_order: int = 0):
+    """Move an asset item to a target category and update its sort order."""
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+    UPDATE portfolio_items SET category = ?, sort_order = ?
+    WHERE id = ? AND user_id = ?
+    """, (target_category, target_sort_order, item_id, user_id))
+    conn.commit()
+    conn.close()
+
+
+def reorder_portfolio_items(user_id: str, item_orders: List[Dict[str, Any]]):
+    """Update sort order and category of multiple items."""
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    for item in item_orders:
+        item_id = item.get("id")
+        category = item.get("category")
+        sort_order = item.get("sort_order", 0)
+        if item_id:
+            cursor.execute("""
+            UPDATE portfolio_items SET category = COALESCE(?, category), sort_order = ?
+            WHERE id = ? AND user_id = ?
+            """, (category, sort_order, item_id, user_id))
     conn.commit()
     conn.close()

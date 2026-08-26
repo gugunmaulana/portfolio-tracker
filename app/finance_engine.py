@@ -760,4 +760,11 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
         "allocation_chart": allocation_breakdown
     }
     
-    return sanitize_for_json(raw_output)
+    sanitized = sanitize_for_json(raw_output)
+    try:
+        from .database import sync_realtime_monthly_snapshot
+        sync_realtime_monthly_snapshot(portfolio_data.get("user_id", "default_user"), sanitized)
+    except Exception as e:
+        logger.debug(f"Monthly snapshot sync: {e}")
+
+    return sanitized

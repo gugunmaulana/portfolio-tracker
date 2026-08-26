@@ -12,6 +12,8 @@ from .database import (
     update_user_settings,
     upsert_portfolio_item,
     delete_portfolio_item,
+    move_portfolio_item,
+    reorder_portfolio_items,
     get_monthly_records,
     get_available_years,
     create_year_records,
@@ -154,10 +156,36 @@ async def api_delete_category(category_id: str, user_id: str = "default_user"):
     return JSONResponse(content={"status": "success", "portfolio": portfolio, "categories": categories})
 
 
+class MoveAssetPayload(BaseModel):
+    item_id: int
+    target_category: str
+    target_sort_order: Optional[int] = 0
+
+
+class ReorderAssetsPayload(BaseModel):
+    items: List[Dict[str, Any]]
+
+
 # Asset Management APIs
 @app.post("/api/assets/upsert")
 async def api_upsert_asset(payload: AssetPayload, user_id: str = "default_user"):
     upsert_portfolio_item(user_id, payload.dict())
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    return JSONResponse(content={"status": "success", "data": portfolio})
+
+
+@app.post("/api/assets/move")
+async def api_move_asset(payload: MoveAssetPayload, user_id: str = "default_user"):
+    move_portfolio_item(user_id, payload.item_id, payload.target_category, payload.target_sort_order or 0)
+    user_raw = get_user_portfolio(user_id)
+    portfolio = compute_full_portfolio(user_raw)
+    return JSONResponse(content={"status": "success", "data": portfolio})
+
+
+@app.post("/api/assets/reorder")
+async def api_reorder_assets(payload: ReorderAssetsPayload, user_id: str = "default_user"):
+    reorder_portfolio_items(user_id, payload.items)
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
     return JSONResponse(content={"status": "success", "data": portfolio})

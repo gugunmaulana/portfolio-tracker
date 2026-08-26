@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="id" class="dark" :class="{ 'dark': isDark, 'light': !isDark }" x-data="portfolioApp()" x-init="initApp()">
+<html lang="id" :class="{ 'dark': isDark }" x-data="portfolioApp()" x-init="initApp()">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RADAR PORTOFOLIO — Simple Modern Investment Intelligence</title>
+  <title>RADAR ASET — Professional Investment Intelligence Terminal</title>
   
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -13,126 +13,169 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'Fira Code', 'Consolas', 'monospace']
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
           },
           colors: {
             brand: {
               50: '#f0f9ff',
-              100: '#e0f2fe',
               500: '#0ea5e9',
               600: '#0284c7',
               700: '#0369a1',
+              900: '#0c4a6e'
             }
           }
         }
       }
     }
   </script>
-  
-  <!-- Google Fonts: Plus Jakarta Sans -->
+
+  <!-- Google Fonts & Lucide Icons & Chart.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Alpine.js -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- Lucide Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+  <!-- Alpine.js Core -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <style>
     [x-cloak] { display: none !important; }
-    body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    .tabular-nums {
-      font-variant-numeric: tabular-nums;
-    }
-    /* Simple Modern Scrollbar */
+    
+    /* Modern FinTech Scrollbars */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
-    
-    /* Clean Row Hover */
+    .dark ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.5); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+
+    /* Cryptorank / Bloomberg Table Styling */
     .crypto-row:hover {
-      background-color: rgba(241, 245, 249, 0.8);
+      background-color: rgba(14, 165, 233, 0.04);
     }
     .dark .crypto-row:hover {
-      background-color: rgba(30, 41, 59, 0.6);
+      background-color: rgba(14, 165, 233, 0.07);
     }
+
+    /* Range slider styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(148, 163, 184, 0.3);
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+    }
+    .dark input[type=range] {
+      background: rgba(71, 85, 105, 0.6);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #0284c7;
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Protokol Naga Helper Styles */
+    .msrow {
+      display: grid;
+      grid-template-columns: minmax(170px,1.65fr) minmax(88px,.85fr) minmax(122px,1fr) minmax(96px,.9fr) minmax(104px,.95fr) 22px minmax(108px,.95fr);
+      gap: 12px;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .msrow:last-child { border-bottom: none; }
+    .bw { height: 4px; background: rgba(148,163,184,0.25); border-radius: 2px; overflow: hidden; margin-top: 3px; width: 86px; }
+    .bf { height: 100%; border-radius: 2px; transition: width .3s; }
   </style>
 </head>
 
-<body class="min-h-screen bg-[#f8fafc] text-slate-900 dark:bg-[#0b0f19] dark:text-slate-100 transition-colors duration-200">
+<body class="bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 min-h-screen font-sans transition-colors duration-200 antialiased selection:bg-sky-500 selection:text-white">
 
   <!-- ========================================================================= -->
-  <!-- 1. TOP LIVE MARKET STRIP & HEADER                                        -->
+  <!-- TOP NAVIGATION & GLOBAL MACRO TICKER BAR                                  -->
   <!-- ========================================================================= -->
-  <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#0f172a]/95 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-md">
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
     
-    <!-- Top Macro Ticker Bar -->
-    <div class="px-4 lg:px-8 py-1.5 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between text-xs overflow-x-auto whitespace-nowrap gap-4">
-      <div class="flex items-center gap-4 text-xs">
-        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>LIVE MARKET FEED</span>
-        </span>
+    <!-- Macro Market Ribbon -->
+    <div class="bg-slate-100/90 dark:bg-[#0f172a]/90 text-[11px] font-mono border-b border-slate-200/60 dark:border-slate-800/80 px-4 lg:px-8 py-1.5 flex items-center justify-between overflow-x-auto whitespace-nowrap gap-6 text-slate-600 dark:text-slate-400">
+      
+      <div class="flex items-center gap-5">
+        <!-- Live Dot -->
+        <div class="flex items-center gap-1.5">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[10px]">RADAR MARKET REALTIME</span>
+        </div>
 
-        <div class="flex items-center gap-4 text-slate-600 dark:text-slate-400 font-medium text-[11px] tabular-nums">
-          <span class="flex items-center gap-1">
-            <span class="text-slate-500">IHSG</span>
-            <span class="font-bold text-slate-900 dark:text-white" x-text="data.macro?.ihsg"></span>
-            <span :class="data.macro?.ihsg_chg >= 0 ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-semibold'" x-text="(data.macro?.ihsg_chg >= 0 ? '+' : '') + data.macro?.ihsg_chg + '%'"></span>
-          </span>
-          <span class="text-slate-300 dark:text-slate-700">•</span>
-          <span class="flex items-center gap-1">
-            <span class="text-slate-500">S&P 500</span>
-            <span class="font-bold text-slate-900 dark:text-white" x-text="data.macro?.sp500"></span>
-            <span :class="data.macro?.sp500_chg >= 0 ? 'text-emerald-500 font-semibold' : 'text-rose-500 font-semibold'" x-text="(data.macro?.sp500_chg >= 0 ? '+' : '') + data.macro?.sp500_chg + '%'"></span>
-          </span>
-          <span class="text-slate-300 dark:text-slate-700">•</span>
-          <span class="flex items-center gap-1">
-            <span class="text-slate-500">USD/IDR</span>
-            <span class="font-bold text-emerald-600 dark:text-emerald-400" x-text="formatIDR(data.macro?.usd_idr)"></span>
-            <span :class="data.macro?.usd_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="(data.macro?.usd_idr_chg >= 0 ? '+' : '') + data.macro?.usd_idr_chg + '%'"></span>
-          </span>
-          <span class="text-slate-300 dark:text-slate-700">•</span>
-          <span class="flex items-center gap-1">
-            <span class="text-slate-500">CNY/IDR</span>
-            <span class="font-bold text-slate-800 dark:text-slate-200" x-text="formatIDR(data.macro?.cny_idr)"></span>
-          </span>
+        <!-- USD/IDR -->
+        <div class="flex items-center gap-1.5">
+          <span class="font-semibold text-slate-700 dark:text-slate-300">USD/IDR:</span>
+          <span class="text-slate-900 dark:text-white font-bold" x-text="formatIDR(data.macro.usd_idr)"></span>
+          <span :class="data.macro.usd_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'" 
+                x-text="(data.macro.usd_idr_chg >= 0 ? '+' : '') + data.macro.usd_idr_chg + '%'"></span>
+        </div>
+
+        <!-- CNY/IDR -->
+        <div class="flex items-center gap-1.5">
+          <span class="font-semibold text-slate-700 dark:text-slate-300">CNY/IDR:</span>
+          <span class="text-slate-900 dark:text-white font-bold" x-text="formatIDR(data.macro.cny_idr)"></span>
+          <span :class="data.macro.cny_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                x-text="(data.macro.cny_idr_chg >= 0 ? '+' : '') + data.macro.cny_idr_chg + '%'"></span>
+        </div>
+
+        <!-- IHSG -->
+        <div class="flex items-center gap-1.5">
+          <span class="font-semibold text-slate-700 dark:text-slate-300">IHSG:</span>
+          <span class="text-slate-900 dark:text-white font-bold" x-text="data.macro.benchmarks.ihsg.price.toLocaleString('id-ID')"></span>
+          <span :class="data.macro.benchmarks.ihsg.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                x-text="(data.macro.benchmarks.ihsg.perf['24h'] >= 0 ? '+' : '') + data.macro.benchmarks.ihsg.perf['24h'] + '%'"></span>
+        </div>
+
+        <!-- S&P 500 -->
+        <div class="flex items-center gap-1.5">
+          <span class="font-semibold text-slate-700 dark:text-slate-300">S&P 500:</span>
+          <span class="text-slate-900 dark:text-white font-bold" x-text="data.macro.benchmarks.sp500.price.toLocaleString('en-US')"></span>
+          <span :class="data.macro.benchmarks.sp500.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                x-text="(data.macro.benchmarks.sp500.perf['24h'] >= 0 ? '+' : '') + data.macro.benchmarks.sp500.perf['24h'] + '%'"></span>
         </div>
       </div>
 
-      <div class="flex items-center gap-3 text-slate-500 text-[11px] font-mono">
-        <span x-text="currentTime"></span>
-        <span class="text-slate-300 dark:text-slate-700">|</span>
-        <span class="text-sky-600 dark:text-sky-400 font-semibold" x-text="'Auto-Sync ' + autoRefreshCountdown + 's'"></span>
+      <!-- Live Clock & Auto-refresh status -->
+      <div class="flex items-center gap-3 text-[11px] shrink-0">
+        <span class="text-slate-500" x-text="'WIB: ' + currentTime"></span>
+        <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-semibold"
+              x-text="'Auto-refresh: ' + autoRefreshCountdown + 's'"></span>
       </div>
+
     </div>
 
-    <!-- Main Navigation Bar -->
-    <div class="px-4 lg:px-8 py-3 flex items-center justify-between gap-4">
+    <!-- Main Navigation Header -->
+    <div class="max-w-[1720px] mx-auto px-4 lg:px-8 py-3.5 flex items-center justify-between gap-4">
       
-      <!-- Brand & Title -->
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20 text-white font-black text-base">
-          <i data-lucide="compass" class="w-5 h-5"></i>
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
+          <i data-lucide="radar" class="w-5 h-5"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-base lg:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-              RADAR PORTOFOLIO
+            <h1 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
+              RADAR ASET
             </h1>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold border border-sky-500/20">
               PRO EDITION
             </span>
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Core-Satellite Asset Allocation & Financial Freedom Radar</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Core-Satellite Asset Allocation & Financial Freedom Terminal</p>
         </div>
       </div>
 
@@ -141,16 +184,9 @@
         
         <!-- Add Category Button -->
         <button @click="openAddCategoryModal()" 
-                class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition border border-slate-200 dark:border-slate-700">
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition border border-slate-200 dark:border-slate-700">
           <i data-lucide="folder-plus" class="w-3.5 h-3.5 text-sky-500"></i>
           <span>+ Kategori</span>
-        </button>
-
-        <!-- Add Asset Button -->
-        <button @click="openAddAssetModal()" 
-                class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 transition active:scale-95">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>Tambah Aset</span>
         </button>
 
         <!-- Settings Modal Button -->
@@ -168,7 +204,7 @@
           <i data-lucide="refresh-cw" class="w-4 h-4 text-sky-500" :class="{ 'animate-spin': isLoading }"></i>
         </button>
 
-        <!-- Dark / Light Mode Toggle (Fixed no-duplicate inline SVG) -->
+        <!-- Dark / Light Mode Toggle -->
         <button @click="toggleTheme()" 
                 class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700 flex items-center justify-center"
                 :title="isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'">
@@ -184,7 +220,7 @@
 
     </div>
 
-    <!-- Navigation Tabs -->
+    <!-- Navigation Tabs (3 Main Menus) -->
     <div class="px-4 lg:px-8 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800/60 overflow-x-auto whitespace-nowrap text-xs font-semibold">
       
       <button @click="activeView = 'portfolio'" 
@@ -199,6 +235,13 @@
               :class="activeView === 'monthly' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="calendar" class="w-4 h-4"></i>
         <span>2. TRACK BULANAN (MULTI-TAHUN)</span>
+      </button>
+
+      <button @click="activeView = 'calculator'; initFFCalculator();" 
+              class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
+              :class="activeView === 'calculator' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span>3. KALKULATOR FF (PROTOKOL NAGA)</span>
       </button>
 
     </div>
@@ -219,34 +262,47 @@
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
         <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
           <span>Target Financial Freedom</span>
-          <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]" x-text="data.ff_progress_pct + '%'"></span>
+          <button @click="showSettingsModal = true" class="text-sky-500 hover:underline text-[11px]">Edit</button>
         </div>
         <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" x-text="formatIDR(data.target_financial_freedom_idr)"></div>
-        <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
-          <div class="bg-gradient-to-r from-sky-500 to-emerald-500 h-full rounded-full transition-all duration-500" :style="'width: ' + Math.min(data.ff_progress_pct, 100) + '%'"></div>
+        <div class="flex items-center gap-2 pt-1">
+          <div class="flex-1 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div class="bg-gradient-to-r from-sky-500 to-emerald-500 h-full rounded-full transition-all duration-500" 
+                 :style="'width: ' + Math.min(data.ff_progress_pct, 100) + '%'"></div>
+          </div>
+          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono" x-text="data.ff_progress_pct + '%'"></span>
         </div>
       </div>
 
-      <!-- Realtime Net Worth -->
+      <!-- Current Net Worth -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <span class="text-slate-500 dark:text-slate-400 text-xs font-medium block">Current Net Worth</span>
-        <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" x-text="formatIDR(data.current_net_worth_idr)"></div>
-        <div class="text-xs text-slate-500 font-mono tabular-nums" x-text="'≈ ' + formatUSD(data.current_net_worth_usd)"></div>
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+          <span>Current Net Worth</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold font-mono">REALTIME</span>
+        </div>
+        <div class="text-xl lg:text-2xl font-extrabold text-sky-600 dark:text-sky-400 tabular-nums" x-text="formatIDR(data.current_net_worth_idr)"></div>
+        <div class="text-xs text-slate-500 font-mono" x-text="'≈ ' + formatUSD(data.current_net_worth_usd)"></div>
       </div>
 
-      <!-- Total Investable Assets -->
+      <!-- Total Modal Terinvestasi -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <span class="text-slate-500 dark:text-slate-400 text-xs font-medium block">Total Nilai Investasi</span>
-        <div class="text-xl lg:text-2xl font-extrabold text-sky-600 dark:text-sky-400 tabular-nums" x-text="formatIDR(data.current_value_investment_idr)"></div>
-        <div class="text-xs text-slate-500 tabular-nums" x-text="'Modal: ' + formatIDR(data.total_invested_idr)"></div>
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+          <span>Modal Terinvestasi</span>
+          <span class="text-slate-400 text-[11px]">Cost Basis</span>
+        </div>
+        <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" x-text="formatIDR(data.total_invested_idr)"></div>
+        <div class="text-xs text-slate-500 font-mono" x-text="'Nilai Portofolio: ' + formatIDR(data.current_value_investment_idr)"></div>
       </div>
 
-      <!-- Total Floating P&L -->
+      <!-- Total Floating PnL -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <span class="text-slate-500 dark:text-slate-400 text-xs font-medium block">Floating P&L Portofolio</span>
-        <div class="text-xl lg:text-2xl font-extrabold tabular-nums flex items-center gap-1.5"
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+          <span>Total Floating Profit / Loss</span>
+          <span class="text-slate-400 text-[11px]">Return</span>
+        </div>
+        <div class="text-xl lg:text-2xl font-extrabold tabular-nums flex items-baseline gap-1"
              :class="data.total_pnl_idr >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
-          <span x-text="(data.total_pnl_idr >= 0 ? '▲ +' : '▼ ') + formatIDR(data.total_pnl_idr)"></span>
+          <span x-text="(data.total_pnl_idr >= 0 ? '+' : '') + formatIDR(data.total_pnl_idr)"></span>
         </div>
         <div class="text-xs font-semibold tabular-nums"
              :class="data.total_pnl_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
@@ -283,36 +339,35 @@
         <!-- Column Customizer Button & Quick Toggles -->
         <div class="flex flex-wrap items-center gap-2">
           
-          <!-- Master Pengaturan Kolom Modal Button -->
           <button @click="showColumnModal = true" 
-                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20 transition active:scale-95">
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-600 dark:text-sky-400 font-bold border border-sky-200 dark:border-sky-800 transition active:scale-95">
             <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-            <span>⚙️ Pengaturan Kolom</span>
-            <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]" x-text="activeColumnCount() + '/24'"></span>
+            <span>⚙️ Pengaturan & Urutan Kolom (<span x-text="activeColumnCount() + '/24'"></span>)</span>
           </button>
 
-          <!-- Quick Toggle Pills for Performance & Portfolio -->
-          <div class="hidden xl:flex items-center gap-1.5 pl-2 border-l border-slate-200 dark:border-slate-700 text-[11px] font-semibold">
-            <button @click="toggleCol('perf24h')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf24h ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">24H</button>
-            <button @click="toggleCol('perf5h')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf5h ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">5H</button>
-            <button @click="toggleCol('perf1m')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf1m ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">1M</button>
-            <button @click="toggleCol('perf6m')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf6m ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">6M</button>
-            <button @click="toggleCol('perf1y')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf1y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">1Y</button>
-            <button @click="toggleCol('perf5y')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf5y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">5Y</button>
-            <button @click="toggleCol('perf10y')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf10y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">10Y</button>
-            <button @click="toggleCol('perf15y')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf15y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">15Y</button>
-            <button @click="toggleCol('perf20y')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.perf20y ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">20Y</button>
-            <button @click="toggleCol('avgPrice')" class="px-2 py-0.5 rounded-lg border transition"
-                    :class="cols.avgPrice ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'">AVG Price</button>
+          <!-- Quick Return Pillars -->
+          <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+            <button @click="toggleCol('perf24h')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf24h ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">24H</button>
+            <button @click="toggleCol('perf5h')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf5h ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">5H</button>
+            <button @click="toggleCol('perf1m')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf1m ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">1M</button>
+            <button @click="toggleCol('perf6m')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf6m ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">6M</button>
+            <button @click="toggleCol('perf1y')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf1y ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">1Y</button>
+            <button @click="toggleCol('perf5y')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf5y ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">5Y</button>
+            <button @click="toggleCol('perf10y')" 
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition"
+                    :class="cols.perf10y ? 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'">10Y</button>
           </div>
 
         </div>
@@ -323,9 +378,11 @@
       <div class="space-y-6">
         <template x-for="category in data.categories" :key="category.id">
           <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden"
-               x-show="filteredCategoryItems(category).length > 0 || !searchQuery">
+               x-show="filteredCategoryItems(category).length > 0 || !searchQuery"
+               @dragover.prevent="onCategoryDragOver($event)"
+               @drop="onCategoryDrop($event, category)">
             
-            <!-- Category Header Banner (Editable) -->
+            <!-- Category Header Banner (Editable + Add Asset Right Button) -->
             <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 flex flex-wrap items-center justify-between gap-3">
               
               <div class="flex items-center gap-3">
@@ -356,16 +413,25 @@
                 </div>
               </div>
 
-              <!-- Category Metrics Pill -->
-              <div class="flex items-center gap-4 text-xs font-mono tabular-nums">
-                <div>
-                  <span class="text-[10px] text-slate-400 block uppercase">MODAL</span>
-                  <span class="font-semibold text-slate-700 dark:text-slate-300" x-text="formatIDR(category.total_invested_idr)"></span>
+              <!-- Right Side: Metrics Pill & + Tambah Aset Button -->
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-4 text-xs font-mono tabular-nums">
+                  <div>
+                    <span class="text-[10px] text-slate-400 block uppercase">MODAL</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300" x-text="formatIDR(category.total_invested_idr)"></span>
+                  </div>
+                  <div class="pl-3 border-l border-slate-200 dark:border-slate-800">
+                    <span class="text-[10px] text-slate-400 block uppercase">NILAI BERJALAN</span>
+                    <span class="font-bold text-sky-600 dark:text-sky-400" x-text="formatIDR(category.total_value_idr)"></span>
+                  </div>
                 </div>
-                <div class="pl-3 border-l border-slate-200 dark:border-slate-800">
-                  <span class="text-[10px] text-slate-400 block uppercase">NILAI BERJALAN</span>
-                  <span class="font-bold text-sky-600 dark:text-sky-400" x-text="formatIDR(category.total_value_idr)"></span>
-                </div>
+
+                <!-- + Tambah Aset Button for this category -->
+                <button @click="openAddAssetModal(category.id)" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-sm shadow-sky-600/20 transition active:scale-95">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  <span>+ Tambah Aset</span>
+                </button>
               </div>
 
             </div>
@@ -375,57 +441,54 @@
               <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50/80 dark:bg-[#0d1527]/80 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80">
                   <tr>
-                    <th class="py-3 px-4 w-8">#</th>
+                    <!-- AKSI DI PALING KIRI (SEBELAH KIRI ANGKA #) -->
+                    <th class="py-3 px-3 text-center w-16">Aksi</th>
+                    <th class="py-3 px-3 w-8">#</th>
                     <th class="py-3 px-4">Nama Aset</th>
                     <th class="py-3 px-3">Ticker</th>
                     <th class="py-3 px-3 text-right">Harga Pasar</th>
                     
-                    <!-- 24 Fully Customizable Columns -->
-                    <th class="py-3 px-3 text-center" x-show="cols.perf24h">24H</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf5h">5H</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf1m">1M</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf6m">6M</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf1y">1Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf5y">5Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf10y">10Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf15y">15Y</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.perf20y">20Y</th>
-                    
-                    <!-- Toggleable CAGR Columns -->
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr5y">5Y (CAGR)</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr10y">10Y (CAGR)</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr15y">15Y (CAGR)</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.cagr20y">20Y (CAGR)</th>
-                    
-                    <th class="py-3 px-3 text-right" x-show="cols.athPrice">ATH Price</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.athDrawdown">% from ATH</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.athZone">Zonasi ATH</th>
-                    <th class="py-3 px-3 text-center" x-show="cols.peValuation">Valuasi P/E</th>
-                    
-                    <!-- Market Cap & Volume (Toggleable) -->
-                    <th class="py-3 px-3 text-right" x-show="cols.marketCap">Market Cap</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.volume">Volume (24H)</th>
-                    
-                    <th class="py-3 px-3 text-right" x-show="cols.investedIdr">Modal Terinvestasi</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.quantity">Quantity</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.avgPrice">AVG Price</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.curVal">Nilai Berjalan</th>
-                    <th class="py-3 px-3 text-right" x-show="cols.pnl">Floating PnL</th>
-                    
-                    <th class="py-3 px-4 text-center">Aksi</th>
+                    <!-- Configurable & Draggable Columns in User Sequence -->
+                    <template x-for="colKey in columnOrder" :key="colKey">
+                      <th class="py-3 px-3 cursor-grab"
+                          :class="['perf24h','perf5h','perf1m','perf6m','perf1y','perf5y','perf10y','perf15y','perf20y','cagr5y','cagr10y','cagr15y','cagr20y','athDrawdown','athZone','peValuation'].includes(colKey) ? 'text-center' : 'text-right'"
+                          x-show="cols[colKey]"
+                          x-text="getColumnLabel(colKey)"
+                          :title="'Klik untuk geser posisi kolom'"></th>
+                    </template>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono tabular-nums">
                   <template x-for="(item, idx) in filteredCategoryItems(category)" :key="item.id || item.ticker">
-                    <tr class="crypto-row transition">
+                    <tr class="crypto-row transition"
+                        draggable="true"
+                        @dragstart="onAssetDragStart($event, item, category)"
+                        @dragover.prevent="onAssetDragOver($event)"
+                        @drop="onAssetDrop($event, item, category)"
+                        :class="{ 'opacity-40 bg-sky-50/50 dark:bg-sky-950/20': draggedItem && draggedItem.id === item.id }">
                       
+                      <!-- AKSI (DI PALING KIRI) -->
+                      <td class="py-3 px-3 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                          <button @click="editAsset(item, category.id)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-sky-600 dark:text-sky-400" title="Edit Aset / Pindahkan Kategori">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                          </button>
+                          <button @click="deleteAsset(item)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400" title="Hapus Aset">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                          </button>
+                          <span class="p-1 text-slate-300 dark:text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-500" title="Tarik untuk memindahkan aset / ubah urutan">
+                            <i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>
+                          </span>
+                        </div>
+                      </td>
+
                       <!-- Index Number -->
-                      <td class="py-3 px-4 text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
+                      <td class="py-3 px-3 text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
                       
                       <!-- Logo & Name (Cryptorank style) -->
                       <td class="py-3 px-4 font-sans font-medium text-slate-900 dark:text-slate-100">
                         <div class="flex items-center gap-2.5">
-                          <!-- Crisp Logo Image with Fallback Initials Badge -->
+                          <!-- Logo Image with Fallback Badge -->
                           <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             <img :src="item.logo_url" 
                                  :alt="item.ticker"
@@ -448,137 +511,135 @@
                       </td>
 
                       <!-- Current Price -->
-                      <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
-                          x-text="item.currency === 'IDR' ? formatIDR(item.current_price) : formatUSD(item.current_price)"></td>
-
-                      <!-- 24H % -->
-                      <td class="py-3 px-3 text-center font-bold" x-show="cols.perf24h"
-                          :class="item.perf?.['24h'] > 0 ? 'text-emerald-500' : (item.perf?.['24h'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['24h'] !== null && item.perf?.['24h'] !== undefined ? ((item.perf?.['24h'] > 0 ? '+' : '') + item.perf?.['24h'] + '%') : 'N/A'"></td>
-
-                      <!-- 5H % -->
-                      <td class="py-3 px-3 text-center font-bold" x-show="cols.perf5h"
-                          :class="(item.perf?.['5h'] ?? item.perf?.['1w']) > 0 ? 'text-emerald-500' : ((item.perf?.['5h'] ?? item.perf?.['1w']) < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="(item.perf?.['5h'] ?? item.perf?.['1w']) !== null && (item.perf?.['5h'] ?? item.perf?.['1w']) !== undefined ? (((item.perf?.['5h'] ?? item.perf?.['1w']) > 0 ? '+' : '') + (item.perf?.['5h'] ?? item.perf?.['1w']) + '%') : 'N/A'"></td>
-
-                      <!-- 1M % -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf1m"
-                          :class="item.perf?.['1m'] > 0 ? 'text-emerald-500' : (item.perf?.['1m'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['1m'] !== null && item.perf?.['1m'] !== undefined ? ((item.perf?.['1m'] > 0 ? '+' : '') + item.perf?.['1m'] + '%') : 'N/A'"></td>
-
-                      <!-- 6M % (Displayed by default) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf6m"
-                          :class="item.perf?.['6m'] > 0 ? 'text-emerald-500' : (item.perf?.['6m'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['6m'] !== null && item.perf?.['6m'] !== undefined ? ((item.perf?.['6m'] > 0 ? '+' : '') + item.perf?.['6m'] + '%') : 'N/A'"></td>
-
-                      <!-- 1Y % -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf1y"
-                          :class="item.perf?.['1y'] > 0 ? 'text-emerald-500' : (item.perf?.['1y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['1y'] !== null && item.perf?.['1y'] !== undefined ? ((item.perf?.['1y'] > 0 ? '+' : '') + item.perf?.['1y'] + '%') : 'N/A'"></td>
-
-                      <!-- 5Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf5y"
-                          :class="item.perf?.['5y'] > 0 ? 'text-emerald-500' : (item.perf?.['5y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['5y'] !== null && item.perf?.['5y'] !== undefined ? ((item.perf?.['5y'] > 0 ? '+' : '') + item.perf?.['5y'] + '%') : 'N/A'"></td>
-
-                      <!-- 10Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf10y"
-                          :class="item.perf?.['10y'] > 0 ? 'text-emerald-500' : (item.perf?.['10y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['10y'] !== null && item.perf?.['10y'] !== undefined ? ((item.perf?.['10y'] > 0 ? '+' : '') + item.perf?.['10y'] + '%') : 'N/A'"></td>
-
-                      <!-- 15Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf15y"
-                          :class="item.perf?.['15y'] > 0 ? 'text-emerald-500' : (item.perf?.['15y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['15y'] !== null && item.perf?.['15y'] !== undefined ? ((item.perf?.['15y'] > 0 ? '+' : '') + item.perf?.['15y'] + '%') : 'N/A'"></td>
-
-                      <!-- 20Y (Total Profit %) -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.perf20y"
-                          :class="item.perf?.['20y'] > 0 ? 'text-emerald-500' : (item.perf?.['20y'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['20y'] !== null && item.perf?.['20y'] !== undefined ? ((item.perf?.['20y'] > 0 ? '+' : '') + item.perf?.['20y'] + '%') : 'N/A'"></td>
-
-                      <!-- 5Y CAGR -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr5y"
-                          :class="item.perf?.['5y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['5y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['5y_cagr'] !== null && item.perf?.['5y_cagr'] !== undefined ? ((item.perf?.['5y_cagr'] > 0 ? '+' : '') + item.perf?.['5y_cagr'] + '%') : 'N/A'"></td>
-
-                      <!-- 10Y CAGR -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr10y"
-                          :class="item.perf?.['10y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['10y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['10y_cagr'] !== null && item.perf?.['10y_cagr'] !== undefined ? ((item.perf?.['10y_cagr'] > 0 ? '+' : '') + item.perf?.['10y_cagr'] + '%') : 'N/A'"></td>
-
-                      <!-- 15Y CAGR -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr15y"
-                          :class="item.perf?.['15y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['15y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['15y_cagr'] !== null && item.perf?.['15y_cagr'] !== undefined ? ((item.perf?.['15y_cagr'] > 0 ? '+' : '') + item.perf?.['15y_cagr'] + '%') : 'N/A'"></td>
-
-                      <!-- 20Y CAGR -->
-                      <td class="py-3 px-3 text-center font-medium" x-show="cols.cagr20y"
-                          :class="item.perf?.['20y_cagr'] > 0 ? 'text-emerald-500' : (item.perf?.['20y_cagr'] < 0 ? 'text-rose-500' : 'text-slate-400')"
-                          x-text="item.perf?.['20y_cagr'] !== null && item.perf?.['20y_cagr'] !== undefined ? ((item.perf?.['20y_cagr'] > 0 ? '+' : '') + item.perf?.['20y_cagr'] + '%') : 'N/A'"></td>
-
-                      <!-- ATH Price -->
-                      <td class="py-3 px-3 text-right text-slate-500" x-show="cols.athPrice"
-                          x-text="item.currency === 'IDR' ? formatIDR(item.ath) : formatUSD(item.ath)"></td>
-
-                      <!-- % from ATH -->
-                      <td class="py-3 px-3 text-center font-bold text-rose-500" x-show="cols.athDrawdown"
-                          x-text="item.drawdown + '%'"></td>
-
-                      <!-- Zonasi ATH -->
-                      <td class="py-3 px-3 text-center" x-show="cols.athZone">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border inline-block" :class="item.status_bg" x-text="item.status_label"></span>
+                      <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white">
+                        <span x-text="item.currency === 'USD' ? formatUSD(item.current_price) : formatIDR(item.current_price)"></span>
                       </td>
 
-                      <!-- Valuasi P/E (Tailored per asset) -->
-                      <td class="py-3 px-3 text-center" x-show="cols.peValuation">
-                        <template x-if="item.pe">
-                          <span class="text-[11px]" :class="item.pe_color" x-text="item.pe + ' (' + item.pe_status + ')'"></span>
-                        </template>
-                        <template x-if="!item.pe">
-                          <span class="text-slate-400 text-xs">N/A</span>
-                        </template>
-                      </td>
+                      <!-- DYNAMIC REORDERABLE COLUMNS -->
+                      <template x-for="colKey in columnOrder" :key="colKey">
+                        
+                        <!-- 24H -->
+                        <td x-show="colKey === 'perf24h' && cols.perf24h" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                            x-text="formatPct(item.perf['24h'])"></td>
 
-                      <!-- Market Cap (Toggleable, Hidden by Default) -->
-                      <td class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300" x-show="cols.marketCap"
-                          x-text="item.market_cap_formatted || 'N/A'"></td>
+                        <!-- 5H -->
+                        <td x-show="colKey === 'perf5h' && cols.perf5h" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['5h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                            x-text="formatPct(item.perf['5h'])"></td>
 
-                      <!-- Volume 24H (Toggleable, Hidden by Default) -->
-                      <td class="py-3 px-3 text-right font-medium text-slate-600 dark:text-slate-400" x-show="cols.volume"
-                          x-text="item.volume_formatted || 'N/A'"></td>
+                        <!-- 1M -->
+                        <td x-show="colKey === 'perf1m' && cols.perf1m" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['1m'] >= 0 ? 'text-emerald-500' : (item.perf['1m'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['1m'])"></td>
 
-                      <!-- Modal Terinvestasi -->
-                      <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold" x-show="cols.investedIdr"
-                          x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
+                        <!-- 6M -->
+                        <td x-show="colKey === 'perf6m' && cols.perf6m" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['6m'] >= 0 ? 'text-emerald-500' : (item.perf['6m'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['6m'])"></td>
 
-                      <!-- Quantity -->
-                      <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300 font-semibold" x-show="cols.quantity"
-                          x-text="item.quantity > 0 ? (item.quantity + (item.is_lot ? ' lot' : '')) : '-'"></td>
+                        <!-- 1Y -->
+                        <td x-show="colKey === 'perf1y' && cols.perf1y" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['1y'] >= 0 ? 'text-emerald-500' : (item.perf['1y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['1y'])"></td>
 
-                      <!-- AVG Price (Toggleable) -->
-                      <td class="py-3 px-3 text-right text-slate-500" x-show="cols.avgPrice"
-                          x-text="item.avg_price > 0 ? (item.currency === 'IDR' ? formatIDR(item.avg_price) : formatUSD(item.avg_price)) : '-'"></td>
+                        <!-- 5Y -->
+                        <td x-show="colKey === 'perf5y' && cols.perf5y" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['5y'] >= 0 ? 'text-emerald-500' : (item.perf['5y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['5y'])"></td>
 
-                      <!-- Nilai Berjalan -->
-                      <td class="py-3 px-3 text-right font-bold text-sky-600 dark:text-sky-400" x-show="cols.curVal"
-                          x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
+                        <!-- 10Y -->
+                        <td x-show="colKey === 'perf10y' && cols.perf10y" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['10y'] >= 0 ? 'text-emerald-500' : (item.perf['10y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['10y'])"></td>
 
-                      <!-- Floating P&L -->
-                      <td class="py-3 px-3 text-right font-bold" x-show="cols.pnl"
-                          :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                          x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct + '%)') : '-'"></td>
+                        <!-- 15Y -->
+                        <td x-show="colKey === 'perf15y' && cols.perf15y" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['15y'] >= 0 ? 'text-emerald-500' : (item.perf['15y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['15y'])"></td>
 
-                      <!-- Action Buttons -->
-                      <td class="py-3 px-4 text-center">
-                        <div class="flex items-center justify-center gap-1.5">
-                          <button @click="editAsset(item)" class="p-1 rounded text-slate-400 hover:text-sky-500 transition" title="Edit Aset">
-                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                          </button>
-                          <button @click="deleteAsset(item.id)" class="p-1 rounded text-slate-400 hover:text-rose-500 transition" title="Hapus Aset">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                          </button>
-                        </div>
-                      </td>
+                        <!-- 20Y -->
+                        <td x-show="colKey === 'perf20y' && cols.perf20y" class="py-3 px-3 text-center font-semibold"
+                            :class="item.perf['20y'] >= 0 ? 'text-emerald-500' : (item.perf['20y'] !== null ? 'text-rose-500' : 'text-slate-400')"
+                            x-text="formatPct(item.perf['20y'])"></td>
+
+                        <!-- 5Y CAGR -->
+                        <td x-show="colKey === 'cagr5y' && cols.cagr5y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                            x-text="formatPct(item.perf['5y_cagr'])"></td>
+
+                        <!-- 10Y CAGR -->
+                        <td x-show="colKey === 'cagr10y' && cols.cagr10y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                            x-text="formatPct(item.perf['10y_cagr'])"></td>
+
+                        <!-- 15Y CAGR -->
+                        <td x-show="colKey === 'cagr15y' && cols.cagr15y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                            x-text="formatPct(item.perf['15y_cagr'])"></td>
+
+                        <!-- 20Y CAGR -->
+                        <td x-show="colKey === 'cagr20y' && cols.cagr20y" class="py-3 px-3 text-center font-semibold text-indigo-500 dark:text-indigo-400"
+                            x-text="formatPct(item.perf['20y_cagr'])"></td>
+
+                        <!-- ATH Price -->
+                        <td x-show="colKey === 'athPrice' && cols.athPrice" class="py-3 px-3 text-right text-slate-500"
+                            x-text="item.currency === 'USD' ? formatUSD(item.ath_price) : formatIDR(item.ath_price)"></td>
+
+                        <!-- % from ATH -->
+                        <td x-show="colKey === 'athDrawdown' && cols.athDrawdown" class="py-3 px-3 text-center font-semibold"
+                            :class="item.ath_drawdown_pct < -20 ? 'text-rose-500' : 'text-amber-500'"
+                            x-text="item.ath_drawdown_pct + '%'"></td>
+
+                        <!-- Zonasi ATH -->
+                        <td x-show="colKey === 'athZone' && cols.athZone" class="py-3 px-3 text-center">
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                :class="getZoneClass(item.ath_zone)"
+                                x-text="item.ath_zone"></span>
+                        </td>
+
+                        <!-- Valuasi P/E -->
+                        <td x-show="colKey === 'peValuation' && cols.peValuation" class="py-3 px-3 text-center">
+                          <template x-if="item.pe_ratio">
+                            <div class="flex items-center justify-center gap-1">
+                              <span class="font-bold text-slate-700 dark:text-slate-300" x-text="item.pe_ratio.toFixed(1) + 'x'"></span>
+                              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold"
+                                    :class="getPEValuationClass(item.pe_ratio, item.pe_thresholds)"
+                                    x-text="getPEValuationLabel(item.pe_ratio, item.pe_thresholds)"></span>
+                            </div>
+                          </template>
+                          <template x-if="!item.pe_ratio">
+                            <span class="text-slate-400 text-[10px]">N/A</span>
+                          </template>
+                        </td>
+
+                        <!-- Market Cap -->
+                        <td x-show="colKey === 'marketCap' && cols.marketCap" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
+                            x-text="item.market_cap_formatted || 'N/A'"></td>
+
+                        <!-- Volume (24H) -->
+                        <td x-show="colKey === 'volume' && cols.volume" class="py-3 px-3 text-right font-medium text-slate-700 dark:text-slate-300"
+                            x-text="item.volume_formatted || 'N/A'"></td>
+
+                        <!-- Modal Terinvestasi -->
+                        <td x-show="colKey === 'investedIdr' && cols.investedIdr" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                            x-text="item.invested_idr > 0 ? formatIDR(item.invested_idr) : '-'"></td>
+
+                        <!-- Quantity -->
+                        <td x-show="colKey === 'quantity' && cols.quantity" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                            x-text="item.quantity > 0 ? item.quantity.toLocaleString('id-ID', {maximumFractionDigits: 6}) : '-'"></td>
+
+                        <!-- AVG Price -->
+                        <td x-show="colKey === 'avgPrice' && cols.avgPrice" class="py-3 px-3 text-right text-slate-700 dark:text-slate-300"
+                            x-text="item.avg_price > 0 ? (item.currency === 'USD' ? formatUSD(item.avg_price) : formatIDR(item.avg_price)) : '-'"></td>
+
+                        <!-- Nilai Berjalan -->
+                        <td x-show="colKey === 'curVal' && cols.curVal" class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
+                            x-text="item.cur_val_idr > 0 ? formatIDR(item.cur_val_idr) : '-'"></td>
+
+                        <!-- Floating PnL -->
+                        <td x-show="colKey === 'pnl' && cols.pnl" class="py-3 px-3 text-right font-bold"
+                            :class="item.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                            x-text="item.invested_idr > 0 ? ((item.pnl_idr >= 0 ? '+' : '') + formatIDR(item.pnl_idr) + ' (' + item.pnl_pct.toFixed(1) + '%)') : '-'"></td>
+
+                      </template>
 
                     </tr>
                   </template>
@@ -604,7 +665,7 @@
             <i data-lucide="calendar" class="w-4 h-4 text-sky-500"></i>
             <span>PELACAKAN HISTORIS NET WORTH & MODAL KELUAR</span>
           </h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Pilih tahun atau tambah tahun baru untuk mencatat evaluasi bulanan</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Tercatat realtime dari data portofolio aktif. Rollover otomatis setiap akhir bulan pk 23:59:59 WIB.</p>
         </div>
 
         <div class="flex items-center gap-2">
@@ -652,7 +713,7 @@
                   <td class="py-3 px-4 text-right font-semibold text-sky-600 dark:text-sky-400" x-text="row.investing_power > 0 ? formatIDR(row.investing_power) : '0'"></td>
                   <td class="py-3 px-4 text-right font-bold"
                       :class="row.pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                      x-text="row.total_outgoings > 0 ? ((row.pnl_idr >= 0 ? '+' : '') + formatIDR(row.pnl_idr) + ' (' + row.pnl_pct.toFixed(1) + '%)') : '-'"></td>
+                      x-text="row.total_outgoings > 0 ? ((row.pnl_idr >= 0 ? '+' : '') + formatIDR(row.pnl_idr) + ' (' + (row.pnl_pct ? row.pnl_pct.toFixed(1) : '0.0') + '%)') : '-'"></td>
                   <td class="py-3 px-4 text-center font-bold"
                       :class="row.growth_pct > 0 ? 'text-emerald-500' : (row.growth_pct < 0 ? 'text-rose-500' : 'text-slate-400')"
                       x-text="row.current_networth > 0 ? ((row.growth_pct > 0 ? '+' : '') + row.growth_pct.toFixed(2) + '%') : '-'"></td>
@@ -671,10 +732,358 @@
 
     </div>
 
+    <!-- ======================================================================= -->
+    <!-- VIEW 3: KALKULATOR FF (PROTOKOL NAGA)                                   -->
+    <!-- ======================================================================= -->
+    <div x-show="activeView === 'calculator'" class="space-y-6" x-cloak>
+      
+      <!-- Topbar Info -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <span>🐉 PROTOKOL NAGA — WEALTH LADDER & COMPOUNDING</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Duel Hustle vs Compounding · 20 Milestones · Rp 100 juta → Rp 1 Triliun</p>
+        </div>
+        <button @click="syncFFFromPortfolio()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/30 transition">
+          <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+          <span>⚡ Sync Portfolio Saat Ini</span>
+        </button>
+      </div>
+
+      <!-- PARAMETERS CARD -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-5">
+        
+        <!-- Full-width Portfolio Slider & Shortcuts -->
+        <div class="pb-4 border-b border-slate-100 dark:border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="briefcase" class="w-3.5 h-3.5 text-sky-500"></i>
+              <span>Portfolio Saat Ini</span>
+            </span>
+            <div class="flex items-center gap-1 font-mono font-bold text-sm text-sky-600 dark:text-sky-400">
+              <span>Rp</span>
+              <input type="text" x-model="ff.curInput" @blur="onFFCurBlur()" @keydown.enter="$el.blur()"
+                     class="w-36 text-right px-2 py-0.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-sky-500 text-slate-900 dark:text-white font-mono font-bold">
+            </div>
+          </div>
+          <input type="range" min="0" max="100000000000" step="1000000" x-model.number="ff.cur" @input="onFFRangeInput()" class="w-full">
+          
+          <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+            <span>Rp 0</span>
+            <span>Rp 100 Miliar</span>
+          </div>
+
+          <!-- Quick Shortcuts -->
+          <div class="pt-2 flex flex-wrap items-center gap-1.5 text-xs">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">SHORTCUT:</span>
+            <button type="button" @click="setFFPorto(10e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 10e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">10 Jt</button>
+            <button type="button" @click="setFFPorto(50e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 50e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">50 Jt</button>
+            <button type="button" @click="setFFPorto(100e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 100e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">100 Jt</button>
+            <button type="button" @click="setFFPorto(200e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 200e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">200 Jt</button>
+            <button type="button" @click="setFFPorto(500e6)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 50e6 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">500 Jt</button>
+            <button type="button" @click="setFFPorto(1e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 1e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">1 M</button>
+            <button type="button" @click="setFFPorto(2e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 2e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">2 M</button>
+            <button type="button" @click="setFFPorto(5e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 5e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">5 M</button>
+            <button type="button" @click="setFFPorto(10e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 10e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">10 M</button>
+            <button type="button" @click="setFFPorto(50e9)" class="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition" :class="ff.cur === 50e9 ? 'bg-sky-600 text-white border-sky-600' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">50 M</button>
+          </div>
+        </div>
+
+        <!-- 6 Params Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          
+          <!-- IP / bln -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold">Investing Power / bln</span>
+              <span class="font-mono font-bold text-sky-600 dark:text-sky-400" x-text="formatIDR(ff.mo)"></span>
+            </div>
+            <input type="range" min="0" max="50000000" step="250000" x-model.number="ff.mo" @input="recalcFF()" class="w-full">
+          </div>
+
+          <!-- Return tahunan -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold">Return Tahunan</span>
+              <span class="font-mono font-bold text-emerald-500" x-text="ff.ret + '%'"></span>
+            </div>
+            <input type="range" min="0" max="35" step="0.5" x-model.number="ff.ret" @input="recalcFF()" class="w-full">
+          </div>
+
+          <!-- Withdrawal rate -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold">Withdrawal Rate / thn</span>
+              <div class="flex items-center gap-1 font-mono font-bold">
+                <span x-show="ff.wr >= 3.5 && ff.wr <= 4.5" class="text-[9px] px-1 rounded bg-sky-500/10 text-sky-500">SWR</span>
+                <span class="text-amber-500" x-text="ff.wr + '%'"></span>
+              </div>
+            </div>
+            <input type="range" min="0" max="10" step="0.5" x-model.number="ff.wr" @input="recalcFF()" class="w-full">
+          </div>
+
+          <!-- IP Growth -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold">IP Growth / thn</span>
+              <span class="font-mono font-bold text-sky-500" x-text="ff.ipg + '%'"></span>
+            </div>
+            <input type="range" min="0" max="30" step="0.5" x-model.number="ff.ipg" @input="recalcFF()" class="w-full">
+          </div>
+
+          <!-- Kurs IDR/USD -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold">Kurs IDR / USD</span>
+              <span class="font-mono font-bold text-slate-800 dark:text-slate-200" x-text="ff.rate.toLocaleString('id-ID')"></span>
+            </div>
+            <input type="range" min="14000" max="25000" step="100" x-model.number="ff.rate" @input="recalcFF()" class="w-full">
+          </div>
+
+          <!-- Usia saat ini -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 dark:text-slate-400 font-semibold">Usia Saat Ini</span>
+              <span class="font-mono font-bold text-slate-800 dark:text-slate-200" x-text="ff.age + ' thn'"></span>
+            </div>
+            <input type="range" min="18" max="65" step="1" x-model.number="ff.age" @input="recalcFF()" class="w-full">
+          </div>
+
+        </div>
+
+        <!-- Horizon Slider -->
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-4 text-xs">
+          <span class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">🔭 Horizon Analisis</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold font-mono" x-text="ff.horizon + ' thn'"></span>
+          <input type="range" min="5" max="50" step="1" x-model.number="ff.horizon" @input="recalcFF()" class="flex-1">
+        </div>
+
+      </div>
+
+      <!-- Status Bar & Passive Income Box -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+        
+        <!-- Status Badge -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between lg:col-span-2">
+          <div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold" :class="ffStatusBadgeClass" x-text="ffStatusText"></span>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2" x-text="ffStatusSubtext"></p>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400 uppercase font-mono block">CROSSOVER STATUS</span>
+            <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono" x-text="ffCrossoverStatusText"></span>
+          </div>
+        </div>
+
+        <!-- Passive Income -->
+        <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-sky-500/10 border border-emerald-500/20 shadow-sm space-y-1">
+          <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 tracking-wider">PASSIVE INCOME DARI PORTFOLIO SAAT INI</span>
+          <div class="text-xl lg:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono" x-text="formatIDR(ffPassiveGross) + ' / bln'"></div>
+          <div class="text-[11px] text-slate-500 font-mono" x-text="'Net setelah withdrawal: ' + formatIDR(ffPassiveNet) + ' / bln'"></div>
+        </div>
+
+      </div>
+
+      <!-- 6 Summary KPI Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Milestone Terberat</span>
+          <span class="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1 block" x-text="ffKPI.hardest"></span>
+          <span class="text-[10px] text-slate-500 font-mono" x-text="ffKPI.hardestGap"></span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Milestone Tercepat</span>
+          <span class="text-sm font-bold text-slate-900 dark:text-white font-mono mt-1 block" x-text="ffKPI.easiest"></span>
+          <span class="text-[10px] text-slate-500 font-mono" x-text="ffKPI.easiestGap"></span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Masuk HNWI ($1M+)</span>
+          <span class="text-sm font-bold text-indigo-500 font-mono mt-1 block" x-text="ffKPI.hnwi"></span>
+          <span class="text-[10px] text-slate-500 font-mono" x-text="ffKPI.hnwiSub"></span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Masuk VHNWI ($5M+)</span>
+          <span class="text-sm font-bold text-amber-500 font-mono mt-1 block" x-text="ffKPI.vhnwi"></span>
+          <span class="text-[10px] text-slate-500 font-mono" x-text="ffKPI.vhnwiSub"></span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Masuk UHNWI ($30M+)</span>
+          <span class="text-sm font-bold text-rose-500 font-mono mt-1 block" x-text="ffKPI.uhnwi"></span>
+          <span class="text-[10px] text-slate-500 font-mono" x-text="ffKPI.uhnwiSub"></span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Rp 1 Triliun</span>
+          <span class="text-sm font-bold text-purple-500 font-mono mt-1 block" x-text="ffKPI.t1"></span>
+          <span class="text-[10px] text-slate-500 font-mono" x-text="ffKPI.t1Sub"></span>
+        </div>
+      </div>
+
+      <!-- Tabbed Charts: Kurva Kekayaan ⇄ Hustle vs Compounding -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        
+        <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 text-xs">
+          <button type="button" @click="ffTab = 'growth'; refreshFFCharts();"
+                  class="px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition"
+                  :class="ffTab === 'growth' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>Proyeksi Pertumbuhan Portfolio</span>
+          </button>
+          <button type="button" @click="ffTab = 'hustle'; refreshFFCharts();"
+                  class="px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition"
+                  :class="ffTab === 'hustle' ? 'bg-sky-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'">
+            <i data-lucide="swords" class="w-4 h-4"></i>
+            <span>Hustle vs Compounding (Duel)</span>
+          </button>
+        </div>
+
+        <div x-show="ffTab === 'growth'" class="space-y-2">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Area biru = total portfolio. Garis hijau putus = akumulasi investasimu. Gap keduanya = keajaiban compounding.</p>
+          <div class="relative h-72 w-full">
+            <canvas id="ffGrowthChart"></canvas>
+          </div>
+        </div>
+
+        <div x-show="ffTab === 'hustle'" class="space-y-2">
+          <p class="text-xs text-slate-500 dark:text-slate-400">Balok ungu = investasimu. Balok hijau = hasil kerja uangmu. Garis teal = return/thn. Garis oranye = tabungan/thn. Titik merah = Crossover point.</p>
+          <div class="relative h-72 w-full">
+            <canvas id="ffHustleChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Collapsible Card: What-if Table -->
+      <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between cursor-pointer"
+             @click="ffCollapse.whatif = !ffCollapse.whatif">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">📋 What-if: Dampak Investing Power</h3>
+            <p class="text-[11px] text-slate-500">Posisi kamu saat ini disorot biru.</p>
+          </div>
+          <button class="text-xs font-semibold text-sky-600 dark:text-sky-400" x-text="ffCollapse.whatif ? 'Maximize ▲' : 'Minimize ▼'"></button>
+        </div>
+        <div x-show="!ffCollapse.whatif" class="overflow-x-auto p-4">
+          <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="text-[11px] font-semibold text-slate-400 uppercase border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Investing Power/bln</th>
+                <th class="py-2.5 px-3">Crossover</th>
+                <th class="py-2.5 px-3">Porto 10 thn</th>
+                <th class="py-2.5 px-3">Porto 20 thn</th>
+                <th class="py-2.5 px-3">Porto 30 thn</th>
+                <th class="py-2.5 px-3">Porto 40 thn</th>
+                <th class="py-2.5 px-3">Porto 50 thn</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono">
+              <template x-for="row in ffWhatIfRows" :key="row.ip">
+                <tr :class="row.isCurrent ? 'bg-sky-500/10 font-bold text-sky-600 dark:text-sky-400' : ''">
+                  <td class="py-2 px-3" x-text="row.label + (row.isCurrent ? ' ← kamu' : '')"></td>
+                  <td class="py-2 px-3" x-text="row.cross"></td>
+                  <td class="py-2 px-3" x-text="formatIDR(row.p10)"></td>
+                  <td class="py-2 px-3" x-text="formatIDR(row.p20)"></td>
+                  <td class="py-2 px-3" x-text="formatIDR(row.p30)"></td>
+                  <td class="py-2 px-3" x-text="formatIDR(row.p40)"></td>
+                  <td class="py-2 px-3" x-text="formatIDR(row.p50)"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Collapsible Card: Gap Chart -->
+      <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between cursor-pointer"
+             @click="ffCollapse.gap = !ffCollapse.gap; if(!ffCollapse.gap) setTimeout(() => refreshFFCharts(), 100);">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">📊 Kesulitan Antar Milestone (Gap Waktu)</h3>
+            <p class="text-[11px] text-slate-500">Munger Effect: Gap level pertama adalah yang paling berat, setelah itu percepatan compounding terjadi.</p>
+          </div>
+          <button class="text-xs font-semibold text-sky-600 dark:text-sky-400" x-text="ffCollapse.gap ? 'Maximize ▲' : 'Minimize ▼'"></button>
+        </div>
+        <div x-show="!ffCollapse.gap" class="p-4">
+          <div class="relative h-60 w-full">
+            <canvas id="ffGapChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Card: 20 Milestones Table -->
+      <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between cursor-pointer"
+             @click="ffCollapse.ms = !ffCollapse.ms">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">🏆 20 Milestones — Semua Tier Kekayaan</h3>
+            <p class="text-[11px] text-slate-500">Rincian estimasi usia pencapaian, passive income, dan gap waktu.</p>
+          </div>
+          <button class="text-xs font-semibold text-sky-600 dark:text-sky-400" x-text="ffCollapse.ms ? 'Maximize ▲' : 'Minimize ▼'"></button>
+        </div>
+        <div x-show="!ffCollapse.ms" class="p-4 overflow-x-auto">
+          <div class="msrow text-[11px] font-bold text-slate-400 uppercase border-b border-slate-200 dark:border-slate-800 pb-2">
+            <span>Target</span><span>USD</span><span>Passive/bln</span>
+            <span>Usia</span><span>Gap</span><span></span><span>Kesulitan</span>
+          </div>
+          <div class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono text-xs">
+            <template x-for="item in ffMilestonesRender" :key="item.v">
+              <div class="msrow py-2.5">
+                <div class="flex items-center gap-2 font-sans font-bold">
+                  <span class="w-1.5 h-3.5 rounded" :style="'background:' + item.tierColor"></span>
+                  <span x-text="item.l"></span>
+                </div>
+                <span class="text-slate-500" x-text="item.usd"></span>
+                <span class="text-emerald-500 font-bold" x-text="item.pas"></span>
+                <div>
+                  <div class="font-bold text-slate-900 dark:text-white" x-text="item.ageAt"></div>
+                  <div class="text-[10px] text-slate-400" x-text="item.thnKe"></div>
+                </div>
+                <div>
+                  <div class="font-bold text-slate-700 dark:text-slate-300" x-text="item.gapText"></div>
+                  <div class="bw"><div class="bf" :style="'width:' + item.bw + '%; background:' + item.bc"></div></div>
+                </div>
+                <div class="text-center font-bold text-emerald-500" x-text="item.isOwned ? '✓' : ''"></div>
+                <div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold" :style="'background:' + item.diffBg + '; color:' + item.diffColor" x-text="item.diffLabel"></span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Card: Klasifikasi Tier Kekayaan -->
+      <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between cursor-pointer"
+             @click="ffCollapse.tier = !ffCollapse.tier">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">💎 Klasifikasi 7 Tier Kekayaan</h3>
+            <p class="text-[11px] text-slate-500">Standar benchmark kekayaan global dan psikologi tahapan wealth building.</p>
+          </div>
+          <button class="text-xs font-semibold text-sky-600 dark:text-sky-400" x-text="ffCollapse.tier ? 'Maximize ▲' : 'Minimize ▼'"></button>
+        </div>
+        <div x-show="!ffCollapse.tier" class="p-4 space-y-3">
+          <template x-for="tr in ffTiers" :key="tr.k">
+            <div class="p-3.5 rounded-xl border flex items-start gap-3.5" :style="'background:' + tr.bg + '; border-color:' + tr.br">
+              <div class="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0" :style="'background:' + tr.c"></div>
+              <div>
+                <div class="font-bold text-xs" :style="'color:' + tr.c">
+                  <span x-text="tr.l"></span>
+                  <span class="font-mono text-[10px] opacity-75 font-normal ml-1" x-text="tr.sb"></span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1" x-text="tr.d"></p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: ADD / EDIT CATEGORY (DYNAMIC CATEGORIES)                          -->
+  <!-- MODAL: ADD / EDIT CATEGORY                                                -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showCategoryModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showCategoryModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -690,7 +1099,6 @@
       </div>
 
       <form @submit.prevent="saveCategory()" class="space-y-4 text-xs">
-        
         <div>
           <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">ID Kategori (Kode Unik)</label>
           <input type="text" x-model="categoryForm.id" :disabled="!categoryForm.isNew" required placeholder="misal: core_radar, dividend_growth"
@@ -733,14 +1141,13 @@
             <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-md shadow-sky-600/20">Simpan Kategori</button>
           </div>
         </div>
-
       </form>
 
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: ADD / EDIT ASSET                                                   -->
+  <!-- MODAL: ADD / EDIT ASSET (WITH CATEGORY SELECTOR)                          -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showAssetModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showAssetModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
@@ -748,97 +1155,88 @@
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <i data-lucide="layers" class="w-4 h-4 text-sky-500"></i>
-          <span x-text="assetForm.id ? 'Edit Posisi Aset' : 'Tambah Aset Baru'"></span>
+          <span x-text="assetForm.id ? 'Edit Aset' : 'Tambah Aset Baru'"></span>
         </h3>
         <button @click="showAssetModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form @submit.prevent="saveAsset()" class="space-y-3.5 text-xs">
+      <form @submit.prevent="saveAsset()" class="space-y-4 text-xs">
         
+        <div>
+          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Pilih Kategori Aset</label>
+          <select x-model="assetForm.category" required class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
+            <template x-for="c in data.categories" :key="c.id">
+              <option :value="c.id" x-text="c.name"></option>
+            </template>
+          </select>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Ticker (Yahoo Finance)</label>
-            <input type="text" x-model="assetForm.ticker" required placeholder="NVDA, BBCA.JK, BTC-USD"
+            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Ticker Symbol</label>
+            <input type="text" x-model="assetForm.ticker" required placeholder="misal: QQQ, BBCA.JK, BTC-USD"
                    class="w-full rounded-xl px-3.5 py-2 font-mono uppercase bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Kategori Portofolio</label>
-            <select x-model="assetForm.category" class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
-              <template x-for="cat in data.categories" :key="cat.id">
-                <option :value="cat.id" x-text="cat.name"></option>
-              </template>
-            </select>
+            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Nama Aset / Catatan</label>
+            <input type="text" x-model="assetForm.name" required placeholder="misal: 100 best tech firms"
+                   class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
         </div>
 
-        <div>
-          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Nama / Peran Aset</label>
-          <input type="text" x-model="assetForm.name" required placeholder="misal: Raja Perbankan Swasta RI, 500 Best US"
-                 class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Mata Uang</label>
+            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Mata Uang Basis</label>
             <select x-model="assetForm.currency" class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
               <option value="USD">USD ($)</option>
               <option value="IDR">IDR (Rp)</option>
             </select>
           </div>
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Quantity</label>
-            <input type="number" step="any" x-model="assetForm.quantity" placeholder="0"
-                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
-          </div>
-          <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Satuan</label>
-            <select x-model="assetForm.is_lot" class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
-              <option :value="false">Shares / Coin</option>
-              <option :value="true">Lot (100 Lembar)</option>
-            </select>
+            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Modal Terinvestasi (IDR)</label>
+            <input type="number" step="any" x-model.number="assetForm.invested_idr"
+                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Modal Terinvestasi (IDR)</label>
-            <input type="number" step="any" x-model="assetForm.invested_idr" placeholder="Rp 0"
-                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Quantity (Unit / Lot)</label>
+            <input type="number" step="any" x-model.number="assetForm.quantity"
+                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Harga Beli Rata-Rata (AVG)</label>
-            <input type="number" step="any" x-model="assetForm.avg_price" placeholder="0.00"
-                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Harga Beli Rata-rata (AVG)</label>
+            <input type="number" step="any" x-model.number="assetForm.avg_price"
+                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
         </div>
 
-        <!-- Custom PE Valuation Thresholds per Asset -->
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-          <span class="font-bold text-slate-900 dark:text-white block text-[11px] uppercase tracking-wider">
-            Kustomisasi Valuasi P/E Khusus Aset Ini:
-          </span>
-          <div class="grid grid-cols-3 gap-2.5">
+        <!-- Custom PE Valuation Thresholds -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700 space-y-2">
+          <span class="font-bold text-sky-600 dark:text-sky-400 block">Kustom Batas Valuasi P/E (Khusus Aset Ini)</span>
+          <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="block mb-0.5 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">P/E Murah / Diskon</label>
-              <input type="number" step="any" x-model="assetForm.pe_great" placeholder="misal: 20"
-                     class="w-full rounded-lg px-2.5 py-1.5 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+              <label class="text-[10px] text-slate-500 block">Sangat Murah (<)</label>
+              <input type="number" step="any" x-model.number="assetForm.pe_great" placeholder="20"
+                     class="w-full rounded-lg px-2.5 py-1.5 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs">
             </div>
             <div>
-              <label class="block mb-0.5 text-[10px] text-sky-600 dark:text-sky-400 font-semibold">P/E Wajar (Fair)</label>
-              <input type="number" step="any" x-model="assetForm.pe_good" placeholder="misal: 25"
-                     class="w-full rounded-lg px-2.5 py-1.5 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+              <label class="text-[10px] text-slate-500 block">Wajar / Bagus (<)</label>
+              <input type="number" step="any" x-model.number="assetForm.pe_good" placeholder="25"
+                     class="w-full rounded-lg px-2.5 py-1.5 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs">
             </div>
             <div>
-              <label class="block mb-0.5 text-[10px] text-rose-600 dark:text-rose-400 font-semibold">P/E Mahal (Overvalued)</label>
-              <input type="number" step="any" x-model="assetForm.pe_exp" placeholder="misal: 30"
-                     class="w-full rounded-lg px-2.5 py-1.5 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+              <label class="text-[10px] text-slate-500 block">Mulai Mahal (>)</label>
+              <input type="number" step="any" x-model.number="assetForm.pe_exp" placeholder="30"
+                     class="w-full rounded-lg px-2.5 py-1.5 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs">
             </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3">
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
           <button type="button" @click="showAssetModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">Batal</button>
           <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-md shadow-sky-600/20">Simpan Aset</button>
         </div>
@@ -849,20 +1247,20 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: PENGATURAN VISIBILITAS KOLOM (CUSTOMIZE COLUMNS)                   -->
+  <!-- MODAL: PENGATURAN & URUTAN KOLOM (CUSTOMIZE & REORDER COLUMNS)            -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showColumnModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div @click.away="showColumnModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5">
+    <div @click.away="showColumnModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5">
       
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
         <div>
           <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <i data-lucide="sliders-horizontal" class="w-4 h-4 text-sky-500"></i>
-            <span>Pengaturan Kolom Tabel</span>
+            <span>Pengaturan & Urutan Kolom Tabel</span>
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 24 kolom aktif'"></span>).
+            Aktifkan kolom dan atur urutan posisi (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 24 kolom aktif'"></span>).
           </p>
         </div>
         <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -872,29 +1270,47 @@
 
       <!-- Quick Preset Buttons -->
       <div class="flex flex-wrap items-center gap-2 text-xs">
-        <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
+        <span class="text-slate-400 font-semibold text-[11px]">PRESET:</span>
         <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Semua Kolom (24)
+          Semua (24)
         </button>
         <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
-          Standar Rekomendasi (15)
+          Standar (15)
         </button>
         <button @click="setColsPreset('cagr')" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/30 transition">
           Dengan CAGR (19)
         </button>
         <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-          Ringkas Minimal (6)
+          Ringkas (6)
         </button>
       </div>
 
-      <!-- Column Groups Grid -->
+      <!-- Urutan Kolom & Checkbox Grid -->
       <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
         
-        <!-- Group 1: Indikator Performa Return (% Profit) -->
+        <!-- Reorder list of active columns -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2">
+          <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
+            <i data-lucide="move" class="w-3.5 h-3.5"></i>
+            <span>Susun Urutan Posisi Kolom (Geser Kiri / Kanan)</span>
+          </span>
+          <div class="flex flex-wrap gap-1.5 text-xs">
+            <template x-for="(colKey, cIdx) in columnOrder" :key="colKey">
+              <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg border"
+                   :class="cols[colKey] ? 'bg-white dark:bg-slate-900 border-sky-500/50 text-slate-900 dark:text-white' : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-400 opacity-60'">
+                <button type="button" @click="moveColOrder(cIdx, -1)" class="text-slate-400 hover:text-sky-500 text-[10px]">◀</button>
+                <span class="font-semibold text-[11px]" x-text="getColumnLabel(colKey)"></span>
+                <button type="button" @click="moveColOrder(cIdx, 1)" class="text-slate-400 hover:text-sky-500 text-[10px]">▶</button>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Group 1: Return % -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-            <span>1. Indikator Performa Return (% Profit Kumulatif)</span>
+            <span>1. Indikator Performa Return (% Profit)</span>
           </span>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
@@ -908,6 +1324,10 @@
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
               <input type="checkbox" x-model="cols.perf1m" @change="saveColsPref()" class="rounded text-sky-600">
               <span class="font-bold">1M</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
+              <input type="checkbox" x-model="cols.perf6m" @change="saveColsPref()" class="rounded text-sky-600">
+              <span class="font-bold">6M</span>
             </label>
             <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
               <input type="checkbox" x-model="cols.perf1y" @change="saveColsPref()" class="rounded text-sky-600">
@@ -932,7 +1352,7 @@
           </div>
         </div>
 
-        <!-- Group 2: Indikator Compound Growth (CAGR Tahunan) -->
+        <!-- Group 2: CAGR -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="percent" class="w-3.5 h-3.5"></i>
@@ -958,7 +1378,7 @@
           </div>
         </div>
 
-        <!-- Group 3: Valuasi, ATH & Data Pasar -->
+        <!-- Group 3: Valuasi & Pasar -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="target" class="w-3.5 h-3.5"></i>
@@ -992,31 +1412,31 @@
           </div>
         </div>
 
-        <!-- Group 4: Portofolio & Posisi -->
+        <!-- Group 4: Posisi Portofolio -->
         <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
           <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wider">
             <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
             <span>4. Portofolio & Posisi Investasi</span>
           </span>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.investedIdr" @change="saveColsPref()" class="rounded text-sky-600">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
+              <input type="checkbox" x-model="cols.investedIdr" @change="saveColsPref()" class="rounded text-emerald-600">
               <span class="font-bold">Modal Terinvestasi</span>
             </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.quantity" @change="saveColsPref()" class="rounded text-sky-600">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
+              <input type="checkbox" x-model="cols.quantity" @change="saveColsPref()" class="rounded text-emerald-600">
               <span class="font-bold">Quantity</span>
             </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.avgPrice" @change="saveColsPref()" class="rounded text-sky-600">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
+              <input type="checkbox" x-model="cols.avgPrice" @change="saveColsPref()" class="rounded text-emerald-600">
               <span class="font-bold">AVG Price</span>
             </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.curVal" @change="saveColsPref()" class="rounded text-sky-600">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
+              <input type="checkbox" x-model="cols.curVal" @change="saveColsPref()" class="rounded text-emerald-600">
               <span class="font-bold">Nilai Berjalan</span>
             </label>
-            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-sky-500">
-              <input type="checkbox" x-model="cols.pnl" @change="saveColsPref()" class="rounded text-sky-600">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-emerald-500">
+              <input type="checkbox" x-model="cols.pnl" @change="saveColsPref()" class="rounded text-emerald-600">
               <span class="font-bold">Floating PnL</span>
             </label>
           </div>
@@ -1024,53 +1444,50 @@
 
       </div>
 
-      <!-- Footer -->
       <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-        <span class="text-[11px] text-slate-400">Pilihan otomatis tersimpan di browser Anda</span>
-        <button type="button" @click="showColumnModal = false" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-md shadow-sky-600/20 text-xs transition">
-          Selesai
-        </button>
+        <button type="button" @click="resetColsDefault()" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-semibold">Reset ke Default</button>
+        <button type="button" @click="showColumnModal = false" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md shadow-sky-600/20">Selesai</button>
       </div>
 
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: SETTINGS (FINANCIAL FREEDOM & CASH)                               -->
+  <!-- MODAL: SETTINGS (TARGET FF, OUTGOINGS & CASH)                             -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showSettingsModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showSettingsModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <i data-lucide="sliders" class="w-4 h-4 text-sky-500"></i>
-          <span>Pengaturan Target & Kas</span>
+          <i data-lucide="settings" class="w-4 h-4 text-sky-500"></i>
+          <span>Pengaturan Target & Finansial</span>
         </h3>
         <button @click="showSettingsModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form @submit.prevent="saveSettings()" class="space-y-3.5 text-xs">
+      <form @submit.prevent="saveSettings()" class="space-y-4 text-xs">
         <div>
           <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Target Financial Freedom (IDR)</label>
-          <input type="number" step="any" x-model="settingsForm.target_financial_freedom" required
-                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+          <input type="number" step="any" x-model.number="settingsForm.target_financial_freedom" required
+                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
         </div>
 
         <div>
-          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Total Modal Keluar / Outgoings (IDR)</label>
-          <input type="number" step="any" x-model="settingsForm.total_outgoings" required
-                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Total Outgoings Bulanan / Modal Keluar (IDR)</label>
+          <input type="number" step="any" x-model.number="settingsForm.total_outgoings" required
+                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
         </div>
 
         <div>
-          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Sisa Saldo Kas / Reksa Dana (IDR)</label>
-          <input type="number" step="any" x-model="settingsForm.cash_balance" required
-                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none">
+          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Sisa Saldo Kas, Reksa Dana & BPJS (IDR)</label>
+          <input type="number" step="any" x-model.number="settingsForm.cash_balance" required
+                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3">
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
           <button type="button" @click="showSettingsModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">Batal</button>
           <button type="submit" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-md shadow-sky-600/20">Simpan Pengaturan</button>
         </div>
@@ -1080,22 +1497,22 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL: EDIT MONTHLY RECORD                                               -->
+  <!-- MODAL: EDIT MONTHLY ROW                                                   -->
   <!-- ========================================================================= -->
   <div x-cloak x-show="showMonthlyModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div @click.away="showMonthlyModal = false" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       
       <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <i data-lucide="edit" class="w-4 h-4 text-sky-500"></i>
-          <span>Edit Rekap Bulan: <span x-text="monthlyForm.month_name"></span></span>
+          <i data-lucide="calendar-check" class="w-4 h-4 text-sky-500"></i>
+          <span x-text="'Catatan Bulan ' + monthlyForm.month_name + ' ' + monthlyForm.year"></span>
         </h3>
         <button @click="showMonthlyModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <form @submit.prevent="saveMonthlyRow()" class="space-y-3.5 text-xs">
+      <form @submit.prevent="saveMonthly()" class="space-y-4 text-xs">
         <div>
           <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Modal Keluar (Outgoings IDR)</label>
           <input type="number" step="any" x-model="monthlyForm.total_outgoings"
@@ -1135,9 +1552,7 @@
     </div>
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- TOAST NOTIFICATION                                                       -->
-  <!-- ========================================================================= -->
+  <!-- Toast Notification -->
   <div x-cloak x-show="toast.show" x-transition
        class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl flex items-center gap-2.5 font-medium text-xs">
     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
@@ -1145,16 +1560,16 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- APP SCRIPT                                                                -->
+  <!-- ALPINE.JS LOGIC & PROTOKOL NAGA INTEGRATION                               -->
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
-      // Load saved column preferences or default (24 total columns)
+      // 24 total configurable columns
       const defaultCols = {
         perf24h: true,
         perf5h: true,
         perf1m: true,
-        perf6m: true, // TAMPIL SECARA DEFAULT
+        perf6m: true,
         perf1y: true,
         perf5y: true,
         perf10y: true,
@@ -1168,8 +1583,8 @@
         athDrawdown: true,
         athZone: true,
         peValuation: true,
-        marketCap: false, // TIDAK PERLU DITAMPILKAN SECARA DEFAULT
-        volume: false,    // TIDAK PERLU DITAMPILKAN SECARA DEFAULT
+        marketCap: false,
+        volume: false,
         investedIdr: true,
         quantity: true,
         avgPrice: false,
@@ -1177,10 +1592,20 @@
         pnl: true
       };
 
+      const defaultOrder = [
+        'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'perf15y', 'perf20y',
+        'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y',
+        'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'marketCap', 'volume',
+        'investedIdr', 'quantity', 'avgPrice', 'curVal', 'pnl'
+      ];
+
       let savedCols = defaultCols;
+      let savedOrder = defaultOrder;
       try {
-        const stored = localStorage.getItem('radar_cols_v3');
+        const stored = localStorage.getItem('radar_cols_v4');
         if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
+        const storedOrder = localStorage.getItem('radar_col_order_v4');
+        if (storedOrder) savedOrder = JSON.parse(storedOrder);
       } catch (e) {
         console.error(e);
       }
@@ -1195,10 +1620,14 @@
         activeView: 'portfolio',
         searchQuery: '',
         
-        // 24 Fully Configurable Columns
+        // 24 Configurable Columns & Custom Ordering
         cols: savedCols,
+        columnOrder: savedOrder,
         showColumnModal: false,
         
+        draggedItem: null,
+        draggedCategory: null,
+
         isLoading: false,
         currentTime: '',
         autoRefreshCountdown: 15,
@@ -1230,6 +1659,68 @@
           current_networth: 0, investing_power: 0, growth_pct: 0, notes: ''
         },
 
+        // =====================================================================
+        // PROTOKOL NAGA (KALKULATOR FF) STATE & CALCULATION ENGINE
+        // =====================================================================
+        ffTab: 'growth',
+        ffCollapse: { whatif: false, gap: false, ms: false, tier: false },
+        ff: {
+          cur: 100000000,
+          curInput: '100.000.000',
+          mo: 5000000,
+          ret: 15.0,
+          wr: 0.0,
+          ipg: 0.0,
+          rate: 18000,
+          age: 27,
+          horizon: 15
+        },
+        ffStatusBadgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+        ffStatusText: 'Proyeksi Aktif',
+        ffStatusSubtext: '',
+        ffCrossoverStatusText: '',
+        ffPassiveGross: 0,
+        ffPassiveNet: 0,
+        ffKPI: { hardest: '—', hardestGap: '—', easiest: '—', easiestGap: '—', hnwi: '—', hnwiSub: '—', vhnwi: '—', vhnwiSub: '—', uhnwi: '—', uhnwiSub: '—', t1: '—', t1Sub: '—' },
+        ffWhatIfRows: [],
+        ffMilestonesRender: [],
+        ffGrowthChartInstance: null,
+        ffHustleChartInstance: null,
+        ffGapChartInstance: null,
+
+        ffTiers: [
+          { k:'starter', l:'Starter', sb:'< $6K', c:'#777772', bg:'rgba(119,119,114,.08)', br:'rgba(119,119,114,.2)', d:'Fondasi awal — compounding belum signifikan. Disiplin menabung adalah senjata utama di tahap ini.'},
+          { k:'miliarder', l:'Miliarder', sb:'$6K – $60K', c:'#1E6FB0', bg:'rgba(30,111,176,.08)', br:'rgba(30,111,176,.22)', d:'Miliarder IDR. Return bulanan mulai terasa, namun kontribusi manual masih mendominasi pertumbuhan.'},
+          { k:'affluent', l:'Affluent', sb:'$60K – $1M', c:'#187B55', bg:'rgba(24,123,85,.08)', br:'rgba(24,123,85,.22)', d:'Kelas menengah atas. Return investasi mendekati gaji rata-rata profesional senior.'},
+          { k:'hnwi', l:'HNWI', sb:'$1M – $5M', c:'#443EA0', bg:'rgba(68,62,160,.08)', br:'rgba(68,62,160,.22)', d:'High Net Worth Individual (top 1% global). Return bulanan melampaui gaji profesional senior mana pun.'},
+          { k:'vhnwi', l:'VHNWI', sb:'$5M – $30M', c:'#9A6208', bg:'rgba(154,98,8,.08)', br:'rgba(154,98,8,.22)', d:'Very High Net Worth. Aset bekerja lebih keras dari kamu. Passive income cover lifestyle premium sepenuhnya.'},
+          { k:'uhnwi', l:'UHNWI', sb:'$30M – $60M', c:'#B83030', bg:'rgba(184,48,48,.08)', br:'rgba(184,48,48,.22)', d:'Ultra High Net Worth. Return harian portofoliomu melampaui UMR bulanan ribuan orang.'},
+          { k:'ultra', l:'Ultra UHNWI', sb:'> $60M', c:'#7B2020', bg:'rgba(123,32,32,.08)', br:'rgba(123,32,32,.22)', d:'Kurang dari 200.000 orang di seluruh dunia ada di tier ini. Top 0.001% global. Dynastic wealth territory.'}
+        ],
+
+        ffMilestonesRaw: [
+          { v:100e6, l:'Rp 100 juta', t:'starter' },
+          { v:200e6, l:'Rp 200 juta', t:'starter' },
+          { v:300e6, l:'Rp 300 juta', t:'starter' },
+          { v:500e6, l:'Rp 500 juta', t:'starter' },
+          { v:700e6, l:'Rp 700 juta', t:'starter' },
+          { v:1e9, l:'Rp 1 miliar', t:'miliarder' },
+          { v:1.5e9, l:'Rp 1,5 miliar', t:'miliarder' },
+          { v:2e9, l:'Rp 2 miliar', t:'miliarder' },
+          { v:4e9, l:'Rp 4 miliar', t:'miliarder' },
+          { v:6e9, l:'Rp 6 miliar', t:'miliarder' },
+          { v:10e9, l:'Rp 10 miliar', t:'affluent' },
+          { v:15e9, l:'Rp 15 miliar', t:'hnwi' },
+          { v:20e9, l:'Rp 20 miliar', t:'hnwi' },
+          { v:25e9, l:'Rp 25 miliar', t:'hnwi' },
+          { v:50e9, l:'Rp 50 miliar', t:'vhnwi' },
+          { v:75e9, l:'Rp 75 miliar', t:'vhnwi' },
+          { v:100e9, l:'Rp 100 miliar', t:'vhnwi' },
+          { v:250e9, l:'Rp 250 miliar', t:'vhnwi' },
+          { v:500e9, l:'Rp 500 miliar', t:'uhnwi' },
+          { v:1e12, l:'Rp 1 Triliun', t:'ultra' }
+        ],
+
         initApp() {
           this.settingsForm = {
             target_financial_freedom: this.data.target_financial_freedom_idr || 8844000000.0,
@@ -1242,6 +1733,330 @@
           lucide.createIcons();
         },
 
+        initFFCalculator() {
+          this.$nextTick(() => {
+            this.recalcFF();
+            lucide.createIcons();
+          });
+        },
+
+        syncFFFromPortfolio() {
+          if (this.data.current_net_worth_idr > 0) {
+            this.setFFPorto(this.data.current_net_worth_idr);
+            this.showToast('Portfolio disinkronkan ke ' + this.formatIDR(this.data.current_net_worth_idr));
+          }
+        },
+
+        setFFPorto(val) {
+          this.ff.cur = val;
+          this.ff.curInput = Math.round(val).toLocaleString('id-ID');
+          this.recalcFF();
+        },
+
+        onFFCurBlur() {
+          const n = parseInt(this.ff.curInput.replace(/[^\d]/g, ''), 10);
+          this.ff.cur = isNaN(n) ? 0 : Math.min(n, 100e9);
+          this.ff.curInput = Math.round(this.ff.cur).toLocaleString('id-ID');
+          this.recalcFF();
+        },
+
+        onFFRangeInput() {
+          this.ff.curInput = Math.round(this.ff.cur).toLocaleString('id-ID');
+          this.recalcFF();
+        },
+
+        recalcFF() {
+          const retDec = this.ff.ret / 100.0;
+          const wrDec = this.ff.wr / 100.0;
+          const ipgDec = this.ff.ipg / 100.0;
+          const maxYears = 100;
+          
+          let p = this.ff.cur;
+          let inv = this.ff.cur;
+          const hit = this.ffMilestonesRaw.map(() => null);
+          const yrP = [], yrI = [], annRet = [Math.max(0, this.ff.cur * (retDec - wrDec))], annSav = [this.ff.mo * 12];
+
+          this.ffMilestonesRaw.forEach((ms, i) => { if (p >= ms.v) hit[i] = 0; });
+
+          let pPrev = this.ff.cur;
+          let yrContrib = 0;
+
+          for (let m = 1; m <= maxYears * 12; m++) {
+            const yrIdx = Math.floor((m - 1) / 12);
+            const moNow = this.ff.mo * Math.pow(1 + ipgDec, yrIdx);
+            p = p * (1 + retDec / 12) - p * (wrDec / 12) + moNow;
+            inv += moNow;
+            yrContrib += moNow;
+
+            this.ffMilestonesRaw.forEach((ms, i) => { if (hit[i] === null && p >= ms.v) hit[i] = m / 12.0; });
+
+            if (m % 12 === 0) {
+              yrP.push(Math.round(p));
+              yrI.push(Math.round(inv));
+              const retThisYear = p - pPrev - yrContrib;
+              annRet.push(Math.max(0, retThisYear));
+              annSav.push(yrContrib);
+              pPrev = p;
+              yrContrib = 0;
+            }
+          }
+
+          // Crossover calculation
+          let crossY = null;
+          if ((annSav[0] || 0) === 0) crossY = 0;
+          else {
+            for (let y = 0; y <= maxYears; y++) {
+              if ((annRet[y] || 0) >= (annSav[y] || 0)) { crossY = y; break; }
+            }
+          }
+
+          // Passive calculations
+          this.ffPassiveGross = (this.ff.cur * retDec) / 12.0;
+          this.ffPassiveNet = Math.max(0, (this.ff.cur * (retDec - wrDec)) / 12.0);
+
+          // Status bar text
+          if (wrDec > retDec) {
+            this.ffStatusText = '⚠ Portfolio Menyusut';
+            this.ffStatusSubtext = 'Withdrawal rate lebih besar dari return tahunan.';
+            this.ffStatusBadgeClass = 'bg-rose-500/10 text-rose-500 border border-rose-500/30';
+          } else if (crossY === 0) {
+            this.ffStatusText = '🎯 Sudah di Napas Zone Sekarang!';
+            this.ffStatusSubtext = 'Return portfoliomu melampaui tabungan aktifmu. Compounding memimpin sepenuhnya!';
+            this.ffStatusBadgeClass = 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30';
+          } else if (crossY !== null) {
+            this.ffStatusText = `✦ Crossover di Tahun ke-${crossY} (Usia ${Math.round(this.ff.age + crossY)})`;
+            this.ffStatusSubtext = `Return portfolio per tahun akan melampaui tabunganmu setelah tahun ke-${crossY}.`;
+            this.ffStatusBadgeClass = 'bg-sky-500/10 text-sky-500 border border-sky-500/30';
+          } else {
+            this.ffStatusText = 'Tingkatkan Return atau Tabungan';
+            this.ffStatusSubtext = 'Crossover belum tercapai dalam 100 tahun.';
+            this.ffStatusBadgeClass = 'bg-amber-500/10 text-amber-500 border border-amber-500/30';
+          }
+          this.ffCrossoverStatusText = crossY !== null ? (crossY === 0 ? 'Sekarang (🟢 Aktif)' : `Tahun ke-${crossY} (Usia ${Math.round(this.ff.age + crossY)})`) : '>100 thn';
+
+          // Gaps calculation
+          const gaps = hit.map((r, i) => {
+            if (r === 0) return 0;
+            if (r === null) return null;
+            let prev = 0;
+            for (let j = i - 1; j >= 0; j--) {
+              if (hit[j] === 0) { prev = 0; break; }
+              if (hit[j] !== null) { prev = hit[j]; break; }
+            }
+            return Math.max(0, r - prev);
+          });
+
+          // Summary KPIs
+          const act = gaps.map((g, i) => ({ g, i })).filter(x => hit[x.i] !== 0 && x.g !== null);
+          if (act.length) {
+            const hd = act.reduce((a, b) => a.g > b.g ? a : b);
+            const ez = act.reduce((a, b) => a.g < b.g ? a : b);
+            this.ffKPI.hardest = this.ffMilestonesRaw[hd.i].l.replace('Rp ', '');
+            this.ffKPI.hardestGap = 'Gap ' + (hd.g < 1 ? Math.round(hd.g * 12) + ' bln' : hd.g.toFixed(1) + ' thn');
+            this.ffKPI.easiest = this.ffMilestonesRaw[ez.i].l.replace('Rp ', '');
+            this.ffKPI.easiestGap = 'Gap ' + (ez.g < 1 ? Math.round(ez.g * 12) + ' bln' : ez.g.toFixed(1) + ' thn');
+          }
+
+          const setKpiM = (r) => {
+            if (r === 0) return { val: 'Sekarang', sub: '(saat ini)' };
+            if (r) return { val: 'Usia ' + Math.round(this.ff.age + r), sub: 'thn ke-' + r.toFixed(1) };
+            return { val: '>100 thn', sub: '—' };
+          };
+          const hnI = this.ffMilestonesRaw.findIndex(m => m.t === 'hnwi');
+          const vhI = this.ffMilestonesRaw.findIndex(m => m.t === 'vhnwi');
+          const uhI = this.ffMilestonesRaw.findIndex(m => m.t === 'uhnwi');
+          const t1I = this.ffMilestonesRaw.length - 1;
+
+          const kh = setKpiM(hit[hnI]); this.ffKPI.hnwi = kh.val; this.ffKPI.hnwiSub = kh.sub;
+          const kv = setKpiM(hit[vhI]); this.ffKPI.vhnwi = kv.val; this.ffKPI.vhnwiSub = kv.sub;
+          const ku = setKpiM(hit[uhI]); this.ffKPI.uhnwi = ku.val; this.ffKPI.uhnwiSub = ku.sub;
+          const kt = setKpiM(hit[t1I]); this.ffKPI.t1 = kt.val; this.ffKPI.t1Sub = kt.sub;
+
+          // What-If rows
+          const scenarios = [0, 500000, 1000000, 2000000, 5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 50000000];
+          this.ffWhatIfRows = scenarios.map(mo => {
+            const isCurrent = Math.abs(mo - this.ff.mo) < 50000;
+            let tp = this.ff.cur, tinv = this.ff.cur;
+            const pArr = [];
+            let cy = null;
+            for (let m = 1; m <= 50 * 12; m++) {
+              const yIdx = Math.floor((m - 1) / 12);
+              const mNow = mo * Math.pow(1 + ipgDec, yIdx);
+              tp = tp * (1 + retDec / 12) - tp * (wrDec / 12) + mNow;
+              tinv += mNow;
+              if (m % 12 === 0) pArr.push(tp);
+            }
+            if (mo === 0) cy = 0;
+            else {
+              for (let y = 1; y <= 50; y++) {
+                const retY = (pArr[y-1] || 0) * retDec;
+                const savY = mo * Math.pow(1 + ipgDec, y-1) * 12;
+                if (retY >= savY) { cy = y; break; }
+              }
+            }
+            const lbl = mo === 0 ? 'Rp 0' : (mo >= 1e6 ? 'Rp ' + (mo / 1e6) + ' jt' : 'Rp ' + (mo / 1000) + ' rb');
+            return {
+              ip: mo,
+              label: lbl,
+              isCurrent: isCurrent,
+              cross: cy === null ? '>50 thn 🔴' : (cy === 0 ? 'Sekarang 🟢' : `Y${cy} 🟢`),
+              p10: pArr[9] || 0,
+              p20: pArr[19] || 0,
+              p30: pArr[29] || 0,
+              p40: pArr[39] || 0,
+              p50: pArr[49] || 0
+            };
+          });
+
+          // Milestones table render
+          const maxG = Math.max(1, ...gaps.filter(g => g !== null && g > 0));
+          this.ffMilestonesRender = this.ffMilestonesRaw.map((ms, i) => {
+            const isOwned = hit[i] === 0;
+            const g = gaps[i];
+            const r = hit[i];
+            const tr = this.ffTiers.find(x => x.k === ms.t) || this.ffTiers[0];
+            const ageAt = isOwned ? 'Sekarang' : (r ? 'Usia ' + Math.round(this.ff.age + r) : '>100 thn');
+            const thnKe = isOwned ? '(saat ini)' : (r ? 'thn ke-' + r.toFixed(1) : '—');
+            const bw = isOwned ? 100 : (g === null ? 100 : Math.min(100, (g / maxG) * 100));
+            
+            let bc = '#18A374', diffBg = 'rgba(24,163,116,.12)', diffColor = '#18A374', diffLabel = 'Sangat mudah';
+            if (isOwned) { diffLabel = 'Dimiliki'; }
+            else if (g === null) { bc = '#3D0A0A'; diffBg = 'rgba(61,10,10,.12)'; diffColor = '#ff6b6b'; diffLabel = 'Terlalu jauh'; }
+            else if (g > 10) { bc = '#A32D2D'; diffBg = 'rgba(163,45,45,.1)'; diffColor = '#ff7a7a'; diffLabel = 'Sangat sulit'; }
+            else if (g > 5) { bc = '#E24B4A'; diffBg = 'rgba(226,75,74,.1)'; diffColor = '#f87171'; diffLabel = 'Sulit'; }
+            else if (g > 2) { bc = '#BA7517'; diffBg = 'rgba(186,117,23,.1)'; diffColor = '#f59e0b'; diffLabel = 'Sedang'; }
+            else if (g > 0.75) { bc = '#2B7CC7'; diffBg = 'rgba(43,124,199,.1)'; diffColor = '#38bdf8'; diffLabel = 'Mudah'; }
+
+            const gapText = isOwned ? '—' : (g === null ? '>100 thn' : (g < 1 ? Math.round(g * 12) + ' bln' : g.toFixed(1) + ' thn'));
+            const usd = ms.v / this.ff.rate >= 1e6 ? '$' + (ms.v / this.ff.rate / 1e6).toFixed(1) + 'M' : '$' + Math.round(ms.v / this.ff.rate / 1e3) + 'K';
+            const pas = this.formatIDR(ms.v * retDec / 12.0);
+
+            return {
+              v: ms.v,
+              l: ms.l,
+              tierColor: tr.c,
+              usd: usd,
+              pas: pas,
+              ageAt: ageAt,
+              thnKe: thnKe,
+              gapText: gapText,
+              bw: bw,
+              bc: bc,
+              isOwned: isOwned,
+              diffBg: diffBg,
+              diffColor: diffColor,
+              diffLabel: diffLabel
+            };
+          });
+
+          // Render Chart.js
+          this.renderFFCharts(yrP, yrI, annRet, annSav, gaps, hit, crossY);
+        },
+
+        renderFFCharts(yrP, yrI, annRet, annSav, gaps, hit, crossY) {
+          const H = Math.min(this.ff.horizon, yrP.length);
+          const xLbls = Array.from({ length: H }, (_, i) => 'Usia ' + (this.ff.age + i + 1));
+          const dPort = yrP.slice(0, H);
+          const dInv = yrI.slice(0, H);
+          const dInvPortion = yrP.slice(0, H).map((p, i) => Math.min(p, yrI[i]));
+          const dCompReturn = yrP.slice(0, H).map((p, i) => Math.max(0, p - yrI[i]));
+          const dAnnRet = annRet.slice(1, H + 1);
+          const dAnnSav = annSav.slice(1, H + 1);
+
+          const gridColor = this.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+          const textColor = this.isDark ? '#94a3b8' : '#64748b';
+
+          // 1. Growth Chart
+          const ctxGrowth = document.getElementById('ffGrowthChart');
+          if (ctxGrowth) {
+            if (this.ffGrowthChartInstance) this.ffGrowthChartInstance.destroy();
+            this.ffGrowthChartInstance = new Chart(ctxGrowth, {
+              type: 'line',
+              data: {
+                labels: xLbls,
+                datasets: [
+                  { label: 'Portfolio', data: dPort, borderColor: '#0284c7', backgroundColor: 'rgba(14,165,233,0.15)', borderWidth: 2.5, pointRadius: 0, fill: true, tension: 0.35 },
+                  { label: 'Total Investasi', data: dInv, borderColor: '#10b981', borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, fill: false, tension: 0.35 }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                  y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } }
+                }
+              }
+            });
+          }
+
+          // 2. Hustle Chart
+          const ctxHustle = document.getElementById('ffHustleChart');
+          if (ctxHustle) {
+            if (this.ffHustleChartInstance) this.ffHustleChartInstance.destroy();
+            this.ffHustleChartInstance = new Chart(ctxHustle, {
+              type: 'bar',
+              data: {
+                labels: xLbls,
+                datasets: [
+                  { label: 'Investasimu', type: 'bar', data: dInvPortion, backgroundColor: 'rgba(99,102,241,0.7)', stack: 's', yAxisID: 'y' },
+                  { label: 'Kerja Uangmu', type: 'bar', data: dCompReturn, backgroundColor: 'rgba(16,185,129,0.8)', stack: 's', yAxisID: 'y' },
+                  { label: 'Return/thn', type: 'line', data: dAnnRet, borderColor: '#0ea5e9', borderWidth: 2, pointRadius: 0, yAxisID: 'y2' },
+                  { label: 'Tabungan/thn', type: 'line', data: dAnnSav, borderColor: '#f97316', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, yAxisID: 'y2' }
+                ]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { stacked: true, ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+                  y: { stacked: true, position: 'left', ticks: { color: textColor, font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { color: gridColor } },
+                  y2: { position: 'right', ticks: { color: '#0ea5e9', font: { size: 10 }, callback: (v) => this.formatIDR(v) }, grid: { display: false } }
+                }
+              }
+            });
+          }
+
+          // 3. Gap Chart
+          const ctxGap = document.getElementById('ffGapChart');
+          if (ctxGap) {
+            if (this.ffGapChartInstance) this.ffGapChartInstance.destroy();
+            const gLbls = this.ffMilestonesRaw.map(m => m.l.replace('Rp ', '').replace(' miliar', 'M').replace(' juta', 'jt'));
+            const gData = gaps.map((g, i) => hit[i] === 0 ? 0 : (g === null ? 50 : +g.toFixed(1)));
+            const gColors = gaps.map((g, i) => hit[i] === 0 ? '#10b981' : (g === null ? '#3D0A0A' : (g > 10 ? '#ef4444' : (g > 5 ? '#f97316' : (g > 2 ? '#f59e0b' : '#38bdf8')))));
+            
+            this.ffGapChartInstance = new Chart(ctxGap, {
+              type: 'bar',
+              data: {
+                labels: gLbls,
+                datasets: [{ data: gData, backgroundColor: gColors, borderRadius: 4 }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 55 }, grid: { display: false } },
+                  y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => v + ' thn' }, grid: { color: gridColor } }
+                }
+              }
+            });
+          }
+        },
+
+        refreshFFCharts() {
+          this.$nextTick(() => {
+            if (this.ffGrowthChartInstance) this.ffGrowthChartInstance.resize();
+            if (this.ffHustleChartInstance) this.ffHustleChartInstance.resize();
+            if (this.ffGapChartInstance) this.ffGapChartInstance.resize();
+          });
+        },
+
+        // =====================================================================
+        // COLUMN VISIBILITY & ORDERING
+        // =====================================================================
         toggleCol(colKey) {
           if (this.cols[colKey] !== undefined) {
             this.cols[colKey] = !this.cols[colKey];
@@ -1249,197 +2064,183 @@
           }
         },
 
+        moveColOrder(index, direction) {
+          const targetIndex = index + direction;
+          if (targetIndex < 0 || targetIndex >= this.columnOrder.length) return;
+          const temp = this.columnOrder[index];
+          this.columnOrder[index] = this.columnOrder[targetIndex];
+          this.columnOrder[targetIndex] = temp;
+          this.saveColsPref();
+        },
+
+        getColumnLabel(key) {
+          const map = {
+            perf24h: '24H', perf5h: '5H', perf1m: '1M', perf6m: '6M', perf1y: '1Y', perf5y: '5Y', perf10y: '10Y', perf15y: '15Y', perf20y: '20Y',
+            cagr5y: '5Y CAGR', cagr10y: '10Y CAGR', cagr15y: '15Y CAGR', cagr20y: '20Y CAGR',
+            athPrice: 'ATH Price', athDrawdown: '% from ATH', athZone: 'Zonasi ATH', peValuation: 'Valuasi P/E',
+            marketCap: 'Market Cap', volume: 'Volume (24H)',
+            investedIdr: 'Modal Terinvestasi', quantity: 'Quantity', avgPrice: 'AVG Price', curVal: 'Nilai Berjalan', pnl: 'Floating PnL'
+          };
+          return map[key] || key;
+        },
+
         saveColsPref() {
           try {
-            localStorage.setItem('radar_cols_v3', JSON.stringify(this.cols));
-          } catch (e) {
-            console.error(e);
+            localStorage.setItem('radar_cols_v4', JSON.stringify(this.cols));
+            localStorage.setItem('radar_col_order_v4', JSON.stringify(this.columnOrder));
+          } catch (e) {}
+        },
+
+        resetColsDefault() {
+          this.setColsPreset('default');
+        },
+
+        setColsPreset(type) {
+          if (type === 'all') {
+            Object.keys(this.cols).forEach(k => this.cols[k] = true);
+          } else if (type === 'default') {
+            Object.keys(this.cols).forEach(k => this.cols[k] = false);
+            ['perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
+          } else if (type === 'cagr') {
+            Object.keys(this.cols).forEach(k => this.cols[k] = false);
+            ['perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
+          } else if (type === 'compact') {
+            Object.keys(this.cols).forEach(k => this.cols[k] = false);
+            ['perf24h', 'perf1y', 'athZone', 'investedIdr', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
           }
-          this.$nextTick(() => lucide.createIcons());
+          this.saveColsPref();
         },
 
         activeColumnCount() {
           return Object.values(this.cols).filter(Boolean).length;
         },
 
-        setColsPreset(preset) {
-          if (preset === 'all') {
-            Object.keys(this.cols).forEach(k => this.cols[k] = true);
-          } else if (preset === 'default') {
-            this.cols = {
-              perf24h: true, perf5h: true, perf1m: true, perf6m: true, perf1y: true, perf5y: true, perf10y: true,
-              perf15y: false, perf20y: false,
-              cagr5y: false, cagr10y: false, cagr15y: false, cagr20y: false,
-              athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
-              marketCap: false, volume: false,
-              investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
-            };
-          } else if (preset === 'cagr') {
-            this.cols = {
-              perf24h: true, perf5h: true, perf1m: true, perf6m: true, perf1y: true, perf5y: true, perf10y: true,
-              perf15y: false, perf20y: false,
-              cagr5y: true, cagr10y: true, cagr15y: true, cagr20y: true,
-              athPrice: true, athDrawdown: true, athZone: true, peValuation: true,
-              marketCap: false, volume: false,
-              investedIdr: true, quantity: true, avgPrice: false, curVal: true, pnl: true
-            };
-          } else if (preset === 'compact') {
-            this.cols = {
-              perf24h: true, perf5h: true, perf1m: false, perf6m: false, perf1y: true, perf5y: false, perf10y: false,
-              perf15y: false, perf20y: false,
-              cagr5y: false, cagr10y: false, cagr15y: false, cagr20y: false,
-              athPrice: false, athDrawdown: false, athZone: false, peValuation: false,
-              marketCap: false, volume: false,
-              investedIdr: false, quantity: false, avgPrice: false, curVal: true, pnl: true
-            };
-          }
-          this.saveColsPref();
-          this.showToastMessage('Preset kolom berhasil diterapkan!');
+        // =====================================================================
+        // ASSET DRAG & DROP AND CATEGORY REORDERING
+        // =====================================================================
+        onAssetDragStart(e, item, category) {
+          this.draggedItem = item;
+          this.draggedCategory = category;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', JSON.stringify({ itemId: item.id, fromCat: category.id }));
         },
 
-        toggleTheme() {
-          this.isDark = !this.isDark;
-          localStorage.setItem('theme_dark', this.isDark);
-          this.$nextTick(() => lucide.createIcons());
+        onAssetDragOver(e) {
+          e.dataTransfer.dropEffect = 'move';
         },
 
-        startAutoRefreshTimer() {
-          if (this.countdownTimer) clearInterval(this.countdownTimer);
-          this.countdownTimer = setInterval(() => {
-            if (this.autoRefreshCountdown > 1) {
-              this.autoRefreshCountdown--;
-            } else {
-              this.autoRefreshCountdown = 15;
-              this.refreshData(true);
+        onCategoryDragOver(e) {
+          e.dataTransfer.dropEffect = 'move';
+        },
+
+        async onAssetDrop(e, targetItem, targetCategory) {
+          if (!this.draggedItem) return;
+          const itemId = this.draggedItem.id;
+          const fromCatId = this.draggedCategory.id;
+          const toCatId = targetCategory.id;
+
+          // Reorder locally
+          const sourceCategory = this.data.categories.find(c => c.id === fromCatId);
+          const destCategory = this.data.categories.find(c => c.id === toCatId);
+          
+          if (sourceCategory && destCategory) {
+            const itemIdx = sourceCategory.items.findIndex(i => i.id === itemId);
+            if (itemIdx > -1) {
+              const [movedItem] = sourceCategory.items.splice(itemIdx, 1);
+              movedItem.category = toCatId;
+              const targetIdx = destCategory.items.findIndex(i => i.id === targetItem.id);
+              if (targetIdx > -1) {
+                destCategory.items.splice(targetIdx, 0, movedItem);
+              } else {
+                destCategory.items.push(movedItem);
+              }
             }
-          }, 1000);
-        },
-
-        updateClock() {
-          const now = new Date();
-          this.currentTime = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID');
-        },
-
-        showToastMessage(msg) {
-          this.toast.message = msg;
-          this.toast.show = true;
-          setTimeout(() => { this.toast.show = false; }, 3000);
-        },
-
-        filteredCategoryItems(category) {
-          if (!this.searchQuery.trim()) return category.items || [];
-          const q = this.searchQuery.toLowerCase().trim();
-          return (category.items || []).filter(it => 
-            it.ticker.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)
-          );
-        },
-
-        async refreshData(isSilent = false) {
-          if (!isSilent) this.isLoading = true;
-          try {
-            const res = await fetch('/api/refresh', { method: 'POST' });
-            const json = await res.json();
-            if (json.data) {
-              this.data = json.data;
-              this.autoRefreshCountdown = 15;
-              if (!isSilent) this.showToastMessage('Data pasar realtime berhasil disinkronkan!');
-              this.$nextTick(() => lucide.createIcons());
-            }
-          } catch (e) {
-            console.error(e);
-          } finally {
-            if (!isSilent) this.isLoading = false;
           }
-        },
 
-        // Category Handlers
-        openAddCategoryModal() {
-          this.categoryForm = {
-            isNew: true,
-            id: 'kategori_' + Date.now().toString().slice(-4),
-            name: '',
-            subtitle: '',
-            color: 'blue',
-            sort_order: (this.data.categories?.length || 0) + 1
-          };
-          this.showCategoryModal = true;
-          this.$nextTick(() => lucide.createIcons());
-        },
+          this.draggedItem = null;
+          this.draggedCategory = null;
 
-        openEditCategoryModal(category) {
-          this.categoryForm = {
-            isNew: false,
-            id: category.id,
-            name: category.name,
-            subtitle: category.subtitle || '',
-            color: category.color || 'blue',
-            sort_order: category.sort_order || 1
-          };
-          this.showCategoryModal = true;
-          this.$nextTick(() => lucide.createIcons());
-        },
-
-        async saveCategory() {
+          // Persist move to backend
           try {
-            const res = await fetch('/api/categories/upsert', {
+            await fetch('/api/assets/move', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(this.categoryForm)
+              body: JSON.stringify({ item_id: itemId, target_category: toCatId, target_sort_order: 0 })
             });
-            const json = await res.json();
-            if (json.portfolio) {
-              this.data = json.portfolio;
-              this.showCategoryModal = false;
-              this.showToastMessage('Kategori berhasil disimpan!');
-              this.$nextTick(() => lucide.createIcons());
-            }
-          } catch (e) {
-            console.error(e);
+            this.showToast('Posisi aset berhasil dipindahkan!');
+          } catch (err) {
+            console.error('Error moving asset:', err);
           }
         },
 
-        async deleteCategory(categoryId) {
-          if (!confirm('Hapus kategori ini? Aset di dalamnya tidak akan dihapus.')) return;
+        async onCategoryDrop(e, targetCategory) {
+          if (!this.draggedItem || this.draggedCategory.id === targetCategory.id) return;
+          const itemId = this.draggedItem.id;
+          const fromCatId = this.draggedCategory.id;
+          const toCatId = targetCategory.id;
+
+          const sourceCat = this.data.categories.find(c => c.id === fromCatId);
+          const destCat = this.data.categories.find(c => c.id === toCatId);
+          if (sourceCat && destCat) {
+            const itemIdx = sourceCat.items.findIndex(i => i.id === itemId);
+            if (itemIdx > -1) {
+              const [movedItem] = sourceCat.items.splice(itemIdx, 1);
+              movedItem.category = toCatId;
+              destCat.items.push(movedItem);
+            }
+          }
+
+          this.draggedItem = null;
+          this.draggedCategory = null;
+
           try {
-            const res = await fetch(`/api/categories/${categoryId}`, { method: 'DELETE' });
-            const json = await res.json();
-            if (json.portfolio) {
-              this.data = json.portfolio;
-              this.showCategoryModal = false;
-              this.showToastMessage('Kategori berhasil dihapus!');
-              this.$nextTick(() => lucide.createIcons());
-            }
-          } catch (e) {
-            console.error(e);
+            await fetch('/api/assets/move', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ item_id: itemId, target_category: toCatId, target_sort_order: 0 })
+            });
+            this.showToast('Aset dipindahkan ke ' + targetCategory.name);
+          } catch (err) {
+            console.error('Error moving asset:', err);
           }
         },
 
-        // Asset Handlers
-        openAddAssetModal() {
-          const firstCat = this.data.categories?.[0]?.id || 'core_radar';
+        // =====================================================================
+        // CRUD & DIALOG HANDLERS
+        // =====================================================================
+        openAddAssetModal(defaultCategoryId = 'core_radar') {
           this.assetForm = {
-            id: null, category: firstCat, ticker: '', name: '', currency: 'USD',
-            invested_idr: 0, quantity: 0, avg_price: 0, is_lot: false,
-            pe_great: null, pe_good: null, pe_exp: null
+            id: null,
+            category: defaultCategoryId,
+            ticker: '',
+            name: '',
+            currency: 'USD',
+            invested_idr: 0,
+            quantity: 0,
+            avg_price: 0,
+            is_lot: false,
+            pe_great: null,
+            pe_good: null,
+            pe_exp: null
           };
           this.showAssetModal = true;
           this.$nextTick(() => lucide.createIcons());
         },
 
-        editAsset(item) {
+        editAsset(item, categoryId) {
           this.assetForm = {
             id: item.id,
-            category: item.category,
+            category: categoryId,
             ticker: item.ticker,
             name: item.name,
-            currency: item.currency,
-            invested_idr: item.invested_idr,
-            quantity: item.quantity,
-            avg_price: item.avg_price,
-            is_lot: item.is_lot,
-            pe_great: item.pe_great,
-            pe_good: item.pe_good,
-            pe_exp: item.pe_exp
+            currency: item.currency || 'USD',
+            invested_idr: item.invested_idr || 0,
+            quantity: item.quantity || 0,
+            avg_price: item.avg_price || 0,
+            is_lot: !!item.is_lot,
+            pe_great: item.pe_thresholds ? item.pe_thresholds.great : null,
+            pe_good: item.pe_thresholds ? item.pe_thresholds.good : null,
+            pe_exp: item.pe_thresholds ? item.pe_thresholds.expensive : null
           };
           this.showAssetModal = true;
           this.$nextTick(() => lucide.createIcons());
@@ -1452,34 +2253,94 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(this.assetForm)
             });
-            const json = await res.json();
-            if (json.data) {
-              this.data = json.data;
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.data;
               this.showAssetModal = false;
-              this.showToastMessage('Posisi aset berhasil disimpan!');
+              this.showToast('Aset berhasil disimpan!');
               this.$nextTick(() => lucide.createIcons());
             }
-          } catch (e) {
-            console.error(e);
+          } catch (err) {
+            alert('Gagal menyimpan aset: ' + err);
           }
         },
 
-        async deleteAsset(assetId) {
-          if (!assetId || !confirm('Hapus aset ini dari radar?')) return;
+        async deleteAsset(item) {
+          if (!confirm(`Hapus aset "${item.name} (${item.ticker})"?`)) return;
           try {
-            const res = await fetch(`/api/assets/${assetId}`, { method: 'DELETE' });
-            const json = await res.json();
-            if (json.data) {
-              this.data = json.data;
-              this.showToastMessage('Aset berhasil dihapus.');
+            const res = await fetch(`/api/assets/${item.id}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.data;
+              this.showToast('Aset berhasil dihapus');
               this.$nextTick(() => lucide.createIcons());
             }
-          } catch (e) {
-            console.error(e);
+          } catch (err) {
+            alert('Gagal menghapus aset: ' + err);
           }
         },
 
-        // Settings Handlers
+        openAddCategoryModal() {
+          this.categoryForm = {
+            isNew: true,
+            id: '',
+            name: '',
+            subtitle: '',
+            color: 'blue',
+            sort_order: (this.data.categories ? this.data.categories.length : 0) + 1
+          };
+          this.showCategoryModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        openEditCategoryModal(cat) {
+          this.categoryForm = {
+            isNew: false,
+            id: cat.id,
+            name: cat.name,
+            subtitle: cat.subtitle,
+            color: cat.color || 'blue',
+            sort_order: cat.sort_order || 1
+          };
+          this.showCategoryModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        async saveCategory() {
+          try {
+            const res = await fetch('/api/categories/upsert', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.categoryForm)
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.portfolio;
+              this.showCategoryModal = false;
+              this.showToast('Kategori berhasil disimpan!');
+              this.$nextTick(() => lucide.createIcons());
+            }
+          } catch (err) {
+            alert('Gagal menyimpan kategori: ' + err);
+          }
+        },
+
+        async deleteCategory(catId) {
+          if (!confirm(`Hapus kategori "${catId}"? Aset di dalamnya tidak akan terhapus dan akan masuk ke kategori kustom.`)) return;
+          try {
+            const res = await fetch(`/api/categories/${catId}`, { method: 'DELETE' });
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.portfolio;
+              this.showCategoryModal = false;
+              this.showToast('Kategori berhasil dihapus');
+              this.$nextTick(() => lucide.createIcons());
+            }
+          } catch (err) {
+            alert('Gagal menghapus kategori: ' + err);
+          }
+        },
+
         async saveSettings() {
           try {
             const res = await fetch('/api/settings', {
@@ -1487,75 +2348,144 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(this.settingsForm)
             });
-            const json = await res.json();
-            if (json.data) {
-              this.data = json.data;
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.data;
               this.showSettingsModal = false;
-              this.showToastMessage('Pengaturan berhasil diperbarui!');
-              this.$nextTick(() => lucide.createIcons());
+              this.showToast('Pengaturan berhasil diperbarui!');
             }
-          } catch (e) {
-            console.error(e);
-          }
-        },
-
-        // Monthly Track Handlers
-        async switchYear(year) {
-          this.selectedYear = parseInt(year);
-          try {
-            const res = await fetch(`/api/monthly?year=${this.selectedYear}`);
-            const data = await res.json();
-            this.monthlyRecords = data;
-            this.$nextTick(() => lucide.createIcons());
-          } catch (e) {
-            console.error(e);
-          }
-        },
-
-        async promptAddYear() {
-          const defaultNew = (this.availableYears[this.availableYears.length - 1] || 2026) + 1;
-          const yr = prompt('Masukkan tahun baru untuk dicatat:', defaultNew);
-          if (yr && !isNaN(parseInt(yr))) {
-            const newYear = parseInt(yr);
-            try {
-              const res = await fetch(`/api/monthly/add-year/${newYear}`, { method: 'POST' });
-              const json = await res.json();
-              if (json.status === 'success') {
-                this.availableYears = json.years;
-                this.selectedYear = newYear;
-                this.monthlyRecords = json.records;
-                this.showToastMessage(`Tahun ${newYear} berhasil ditambahkan!`);
-                this.$nextTick(() => lucide.createIcons());
-              }
-            } catch (e) {
-              console.error(e);
-            }
+          } catch (err) {
+            alert('Gagal menyimpan pengaturan: ' + err);
           }
         },
 
         editMonthlyRow(row) {
-          this.monthlyForm = { ...row, year: this.selectedYear };
+          this.monthlyForm = {
+            id: row.id,
+            year: this.selectedYear,
+            month_index: row.month_index,
+            month_name: row.month_name,
+            total_outgoings: row.total_outgoings,
+            current_networth: row.current_networth,
+            investing_power: row.investing_power,
+            growth_pct: row.growth_pct,
+            notes: row.notes || ''
+          };
           this.showMonthlyModal = true;
           this.$nextTick(() => lucide.createIcons());
         },
 
-        async saveMonthlyRow() {
+        async saveMonthly() {
           try {
             const res = await fetch('/api/monthly/upsert', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(this.monthlyForm)
             });
-            const json = await res.json();
-            if (json.data) {
-              this.monthlyRecords = json.data;
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.monthlyRecords = result.data;
               this.showMonthlyModal = false;
-              this.showToastMessage('Rekap bulanan berhasil disimpan!');
-              this.$nextTick(() => lucide.createIcons());
+              this.showToast('Catatan bulanan diperbarui!');
+            }
+          } catch (err) {
+            alert('Gagal menyimpan catatan bulanan: ' + err);
+          }
+        },
+
+        async switchYear(yr) {
+          this.selectedYear = yr;
+          try {
+            const res = await fetch(`/api/monthly?year=${yr}`);
+            this.monthlyRecords = await res.json();
+          } catch (err) {
+            console.error(err);
+          }
+        },
+
+        async promptAddYear() {
+          const yr = prompt('Masukkan tahun baru yang ingin ditambahkan (misal: 2027):', (this.selectedYear + 1).toString());
+          if (!yr) return;
+          const yNum = parseInt(yr, 10);
+          if (isNaN(yNum) || yNum < 2000 || yNum > 2100) {
+            alert('Tahun tidak valid.');
+            return;
+          }
+          try {
+            const res = await fetch(`/api/monthly/add-year/${yNum}`, { method: 'POST' });
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.availableYears = result.years;
+              this.selectedYear = yNum;
+              this.monthlyRecords = result.records;
+              this.showToast(`Tahun ${yNum} berhasil ditambahkan!`);
+            }
+          } catch (err) {
+            alert('Gagal menambah tahun: ' + err);
+          }
+        },
+
+        async refreshData(silent = false) {
+          if (!silent) this.isLoading = true;
+          try {
+            const res = await fetch('/api/refresh', { method: 'POST' });
+            const result = await res.json();
+            if (result.status === 'success') {
+              this.data = result.data;
+              if (!silent) this.showToast('Data pasar realtime diperbarui!');
             }
           } catch (e) {
-            console.error(e);
+            console.error('Refresh error:', e);
+          } finally {
+            if (!silent) this.isLoading = false;
+            this.autoRefreshCountdown = 15;
+            this.$nextTick(() => lucide.createIcons());
           }
+        },
+
+        startAutoRefreshTimer() {
+          if (this.countdownTimer) clearInterval(this.countdownTimer);
+          this.countdownTimer = setInterval(() => {
+            if (this.autoRefreshCountdown > 1) {
+              this.autoRefreshCountdown--;
+            } else {
+              this.refreshData(true);
+            }
+          }, 1000);
+        },
+
+        updateClock() {
+          const d = new Date();
+          this.currentTime = d.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' });
+        },
+
+        toggleTheme() {
+          this.isDark = !this.isDark;
+          localStorage.setItem('theme_dark', this.isDark ? 'true' : 'false');
+          if (this.isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          if (this.activeView === 'calculator') {
+            this.recalcFF();
+          }
+        },
+
+        showToast(msg) {
+          this.toast.message = msg;
+          this.toast.show = true;
+          setTimeout(() => { this.toast.show = false; }, 3000);
+        },
+
+        // Helper Filter
+        filteredCategoryItems(category) {
+          if (!this.searchQuery) return category.items || [];
+          const q = this.searchQuery.toLowerCase();
+          return (category.items || []).filter(item => 
+            item.ticker.toLowerCase().includes(q) || 
+            item.name.toLowerCase().includes(q)
+          );
         },
 
         // Formatters
@@ -1567,9 +2497,40 @@
         formatUSD(val) {
           if (val === undefined || val === null || isNaN(val)) return '$0.00';
           return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        formatPct(val) {
+          if (val === undefined || val === null || isNaN(val)) return 'N/A';
+          return (val >= 0 ? '+' : '') + val.toFixed(2) + '%';
+        },
+
+        getZoneClass(zone) {
+          const map = {
+            'DIP / DISKON': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+            'WAJAR': 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/30',
+            'PREMIUM / ATH': 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+          };
+          return map[zone] || 'bg-slate-100 dark:bg-slate-800 text-slate-500';
+        },
+
+        getPEValuationLabel(pe, thresholds) {
+          if (!pe || !thresholds) return 'N/A';
+          if (pe < thresholds.great) return 'Sangat Murah';
+          if (pe <= thresholds.good) return 'Wajar';
+          if (pe <= thresholds.expensive) return 'Agak Mahal';
+          return 'Mahal';
+        },
+
+        getPEValuationClass(pe, thresholds) {
+          if (!pe || !thresholds) return 'bg-slate-500/10 text-slate-400';
+          if (pe < thresholds.great) return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20';
+          if (pe <= thresholds.good) return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20';
+          if (pe <= thresholds.expensive) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
+          return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20';
         }
       }
     }
   </script>
+
 </body>
 </html>
