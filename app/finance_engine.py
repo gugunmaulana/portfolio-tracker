@@ -161,9 +161,9 @@ FALLBACK_PE_RATIOS = {
 }
 
 
-def fetch_direct_yahoo_chart(ticker: str, range_str: str = "10y") -> Optional[Dict[str, Any]]:
+def fetch_direct_yahoo_chart(ticker: str, range_str: str = "10y", interval: str = "1d") -> Optional[Dict[str, Any]]:
     """Directly fetch chart data from Yahoo Finance API with robust browser headers."""
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range={range_str}"
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval={interval}&range={range_str}"
     try:
         r = session.get(url, timeout=6)
         if r.status_code == 200:
@@ -181,7 +181,7 @@ def get_macro_and_fx() -> Dict[str, Any]:
     data = {}
     
     def fetch_single(t):
-        res = fetch_direct_yahoo_chart(t, "5d")
+        res = fetch_direct_yahoo_chart(t, "5d", "1d")
         if res:
             meta = res.get("meta", {})
             quotes = res.get("indicators", {}).get("quote", [{}])[0]
@@ -236,7 +236,7 @@ def get_macro_and_fx() -> Dict[str, Any]:
 
 
 def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
-    """Fetch realtime quote, ATH, PE ratio, and multi-period performance (24h to 20y) for a given ticker."""
+    """Fetch realtime quote, ATH, PE ratio, and high-precision multi-period performance (24h to 20y) for a given ticker."""
     cached = MARKET_CACHE.get(ticker_symbol)
     now = time.time()
     if cached and (now - cached.get("_timestamp", 0) < CACHE_TTL_SECONDS):
@@ -267,101 +267,137 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
     }
 
     try:
-        chart_res = fetch_direct_yahoo_chart(ticker_symbol, "max")
-        if chart_res:
-            meta = chart_res.get("meta", {})
-            timestamps = chart_res.get("timestamp", [])
-            quotes = chart_res.get("indicators", {}).get("quote", [{}])[0]
-            raw_closes = quotes.get("close", [])
-            raw_highs = quotes.get("high", [])
-
-            # Valid pairs
-            data_points = []
-            for t, c in zip(timestamps, raw_closes):
+        # Tier 1: High-precision daily bars for up to 10 years
+        chart_daily = fetch_direct_yahoo_chart(ticker_symbol, "10y", "1d")
+        
+        # Tier 2: Monthly max bars for >10y history (15y, 20y) and true lifetime ATH
+        chart_max = fetch_direct_yahoo_chart(ticker_symbol, "max", "1mo")
+        
+        daily_pts = []
+        highs_daily = []
+        meta = {}
+        if chart_daily:
+            meta = chart_daily.get("meta", {})
+            ts_d = chart_daily.get("timestamp", [])
+            q_d = chart_daily.get("indicators", {}).get("quote", [{}])[0]
+            raw_c_d = q_d.get("close", [])
+            highs_daily = [h for h in q_d.get("high", []) if h is not None and not math.isnan(h) and h > 0]
+            for t, c in zip(ts_d, raw_c_d):
                 if c is not None and not math.isnan(c) and c > 0:
-                    data_points.append((t, c))
+                    daily_pts.append((t, c))
 
-            highs = [h for h in raw_highs if h is not None and not math.isnan(h)]
+        max_pts = []
+        highs_max = []
+        if chart_max:
+            ts_m = chart_max.get("timestamp", [])
+            q_m = chart_max.get("indicators", {}).get("quote", [{}])[0]
+            raw_c_m = q_m.get("close", [])
+            highs_max = [h for h in q_m.get("high", []) if h is not None and not math.isnan(h) and h > 0]
+            for t, c in zip(ts_m, raw_c_m):
+                if c is not None and not math.isnan(c) and c > 0:
+                    max_pts.append((t, c))
 
-            price = meta.get("regularMarketPrice")
-            if (not price or math.isnan(price)) and data_points:
-                price = data_points[-1][1]
-            if price and not math.isnan(price):
-                result["price"] = round(price, 2)
+        # Determine true realtime market price
+        price = meta.get("regularMarketPrice")
+        if (not price or math.isnan(price)) and daily_pts:
+            price = daily_pts[-1][1]
+        elif (not price or math.isnan(price)) and max_pts:
+            price = max_pts[-1][1]
+            
+        if price and not math.isnan(price):
+            result["price"] = round(price, 2)
 
-            ath_meta = meta.get("fiftyTwoWeekHigh")
-            high_point = max(highs) if highs else (price * 1.1 if price else 100.0)
-            result["ath"] = round(max(ath_meta or 0, high_point), 2)
+        cur_price = result["price"]
 
-            if len(data_points) >= 1:
-                cur_close = data_points[-1][1]
-                now_ts = data_points[-1][0]
-                first_ts = data_points[0][0]
-                total_span_days = (now_ts - first_ts) / 86400.0
+        # Determine All-Time High across both daily and max series
+        all_highs = highs_daily + highs_max
+        ath_meta = meta.get("fiftyTwoWeekHigh")
+        high_point = max(all_highs) if all_highs else (ath_meta or (cur_price * 1.1))
+        result["ath"] = round(max(high_point, cur_price), 2)
 
-                # 24H (1 trading session / 1 day return)
-                if len(data_points) >= 2:
-                    c_prev = data_points[-2][1]
-                    result["perf"]["24h"] = round(((cur_close - c_prev) / c_prev) * 100.0, 1)
+        # Calculate high-precision performance returns
+        if daily_pts:
+            cur_ts = daily_pts[-1][0]
+            
+            # 24H (1 trading day return vs previous close)
+            prev_close = meta.get("regularMarketPreviousClose") or meta.get("previousClose")
+            if not prev_close and len(daily_pts) >= 2:
+                prev_close = daily_pts[-2][1]
+            if prev_close and prev_close > 0:
+                result["perf"]["24h"] = round(((cur_price - prev_close) / prev_close) * 100.0, 2)
 
-                # 5H / 1W (5 trading sessions / 1 week return)
-                if len(data_points) >= 6:
-                    c_5d = data_points[-6][1]
-                    result["perf"]["5h"] = round(((cur_close - c_5d) / c_5d) * 100.0, 1)
-                    result["perf"]["1w"] = result["perf"]["5h"]
-                elif len(data_points) >= 2:
-                    c_first = data_points[0][1]
-                    result["perf"]["5h"] = round(((cur_close - c_first) / c_first) * 100.0, 1)
-                    result["perf"]["1w"] = result["perf"]["5h"]
+            # 5H (5 trading sessions return)
+            if len(daily_pts) >= 6:
+                c_5s = daily_pts[-6][1]
+                result["perf"]["5h"] = round(((cur_price - c_5s) / c_5s) * 100.0, 2)
+                result["perf"]["1w"] = result["perf"]["5h"]
+            elif len(daily_pts) >= 2:
+                c_first = daily_pts[0][1]
+                result["perf"]["5h"] = round(((cur_price - c_first) / c_first) * 100.0, 2)
+                result["perf"]["1w"] = result["perf"]["5h"]
 
-                def get_total_profit_pct(days: int) -> Optional[float]:
-                    # If total history is significantly shorter than requested timeframe, return None (N/A)
-                    if total_span_days < (days * 0.85):
-                        return None
-                    target_ts = now_ts - (days * 86400)
-                    if target_ts < first_ts:
-                        return None
-                    closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
-                    if closest[1] and closest[1] > 0:
-                        # Pure Total Cumulative Profit Percentage
-                        ret = ((cur_close - closest[1]) / closest[1]) * 100.0
-                        return round(ret, 1)
+            def get_daily_profit_pct(days: int) -> Optional[float]:
+                target_ts = cur_ts - (days * 86400)
+                if target_ts < (daily_pts[0][0] - 15 * 86400):
                     return None
+                candidates = [p for p in daily_pts if p[0] <= target_ts]
+                if not candidates:
+                    if abs(daily_pts[0][0] - target_ts) < (20 * 86400):
+                        past_c = daily_pts[0][1]
+                    else:
+                        return None
+                else:
+                    past_c = candidates[-1][1]
+                    
+                if past_c and past_c > 0:
+                    return round(((cur_price - past_c) / past_c) * 100.0, 2)
+                return None
 
-                def get_cagr_pct(years: float) -> Optional[float]:
-                    days = int(years * 365)
-                    if total_span_days < (days * 0.85):
-                        return None
-                    target_ts = now_ts - (days * 86400)
-                    if target_ts < first_ts:
-                        return None
-                    closest = min(data_points, key=lambda x: abs(x[0] - target_ts))
-                    if closest[1] and closest[1] > 0:
-                        cagr = ((cur_close / closest[1]) ** (1.0 / years) - 1.0) * 100.0
-                        return round(cagr, 1)
+            def get_long_profit_pct(years: float) -> Optional[float]:
+                target_ts = cur_ts - int(years * 365.25 * 86400)
+                # 1. Try daily points first
+                daily_candidates = [p for p in daily_pts if p[0] <= target_ts]
+                if daily_candidates:
+                    past_c = daily_candidates[-1][1]
+                    return round(((cur_price - past_c) / past_c) * 100.0, 2)
+                    
+                # 2. Try monthly max points
+                if max_pts:
+                    max_candidates = [p for p in max_pts if p[0] <= target_ts]
+                    if max_candidates:
+                        past_c = max_candidates[-1][1]
+                        if target_ts >= (max_pts[0][0] - 90 * 86400):
+                            return round(((cur_price - past_c) / past_c) * 100.0, 2)
+                    elif abs(target_ts - max_pts[0][0]) < (90 * 86400):
+                        past_c = max_pts[0][1]
+                        return round(((cur_price - past_c) / past_c) * 100.0, 2)
+                        
+                return None
+
+            def get_cagr_pct(years: float) -> Optional[float]:
+                p_ret = get_long_profit_pct(years)
+                if p_ret is None:
                     return None
+                growth_factor = 1.0 + (p_ret / 100.0)
+                if growth_factor <= 0:
+                    return None
+                return round(((growth_factor ** (1.0 / years)) - 1.0) * 100.0, 2)
 
-                # If 5h wasn't set by trading sessions, compute by 7 calendar days
-                if result["perf"].get("5h") is None:
-                    p5 = get_total_profit_pct(7)
-                    result["perf"]["5h"] = p5
-                    result["perf"]["1w"] = p5
+            result["perf"]["1m"] = get_daily_profit_pct(30)
+            result["perf"]["6m"] = get_daily_profit_pct(182)
+            result["perf"]["1y"] = get_daily_profit_pct(365)
+            
+            # Cumulative Total Profit %
+            result["perf"]["5y"] = get_long_profit_pct(5.0)
+            result["perf"]["10y"] = get_long_profit_pct(10.0)
+            result["perf"]["15y"] = get_long_profit_pct(15.0)
+            result["perf"]["20y"] = get_long_profit_pct(20.0)
 
-                result["perf"]["1m"] = get_total_profit_pct(30)
-                result["perf"]["6m"] = get_total_profit_pct(182)
-                result["perf"]["1y"] = get_total_profit_pct(365)
-                
-                # Pure Cumulative Total Profit %
-                result["perf"]["5y"] = get_total_profit_pct(5 * 365)
-                result["perf"]["10y"] = get_total_profit_pct(10 * 365)
-                result["perf"]["15y"] = get_total_profit_pct(15 * 365)
-                result["perf"]["20y"] = get_total_profit_pct(20 * 365)
-
-                # Compound Annual Growth Rate (CAGR %)
-                result["perf"]["5y_cagr"] = get_cagr_pct(5.0)
-                result["perf"]["10y_cagr"] = get_cagr_pct(10.0)
-                result["perf"]["15y_cagr"] = get_cagr_pct(15.0)
-                result["perf"]["20y_cagr"] = get_cagr_pct(20.0)
+            # Annualized Compound Growth Rate (CAGR %)
+            result["perf"]["5y_cagr"] = get_cagr_pct(5.0)
+            result["perf"]["10y_cagr"] = get_cagr_pct(10.0)
+            result["perf"]["15y_cagr"] = get_cagr_pct(15.0)
+            result["perf"]["20y_cagr"] = get_cagr_pct(20.0)
 
     except Exception as e:
         logger.debug(f"Fetch error for {ticker_symbol}: {e}")
