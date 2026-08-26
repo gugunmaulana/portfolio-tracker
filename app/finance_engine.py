@@ -457,7 +457,22 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                     return None
                 return round(((growth_factor ** (1.0 / years)) - 1.0) * 100.0, 2)
 
-            result["perf"]["5h"] = get_window_return(datetime.timedelta(days=5))
+            # Accurate 5H / 1W Return (1 full trading week: 5 trading sessions for equities, 7 for crypto)
+            is_crypto = "-USD" in ticker_symbol or ticker_symbol in ["BTC-USD", "ETH-USD", "SOL-USD"]
+            target_5h_dt = cur_dt - datetime.timedelta(days=7)
+            cands_5h = [b for b in daily_pts if b["dt"] <= target_5h_dt]
+            if cands_5h:
+                base_5h = cands_5h[-1]["close"]
+                if base_5h > 0:
+                    result["perf"]["5h"] = round(((cur_price - base_5h) / base_5h) * 100.0, 2)
+            elif len(daily_pts) >= (8 if is_crypto else 6):
+                n_bars = 7 if is_crypto else 5
+                base_5h = daily_pts[-1 - n_bars]["close"]
+                if base_5h > 0:
+                    result["perf"]["5h"] = round(((cur_price - base_5h) / base_5h) * 100.0, 2)
+            else:
+                result["perf"]["5h"] = get_window_return(datetime.timedelta(days=7))
+                
             result["perf"]["1w"] = result["perf"]["5h"]
             result["perf"]["1m"] = get_window_return(relativedelta(months=1))
             result["perf"]["6m"] = get_window_return(relativedelta(months=6))
