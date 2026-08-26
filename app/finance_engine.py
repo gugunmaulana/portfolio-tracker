@@ -1,4 +1,6 @@
 import time
+import datetime
+from dateutil.relativedelta import relativedelta
 import math
 import logging
 from concurrent.futures import ThreadPoolExecutor
@@ -352,10 +354,17 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             ts_d = chart_daily.get("timestamp", [])
             q_d = chart_daily.get("indicators", {}).get("quote", [{}])[0]
             raw_c_d = q_d.get("close", [])
+            raw_o_d = q_d.get("open", [])
             highs_daily = [h for h in q_d.get("high", []) if h is not None and not math.isnan(h) and h > 0]
-            for t, c in zip(ts_d, raw_c_d):
+            for t, o, c in zip(ts_d, raw_o_d, raw_c_d):
                 if c is not None and not math.isnan(c) and c > 0:
-                    daily_pts.append((t, c))
+                    dt = datetime.datetime.fromtimestamp(t, datetime.timezone.utc)
+                    daily_pts.append({
+                        "dt": dt,
+                        "ts": t,
+                        "open": o if (o is not None and not math.isnan(o) and o > 0) else c,
+                        "close": c
+                    })
 
         max_pts = []
         highs_max = []
@@ -363,17 +372,24 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             ts_m = chart_max.get("timestamp", [])
             q_m = chart_max.get("indicators", {}).get("quote", [{}])[0]
             raw_c_m = q_m.get("close", [])
+            raw_o_m = q_m.get("open", [])
             highs_max = [h for h in q_m.get("high", []) if h is not None and not math.isnan(h) and h > 0]
-            for t, c in zip(ts_m, raw_c_m):
+            for t, o, c in zip(ts_m, raw_o_m, raw_c_m):
                 if c is not None and not math.isnan(c) and c > 0:
-                    max_pts.append((t, c))
+                    dt = datetime.datetime.fromtimestamp(t, datetime.timezone.utc)
+                    max_pts.append({
+                        "dt": dt,
+                        "ts": t,
+                        "open": o if (o is not None and not math.isnan(o) and o > 0) else c,
+                        "close": c
+                    })
 
         # Determine true realtime market price
         price = meta.get("regularMarketPrice")
         if (not price or math.isnan(price)) and daily_pts:
-            price = daily_pts[-1][1]
+            price = daily_pts[-1]["close"]
         elif (not price or math.isnan(price)) and max_pts:
-            price = max_pts[-1][1]
+            price = max_pts[-1]["close"]
             
         if price and not math.isnan(price):
             result["price"] = round(price, 2)
@@ -388,65 +404,52 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
 
         # Calculate high-precision performance returns
         if daily_pts:
-            cur_ts = daily_pts[-1][0]
+            cur_dt = daily_pts[-1]["dt"]
+            cur_ts = daily_pts[-1]["ts"]
             
             # 24H (1 trading day return vs previous close)
             prev_close = meta.get("regularMarketPreviousClose") or meta.get("previousClose")
             if not prev_close and len(daily_pts) >= 2:
-                prev_close = daily_pts[-2][1]
+                prev_close = daily_pts[-2]["close"]
             if prev_close and prev_close > 0:
                 result["perf"]["24h"] = round(((cur_price - prev_close) / prev_close) * 100.0, 2)
 
-            # 5H (5 trading sessions return)
-            if len(daily_pts) >= 6:
-                c_5s = daily_pts[-6][1]
-                result["perf"]["5h"] = round(((cur_price - c_5s) / c_5s) * 100.0, 2)
-                result["perf"]["1w"] = result["perf"]["5h"]
-            elif len(daily_pts) >= 2:
-                c_first = daily_pts[0][1]
-                result["perf"]["5h"] = round(((cur_price - c_first) / c_first) * 100.0, 2)
-                result["perf"]["1w"] = result["perf"]["5h"]
-
-            def get_daily_profit_pct(days: int) -> Optional[float]:
-                target_ts = cur_ts - (days * 86400)
-                if target_ts < (daily_pts[0][0] - 15 * 86400):
+            def get_window_return(delta) -> Optional[float]:
+                target_dt = cur_dt - delta
+                earliest_dt = max_pts[0]["dt"] if max_pts else (daily_pts[0]["dt"] if daily_pts else None)
+                if earliest_dt and (target_dt < (earliest_dt - relativedelta(days=45))):
                     return None
-                candidates = [p for p in daily_pts if p[0] <= target_ts]
-                if not candidates:
-                    if abs(daily_pts[0][0] - target_ts) < (20 * 86400):
-                        past_c = daily_pts[0][1]
-                    else:
-                        return None
-                else:
-                    past_c = candidates[-1][1]
                     
-                if past_c and past_c > 0:
-                    return round(((cur_price - past_c) / past_c) * 100.0, 2)
-                return None
-
-            def get_long_profit_pct(years: float) -> Optional[float]:
-                target_ts = cur_ts - int(years * 365.25 * 86400)
-                # 1. Try daily points first
-                daily_candidates = [p for p in daily_pts if p[0] <= target_ts]
-                if daily_candidates:
-                    past_c = daily_candidates[-1][1]
-                    return round(((cur_price - past_c) / past_c) * 100.0, 2)
-                    
-                # 2. Try monthly max points
-                if max_pts:
-                    max_candidates = [p for p in max_pts if p[0] <= target_ts]
-                    if max_candidates:
-                        past_c = max_candidates[-1][1]
-                        if target_ts >= (max_pts[0][0] - 90 * 86400):
-                            return round(((cur_price - past_c) / past_c) * 100.0, 2)
-                    elif abs(target_ts - max_pts[0][0]) < (90 * 86400):
-                        past_c = max_pts[0][1]
-                        return round(((cur_price - past_c) / past_c) * 100.0, 2)
+                # 1. TradingView window: start candle open on or after target_dt
+                cands = [b for b in daily_pts if b["dt"] >= target_dt]
+                if cands and cands[0]["ts"] != cur_ts:
+                    base_price = cands[0]["open"] or cands[0]["close"]
+                    if base_price > 0:
+                        return round(((cur_price - base_price) / base_price) * 100.0, 2)
                         
+                # 2. Daily candle on or before target_dt
+                before_cands = [b for b in daily_pts if b["dt"] <= target_dt]
+                if before_cands:
+                    base_price = before_cands[-1]["close"]
+                    if base_price > 0:
+                        return round(((cur_price - base_price) / base_price) * 100.0, 2)
+                        
+                # 3. Monthly max series for >10y timeframes
+                if max_pts:
+                    m_cands = [b for b in max_pts if b["dt"] >= target_dt]
+                    if m_cands:
+                        base_price = m_cands[0]["open"] or m_cands[0]["close"]
+                        if base_price > 0:
+                            return round(((cur_price - base_price) / base_price) * 100.0, 2)
+                    m_before = [b for b in max_pts if b["dt"] <= target_dt]
+                    if m_before:
+                        base_price = m_before[-1]["close"]
+                        if base_price > 0:
+                            return round(((cur_price - base_price) / base_price) * 100.0, 2)
+                            
                 return None
 
-            def get_cagr_pct(years: float) -> Optional[float]:
-                p_ret = get_long_profit_pct(years)
+            def get_cagr_pct(p_ret: Optional[float], years: float) -> Optional[float]:
                 if p_ret is None:
                     return None
                 growth_factor = 1.0 + (p_ret / 100.0)
@@ -454,21 +457,23 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                     return None
                 return round(((growth_factor ** (1.0 / years)) - 1.0) * 100.0, 2)
 
-            result["perf"]["1m"] = get_daily_profit_pct(30)
-            result["perf"]["6m"] = get_daily_profit_pct(182)
-            result["perf"]["1y"] = get_daily_profit_pct(365)
+            result["perf"]["5h"] = get_window_return(datetime.timedelta(days=5))
+            result["perf"]["1w"] = result["perf"]["5h"]
+            result["perf"]["1m"] = get_window_return(relativedelta(months=1))
+            result["perf"]["6m"] = get_window_return(relativedelta(months=6))
+            result["perf"]["1y"] = get_window_return(relativedelta(years=1))
             
             # Cumulative Total Profit %
-            result["perf"]["5y"] = get_long_profit_pct(5.0)
-            result["perf"]["10y"] = get_long_profit_pct(10.0)
-            result["perf"]["15y"] = get_long_profit_pct(15.0)
-            result["perf"]["20y"] = get_long_profit_pct(20.0)
+            result["perf"]["5y"] = get_window_return(relativedelta(years=5))
+            result["perf"]["10y"] = get_window_return(relativedelta(years=10))
+            result["perf"]["15y"] = get_window_return(relativedelta(years=15))
+            result["perf"]["20y"] = get_window_return(relativedelta(years=20))
 
             # Annualized Compound Growth Rate (CAGR %)
-            result["perf"]["5y_cagr"] = get_cagr_pct(5.0)
-            result["perf"]["10y_cagr"] = get_cagr_pct(10.0)
-            result["perf"]["15y_cagr"] = get_cagr_pct(15.0)
-            result["perf"]["20y_cagr"] = get_cagr_pct(20.0)
+            result["perf"]["5y_cagr"] = get_cagr_pct(result["perf"]["5y"], 5.0)
+            result["perf"]["10y_cagr"] = get_cagr_pct(result["perf"]["10y"], 10.0)
+            result["perf"]["15y_cagr"] = get_cagr_pct(result["perf"]["15y"], 15.0)
+            result["perf"]["20y_cagr"] = get_cagr_pct(result["perf"]["20y"], 20.0)
 
             # Volume
             vol = meta.get("regularMarketVolume")
