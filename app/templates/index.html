@@ -520,9 +520,9 @@
                       <!-- 2. Index Number -->
                       <td class="py-3 px-3 text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
                       
-                      <!-- 3. Logo & Name (Cryptorank style) -->
+                      <!-- 3. Logo & Name (Cryptorank style with uniform alignment) -->
                       <td class="py-3 px-4 font-sans font-medium text-slate-900 dark:text-slate-100">
-                        <div class="flex items-center gap-2.5">
+                        <div class="flex items-center gap-2.5 max-w-[280px]">
                           <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             <img :src="item.logo_url" 
                                  :alt="item.ticker"
@@ -532,9 +532,11 @@
                               <span x-text="item.ticker.substring(0, 2)"></span>
                             </div>
                           </div>
-                          <div>
-                            <span class="font-semibold text-xs text-slate-900 dark:text-white block" x-text="item.name"></span>
-                            <span class="text-[9px] px-1 py-0.2 rounded font-mono font-semibold"
+                          <div class="min-w-0 flex-1">
+                            <span class="font-semibold text-xs text-slate-900 dark:text-white truncate block" 
+                                  :title="item.name" 
+                                  x-text="item.name"></span>
+                            <span class="text-[9px] px-1 py-0.2 rounded font-mono font-semibold inline-block mt-0.5"
                                   :class="item.volatility_bg || 'bg-slate-100 text-slate-500'"
                                   x-text="item.volatility_label || '🛡️ Stabil'"></span>
                           </div>
@@ -545,7 +547,11 @@
                       <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400">
                         <div class="flex items-center gap-1">
                           <span x-text="item.ticker"></span>
-                          <a :href="'https://finance.yahoo.com/quote/' + item.ticker + '/'" target="_blank" class="text-slate-400 hover:text-sky-500 text-[10px]" title="Buka di Yahoo Finance">↗</a>
+                          <a :href="getCredibleYearlyPnLLink(item)" target="_blank" 
+                             class="text-sky-500 hover:text-white hover:bg-sky-500 p-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[10px] flex items-center transition" 
+                             :title="'Cek Kinerja Historis & Laporan Keuangan Resmi ' + item.ticker">
+                            <span>↗</span>
+                          </a>
                         </div>
                       </td>
 
@@ -556,7 +562,7 @@
 
                       <!-- DYNAMIC REORDERABLE CELLS (Iterated via columnOrder) -->
                       <template x-for="colKey in columnOrder" :key="colKey">
-                        <td x-show="cols[colKey]" class="py-3 px-3" :class="getColCellAlign(colKey)">
+                        <td x-show="cols[colKey]" class="py-3 px-2 text-center" :class="getColCellAlign(colKey)">
                           
                           <!-- signal -->
                           <template x-if="colKey === 'signal'">
@@ -568,71 +574,182 @@
 
                           <!-- perf24h -->
                           <template x-if="colKey === 'perf24h'">
-                            <span class="font-semibold" :class="item.perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(item.perf['24h'])"></span>
+                            <div>
+                              <template x-if="item.perf['24h'] !== null && item.perf['24h'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['24h'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['24h'])"></div>
+                              </template>
+                              <template x-if="item.perf['24h'] === null || item.perf['24h'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf5h -->
                           <template x-if="colKey === 'perf5h'">
-                            <span class="font-semibold" :class="item.perf['5h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(item.perf['5h'])"></span>
+                            <div>
+                              <template x-if="item.perf['5h'] !== null && item.perf['5h'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['5h'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['5h'])"></div>
+                              </template>
+                              <template x-if="item.perf['5h'] === null || item.perf['5h'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf1m -->
                           <template x-if="colKey === 'perf1m'">
-                            <span class="font-semibold" :class="item.perf['1m'] >= 0 ? 'text-emerald-500' : (item.perf['1m'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['1m'])"></span>
+                            <div>
+                              <template x-if="item.perf['1m'] !== null && item.perf['1m'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['1m'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['1m'])"></div>
+                              </template>
+                              <template x-if="item.perf['1m'] === null || item.perf['1m'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf6m -->
                           <template x-if="colKey === 'perf6m'">
-                            <span class="font-semibold" :class="item.perf['6m'] >= 0 ? 'text-emerald-500' : (item.perf['6m'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['6m'])"></span>
+                            <div>
+                              <template x-if="item.perf['6m'] !== null && item.perf['6m'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['6m'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['6m'])"></div>
+                              </template>
+                              <template x-if="item.perf['6m'] === null || item.perf['6m'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf1y -->
                           <template x-if="colKey === 'perf1y'">
-                            <span class="font-semibold" :class="item.perf['1y'] >= 0 ? 'text-emerald-500' : (item.perf['1y'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['1y'])"></span>
+                            <div>
+                              <template x-if="item.perf['1y'] !== null && item.perf['1y'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['1y'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['1y'])"></div>
+                              </template>
+                              <template x-if="item.perf['1y'] === null || item.perf['1y'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf5y -->
                           <template x-if="colKey === 'perf5y'">
-                            <span class="font-semibold" :class="item.perf['5y'] >= 0 ? 'text-emerald-500' : (item.perf['5y'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['5y'])"></span>
+                            <div>
+                              <template x-if="item.perf['5y'] !== null && item.perf['5y'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['5y'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['5y'])"></div>
+                              </template>
+                              <template x-if="item.perf['5y'] === null || item.perf['5y'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf10y -->
                           <template x-if="colKey === 'perf10y'">
-                            <span class="font-semibold" :class="item.perf['10y'] >= 0 ? 'text-emerald-500' : (item.perf['10y'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['10y'])"></span>
+                            <div>
+                              <template x-if="item.perf['10y'] !== null && item.perf['10y'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['10y'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['10y'])"></div>
+                              </template>
+                              <template x-if="item.perf['10y'] === null || item.perf['10y'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf15y -->
                           <template x-if="colKey === 'perf15y'">
-                            <span class="font-semibold" :class="item.perf['15y'] >= 0 ? 'text-emerald-500' : (item.perf['15y'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['15y'])"></span>
+                            <div>
+                              <template x-if="item.perf['15y'] !== null && item.perf['15y'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['15y'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['15y'])"></div>
+                              </template>
+                              <template x-if="item.perf['15y'] === null || item.perf['15y'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- perf20y -->
                           <template x-if="colKey === 'perf20y'">
-                            <span class="font-semibold" :class="item.perf['20y'] >= 0 ? 'text-emerald-500' : (item.perf['20y'] !== null ? 'text-rose-500' : 'text-slate-400')" x-text="formatPct(item.perf['20y'])"></span>
+                            <div>
+                              <template x-if="item.perf['20y'] !== null && item.perf['20y'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs"
+                                     :class="item.perf['20y'] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
+                                     x-text="formatPct(item.perf['20y'])"></div>
+                              </template>
+                              <template x-if="item.perf['20y'] === null || item.perf['20y'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
-                          <!-- cagr5y -->
+                          <!-- cagr5y (Blue Background with White Font) -->
                           <template x-if="colKey === 'cagr5y'">
-                            <span class="font-semibold text-indigo-500 dark:text-indigo-400" x-text="formatPct(item.perf['5y_cagr'])"></span>
+                            <div>
+                              <template x-if="item.perf['5y_cagr'] !== null && item.perf['5y_cagr'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs"
+                                     x-text="formatPct(item.perf['5y_cagr'])"></div>
+                              </template>
+                              <template x-if="item.perf['5y_cagr'] === null || item.perf['5y_cagr'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
-                          <!-- cagr10y -->
+                          <!-- cagr10y (Blue Background with White Font) -->
                           <template x-if="colKey === 'cagr10y'">
-                            <span class="font-semibold text-indigo-500 dark:text-indigo-400" x-text="formatPct(item.perf['10y_cagr'])"></span>
+                            <div>
+                              <template x-if="item.perf['10y_cagr'] !== null && item.perf['10y_cagr'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs"
+                                     x-text="formatPct(item.perf['10y_cagr'])"></div>
+                              </template>
+                              <template x-if="item.perf['10y_cagr'] === null || item.perf['10y_cagr'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
-                          <!-- cagr15y (Requirement 4: Inception CAGR Fallback with Tooltip) -->
+                          <!-- cagr15y (Blue Background with Inception Fallback & Tooltip) -->
                           <template x-if="colKey === 'cagr15y'">
-                            <span class="font-semibold text-indigo-500 dark:text-indigo-400 cursor-help"
-                                  :title="item.perf['15y_cagr_is_inception'] ? ('CAGR sejak rilis (' + item.perf['inception_years'] + ' thn dari ' + item.perf['inception_date'] + ')') : '15-Year Annualized CAGR'"
-                                  x-text="formatPct(item.perf['15y_cagr'])"></span>
+                            <div>
+                              <template x-if="item.perf['15y_cagr'] !== null && item.perf['15y_cagr'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs cursor-help"
+                                     :title="item.perf['15y_cagr_is_inception'] ? ('CAGR sejak rilis (' + item.perf['inception_years'] + ' thn dari ' + item.perf['inception_date'] + ')') : '15-Year Annualized CAGR'"
+                                     x-text="formatPct(item.perf['15y_cagr'])"></div>
+                              </template>
+                              <template x-if="item.perf['15y_cagr'] === null || item.perf['15y_cagr'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
-                          <!-- cagr20y (Requirement 4: Inception CAGR Fallback with Tooltip) -->
+                          <!-- cagr20y (Blue Background with Inception Fallback & Tooltip) -->
                           <template x-if="colKey === 'cagr20y'">
-                            <span class="font-semibold text-indigo-500 dark:text-indigo-400 cursor-help"
-                                  :title="item.perf['20y_cagr_is_inception'] ? ('CAGR sejak rilis (' + item.perf['inception_years'] + ' thn dari ' + item.perf['inception_date'] + ')') : '20-Year Annualized CAGR'"
-                                  x-text="formatPct(item.perf['20y_cagr'])"></span>
+                            <div>
+                              <template x-if="item.perf['20y_cagr'] !== null && item.perf['20y_cagr'] !== undefined">
+                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs cursor-help"
+                                     :title="item.perf['20y_cagr_is_inception'] ? ('CAGR sejak rilis (' + item.perf['inception_years'] + ' thn dari ' + item.perf['inception_date'] + ')') : '20-Year Annualized CAGR'"
+                                     x-text="formatPct(item.perf['20y_cagr'])"></div>
+                              </template>
+                              <template x-if="item.perf['20y_cagr'] === null || item.perf['20y_cagr'] === undefined">
+                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                              </template>
+                            </div>
                           </template>
 
                           <!-- athPrice -->
@@ -806,9 +923,9 @@
                       <!-- # -->
                       <td class="py-3 px-3 text-center text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
 
-                      <!-- Name & Logo -->
+                      <!-- Name & Logo (with max-width and clean alignment) -->
                       <td class="py-3 px-4 font-sans font-medium text-slate-900 dark:text-slate-100">
-                        <div class="flex items-center gap-2.5">
+                        <div class="flex items-center gap-2.5 max-w-[280px]">
                           <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             <img :src="item.logo_url" 
                                  :alt="item.ticker"
@@ -818,9 +935,11 @@
                               <span x-text="item.ticker.substring(0, 2)"></span>
                             </div>
                           </div>
-                          <div>
-                            <span class="font-semibold text-xs text-slate-900 dark:text-white block" x-text="item.name"></span>
-                            <span class="text-[10px] text-slate-400 block" x-text="category.name"></span>
+                          <div class="min-w-0 flex-1">
+                            <span class="font-semibold text-xs text-slate-900 dark:text-white truncate block" 
+                                  :title="item.name" 
+                                  x-text="item.name"></span>
+                            <span class="text-[10px] text-slate-400 block truncate" x-text="category.name"></span>
                           </div>
                         </div>
                       </td>
@@ -1372,7 +1491,12 @@
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="font-semibold text-slate-700 dark:text-slate-300">Nama Aset / Keterangan</label>
+              <label class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span>Nama Aset / Keterangan</span>
+                <span class="text-[10px] font-normal text-slate-400 font-mono" 
+                      x-text="'(' + ((assetForm.name || '').length) + '/80 kar)'"
+                      :class="(assetForm.name || '').length >= 75 ? 'text-amber-500 font-bold' : ''"></span>
+              </label>
               <button type="button" 
                       @click="suggestAssetName()"
                       x-show="assetForm.ticker"
@@ -1380,10 +1504,10 @@
                 <span>✨ Saran AI</span>
               </button>
             </div>
-            <input type="text" x-model="assetForm.name" required placeholder="misal: 100 best tech firms"
+            <input type="text" x-model="assetForm.name" maxlength="80" required placeholder="misal: 100 best tech firms"
                    class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
             <div x-show="getAISuggestion(assetForm.ticker) && assetForm.name !== getAISuggestion(assetForm.ticker)" class="mt-1">
-              <button type="button" @click="assetForm.name = getAISuggestion(assetForm.ticker)" 
+              <button type="button" @click="assetForm.name = getAISuggestion(assetForm.ticker).substring(0, 80)" 
                       class="text-[10px] text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 text-left">
                 <span>💡 Saran AI:</span>
                 <span class="font-semibold italic text-slate-600 dark:text-slate-300 truncate max-w-[200px]" x-text="getAISuggestion(assetForm.ticker)"></span>
