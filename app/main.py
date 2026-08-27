@@ -183,7 +183,9 @@ class ReorderAssetsPayload(BaseModel):
 # Asset Management APIs
 @app.post("/api/assets/upsert")
 async def api_upsert_asset(payload: AssetPayload, user_id: str = "default_user"):
-    upsert_portfolio_item(user_id, payload.dict())
+    p_dict = payload.dict()
+    p_dict["ticker"] = (p_dict.get("ticker") or "").strip().upper()
+    upsert_portfolio_item(user_id, p_dict)
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)
     return JSONResponse(content={"status": "success", "data": portfolio})

@@ -633,6 +633,9 @@ def init_db():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, ("default_user", 2026, m_idx, m_name, outg, netw, inv_pwr, pnl_idr, pnl_pct, growth))
     
+    # Enforce uppercase tickers across all existing database records
+    cursor.execute("UPDATE portfolio_items SET ticker = UPPER(TRIM(ticker)) WHERE ticker IS NOT NULL")
+    
     conn.commit()
     conn.close()
 
@@ -922,6 +925,7 @@ def upsert_portfolio_item(user_id: str, item_data: Dict[str, Any]):
     init_db()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    ticker = (item_data.get("ticker") or "").strip().upper()
     if item_data.get("id"):
         cursor.execute("""
         UPDATE portfolio_items SET
@@ -929,7 +933,7 @@ def upsert_portfolio_item(user_id: str, item_data: Dict[str, Any]):
             is_lot = ?, pe_great = ?, pe_good = ?, pe_exp = ?
         WHERE id = ? AND user_id = ?
         """, (
-            item_data.get("category"), item_data.get("ticker"), item_data.get("name"),
+            item_data.get("category"), ticker, item_data.get("name"),
             item_data.get("currency", "USD"), float(item_data.get("invested_idr") or 0.0),
             float(item_data.get("quantity") or 0.0), float(item_data.get("avg_price") or 0.0),
             1 if item_data.get("is_lot") else 0,
@@ -941,7 +945,7 @@ def upsert_portfolio_item(user_id: str, item_data: Dict[str, Any]):
         INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, pe_great, pe_good, pe_exp)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            user_id, item_data.get("category"), item_data.get("ticker"), item_data.get("name"),
+            user_id, item_data.get("category"), ticker, item_data.get("name"),
             item_data.get("currency", "USD"), float(item_data.get("invested_idr") or 0.0),
             float(item_data.get("quantity") or 0.0), float(item_data.get("avg_price") or 0.0),
             1 if item_data.get("is_lot") else 0,

@@ -825,11 +825,15 @@
                         </div>
                       </td>
 
-                      <!-- Ticker -->
+                      <!-- Ticker with Credible Annual PnL Source Link -->
                       <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400 font-mono">
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1.5">
                           <span x-text="item.ticker"></span>
-                          <a :href="'https://finance.yahoo.com/quote/' + item.ticker + '/'" target="_blank" class="text-slate-400 hover:text-sky-500 text-[10px]" title="Buka di Yahoo Finance">↗</a>
+                          <a :href="getCredibleYearlyPnLLink(item)" target="_blank" 
+                             class="text-sky-500 hover:text-white hover:bg-sky-500 p-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[10px] flex items-center transition" 
+                             :title="'Cek Riwayat PNL / Return Tahunan ' + item.ticker + ' di Sumber Kredibel Resmi (StockAnalysis / CompaniesMarketCap / Stockbit)'">
+                            <span>↗</span>
+                          </a>
                         </div>
                       </td>
 
@@ -1363,13 +1367,28 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Ticker Symbol</label>
-            <input type="text" x-model="assetForm.ticker" @input="onTickerInput()" required placeholder="misal: QQQ, BBCA.JK, BTC-USD"
+            <input type="text" x-model="assetForm.ticker" @input="assetForm.ticker = (assetForm.ticker || '').toUpperCase(); onTickerInput()" required placeholder="misal: QQQ, BBCA.JK, BTC-USD"
                    class="w-full rounded-xl px-3.5 py-2 font-mono uppercase bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
           </div>
           <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Nama Aset / Keterangan</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="font-semibold text-slate-700 dark:text-slate-300">Nama Aset / Keterangan</label>
+              <button type="button" 
+                      @click="suggestAssetName()"
+                      x-show="assetForm.ticker"
+                      class="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-500 flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-0.5 rounded-lg border border-sky-500/30 transition shadow-xs">
+                <span>✨ Saran AI</span>
+              </button>
+            </div>
             <input type="text" x-model="assetForm.name" required placeholder="misal: 100 best tech firms"
                    class="w-full rounded-xl px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
+            <div x-show="getAISuggestion(assetForm.ticker) && assetForm.name !== getAISuggestion(assetForm.ticker)" class="mt-1">
+              <button type="button" @click="assetForm.name = getAISuggestion(assetForm.ticker)" 
+                      class="text-[10px] text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 text-left">
+                <span>💡 Saran AI:</span>
+                <span class="font-semibold italic text-slate-600 dark:text-slate-300 truncate max-w-[200px]" x-text="getAISuggestion(assetForm.ticker)"></span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1773,6 +1792,89 @@
           }
         }
       } catch (e) {}
+
+      const AI_TICKER_SUGGESTIONS = {
+        // Broad US ETFs & Indices
+        "VOO": "500 Perusahaan Terbaik US (S&P 500 Index)",
+        "SPY": "SPDR S&P 500 ETF Trust (Top 500 US Blue Chips)",
+        "IVV": "iShares Core S&P 500 ETF (Pondasi Indeks US)",
+        "QQQ": "100 Raksasa Teknologi Terbaik Nasdaq (Tech Titans)",
+        "VT": "Vanguard Total World Stock (9,000+ Saham Global)",
+        "VTI": "Vanguard Total Stock Market (Seluruh Saham US)",
+        "SMH": "25 Raksasa Semikonduktor & AI Global",
+        "SOXX": "iShares Semiconductor ETF (Rantai Pasok Chip)",
+        "SCHD": "Schwab US Dividend Equity ETF (Dividen Bertumbuh)",
+        "XLK": "Technology Select Sector SPDR (Sektor Teknologi)",
+        "ARKK": "ARK Innovation ETF (Disruptive Innovation)",
+        "IWM": "iShares Russell 2000 ETF (Small-Cap US)",
+        "DIA": "SPDR Dow Jones Industrial Average ETF (30 Blue Chips)",
+
+        // Tech Titans & Magnificent 7
+        "AAPL": "Apple Inc. (Ekosistem Konsumen & Perangkat Pintar)",
+        "MSFT": "Microsoft (Komputasi Cloud Azure & AI Enterprise)",
+        "GOOGL": "Alphabet Inc. (Mesin Pencari Google & Gemini AI)",
+        "GOOG": "Alphabet Inc. Class C (Search, YouTube & AI)",
+        "AMZN": "Amazon.com (E-Commerce & AWS Cloud Infrastructure)",
+        "META": "Meta Platforms (Raksasa Sosial Media & Llama AI)",
+        "NVDA": "NVIDIA Corporation (Raja Chip AI & Komputasi GPU)",
+        "TSLA": "Tesla Inc. (Kendaraan Listrik, Otonom & Robotika)",
+
+        // Semiconductor & Hardware Chokepoints
+        "TSM": "TSMC (Monopoli Pabrik Fabrikasi Semikonduktor Dunia)",
+        "AVGO": "Broadcom Inc. (Chip Kustom AI & Jaringan Data Center)",
+        "ASML": "ASML Holding (Monopoli Mesin Litografi EUV Chip)",
+        "AMD": "Advanced Micro Devices (Prosesor CPU & Akselerator AI)",
+        "QCOM": "Qualcomm Inc. (Chip Nirkabel & Prosesor Mobile Snapdragon)",
+        "INTC": "Intel Corporation (Fabrikasi & Prosesor Komputasi)",
+        "ARM": "Arm Holdings (Arsitektur CPU 99% Smartphone Dunia)",
+        "MU": "Micron Technology (Memori HBM & DRAM untuk AI)",
+        "KLAC": "KLA Corporation (Peralatan Inspeksi Semikonduktor)",
+        "AMAT": "Applied Materials (Peralatan Fabrikasi Semikonduktor)",
+        "LRCX": "Lam Research (Peralatan Deposisi & Etsa Chip)",
+
+        // Nuclear, Energy, & AI Infrastructure
+        "CEG": "Constellation Energy (Pembangkit Nuklir untuk Data Center AI)",
+        "CCJ": "Cameco Corporation (Bahan Bakar Uranium Siklus Nuklir)",
+        "PWR": "Quanta Services (Pembangunan Grid Listrik & Transmisi AS)",
+        "VRT": "Vertiv Holdings (Sistem Pendingin & Daya Data Center AI)",
+        "ETN": "Eaton Corporation (Manajemen Kelistrikan Cerdas)",
+        "NEE": "NextEra Energy (Energi Terbarukan & Utilitas Terbesar)",
+        "OKLO": "Oklo Inc. (Reaktor Fisi Nuklir Cepat Skala Mini)",
+
+        // Cryptocurrencies & Bitcoin Treasury
+        "BTC-USD": "Bitcoin (Emas Digital & Aset Makro Global)",
+        "BTC": "Bitcoin (Emas Digital & Aset Makro Global)",
+        "ETH-USD": "Ethereum (Platform Smart Contract & Komputasi Web3)",
+        "ETH": "Ethereum (Platform Smart Contract & Komputasi Web3)",
+        "SOL-USD": "Solana (Blockchain Layer-1 Berkecepatan Tinggi)",
+        "SOL": "Solana (Blockchain Layer-1 Berkecepatan Tinggi)",
+        "MSTR": "MicroStrategy (Perusahaan Kas Treasury Bitcoin)",
+        "COIN": "Coinbase Global (Bursa & Kustodi Kripto Terbesar US)",
+
+        // Indonesian Blue Chips (IHSG)
+        "BBCA.JK": "Bank Central Asia (Raja Perbankan Swasta Terbesar RI)",
+        "BBRI.JK": "Bank Rakyat Indonesia (Raja Kredit Mikro & Dividen RI)",
+        "BMRI.JK": "Bank Mandiri (Bank Korporasi Terbesar Milik Negara)",
+        "BBNI.JK": "Bank Negara Indonesia (Perbankan Global & Korporasi RI)",
+        "TLKM.JK": "Telkom Indonesia (Raksasa Telekomunikasi & Infrastruktur Digital)",
+        "ASII.JK": "Astra International (Konglomerat Otomotif & Industri Berat)",
+        "UNTR.JK": "United Tractors (Alat Berat, Tambang & Energi Bersih)",
+        "BREN.JK": "Barito Renewables (Pembangkit Panas Bumi Geotermal)",
+        "AMMN.JK": "Amman Mineral Internasional (Tambang Tembaga & Emas)",
+        "ICBP.JK": "Indofood CBP Sukses Makmur (Raksasa Konsumsi & Indomie Global)",
+        "INDF.JK": "Indofood Sukses Makmur (Konglomerat Pangan Terintegrasi)",
+        "GOTO.JK": "GoTo Gojek Tokopedia (Ekosistem Digital On-Demand & Fintek)",
+
+        // Commodities & Safe Havens
+        "GC=F": "Emas Berjangka / Gold Futures (Lindung Nilai Inflasi)",
+        "GLD": "SPDR Gold Shares (ETF Fisik Emas Terbesar)",
+        "BRK-B": "Berkshire Hathaway (Konglomerat Investasi Warren Buffett)",
+        "JPM": "JPMorgan Chase (Bank Komersial & Investasi Terbesar AS)",
+        "V": "Visa Inc. (Jaringan Pembayaran Global Monopoli)",
+        "MA": "Mastercard Inc. (Infrastruktur Transaksi Keuangan Global)",
+        "COST": "Costco Wholesale (Jaringan Ritel Langganan US)",
+        "LLY": "Eli Lilly and Company (Raksasa Farmasi & Terapi GLP-1)"
+      };
 
       return {
         data: {{ portfolio | tojson | safe }},
@@ -2643,6 +2745,96 @@
           if (pe <= thresholds.good) return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20';
           if (pe <= thresholds.expensive) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
           return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20';
+        },
+
+        // AI Ticker Name Generator & Suggestion
+        getAISuggestion(rawTicker) {
+          if (!rawTicker) return '';
+          const t = rawTicker.trim().toUpperCase();
+          if (AI_TICKER_SUGGESTIONS[t]) return AI_TICKER_SUGGESTIONS[t];
+          if (t.endsWith('.JK')) {
+            const clean = t.replace('.JK', '');
+            return `Emiten Unggulan Bursa Efek Indonesia (${clean})`;
+          }
+          if (t.includes('-USD')) {
+            const clean = t.replace('-USD', '');
+            return `Aset Kripto & Web3 Ekosistem (${clean})`;
+          }
+          return `Aset Saham / ETF Global (${t})`;
+        },
+
+        suggestAssetName() {
+          if (!this.assetForm.ticker) return;
+          this.assetForm.ticker = this.assetForm.ticker.toUpperCase().trim();
+          const suggestion = this.getAISuggestion(this.assetForm.ticker);
+          if (suggestion) {
+            this.assetForm.name = suggestion;
+            this.showToast(`✨ Saran AI diterapkan: "${suggestion}"`);
+          }
+        },
+
+        onTickerInput() {
+          if (!this.assetForm.ticker) return;
+          this.assetForm.ticker = this.assetForm.ticker.toUpperCase();
+          const t = this.assetForm.ticker.trim();
+
+          // Auto-fill suggested name if currently blank
+          const sug = this.getAISuggestion(t);
+          if (!this.assetForm.name && sug) {
+            this.assetForm.name = sug;
+          }
+
+          // Volatility profile detection & AI Badge
+          if (t.includes('-USD') || t.includes('BTC') || t.includes('ETH') || t === 'MSTR') {
+            this.detectedProfile = '⚡ Volatil Kripto';
+            this.detectedProfileBg = 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30';
+          } else if (['VOO', 'SPY', 'IVV', 'VT', 'VTI', 'BBCA.JK', 'BMRI.JK', 'TLKM.JK', 'BRK-B', 'GC=F'].includes(t)) {
+            this.detectedProfile = '🛡️ Stabil';
+            this.detectedProfileBg = 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30';
+          } else {
+            this.detectedProfile = '🚀 Growth Tech / Semikonduktor';
+            this.detectedProfileBg = 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30';
+          }
+        },
+
+        // Credible Year-by-Year Historical PnL Link
+        getCredibleYearlyPnLLink(item) {
+          if (!item || !item.ticker) return '#';
+          const rawTicker = item.ticker.trim().toUpperCase();
+          const clean = rawTicker.replace('-USD', '').replace('.JK', '').toLowerCase();
+
+          // 1. Cryptocurrencies -> CompaniesMarketCap / CoinCodex Annual Return History
+          if (rawTicker === 'BTC-USD' || rawTicker === 'BTC') {
+            return 'https://companiesmarketcap.com/bitcoin/stock-return-history/';
+          }
+          if (rawTicker === 'ETH-USD' || rawTicker === 'ETH') {
+            return 'https://companiesmarketcap.com/ethereum/stock-return-history/';
+          }
+          if (rawTicker === 'SOL-USD' || rawTicker === 'SOL') {
+            return 'https://coincodex.com/crypto/solana/historical-data/';
+          }
+          if (rawTicker.includes('-USD')) {
+            return `https://coincodex.com/crypto/${clean}/historical-data/`;
+          }
+
+          // 2. US ETFs -> StockAnalysis Performance & Annual Total Returns
+          const knownETFs = ['VOO', 'QQQ', 'VT', 'SMH', 'SPY', 'IVV', 'VTI', 'SCHD', 'XLK', 'SOXX', 'ARKK', 'IWM', 'DIA', 'VEA', 'VWO', 'GLD', 'SLV'];
+          if (knownETFs.includes(rawTicker)) {
+            return `https://stockanalysis.com/etf/${clean}/performance/`;
+          }
+
+          // 3. Indonesian IDX Stocks -> Stockbit Financials & Performance
+          if (rawTicker.endsWith('.JK')) {
+            return `https://stockbit.com/symbol/${clean.toUpperCase()}`;
+          }
+
+          // 4. Commodities
+          if (rawTicker === 'GC=F') {
+            return 'https://companiesmarketcap.com/gold/stock-return-history/';
+          }
+
+          // 5. US Stocks -> CompaniesMarketCap Stock Return History
+          return `https://companiesmarketcap.com/${clean}/stock-return-history/`;
         }
       }
     }
