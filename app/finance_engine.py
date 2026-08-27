@@ -490,6 +490,49 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             result["perf"]["15y_cagr"] = get_cagr_pct(result["perf"]["15y"], 15.0)
             result["perf"]["20y_cagr"] = get_cagr_pct(result["perf"]["20y"], 20.0)
 
+            # Inception / Lifetime CAGR Calculation (from asset's earliest release/issuance data)
+            earliest_pt = max_pts[0] if max_pts else (daily_pts[0] if daily_pts else None)
+            inception_cagr = None
+            inception_years = None
+            inception_date_str = None
+            inception_return = None
+            if earliest_pt and daily_pts:
+                earliest_dt = earliest_pt["dt"]
+                cur_dt = daily_pts[-1]["dt"]
+                years_diff = (cur_dt - earliest_dt).total_seconds() / (365.25 * 86400)
+                base_price = earliest_pt["open"] or earliest_pt["close"]
+                if years_diff >= 0.1 and base_price and base_price > 0 and cur_price > 0:
+                    inception_return = round(((cur_price - base_price) / base_price) * 100.0, 2)
+                    growth_f = 1.0 + (inception_return / 100.0)
+                    if growth_f > 0:
+                        inception_cagr = round(((growth_f ** (1.0 / years_diff)) - 1.0) * 100.0, 2)
+                        inception_years = round(years_diff, 1)
+                        inception_date_str = earliest_dt.strftime("%Y-%m-%d")
+
+            result["perf"]["inception_cagr"] = inception_cagr
+            result["perf"]["inception_years"] = inception_years
+            result["perf"]["inception_date"] = inception_date_str
+            result["perf"]["inception_return"] = inception_return
+
+            # Requirement 4: If 15y or 20y CAGR is None (asset history < 15y/20y), pull CAGR from inception
+            if result["perf"]["15y_cagr"] is None and inception_cagr is not None:
+                result["perf"]["15y_cagr"] = inception_cagr
+                result["perf"]["15y_cagr_is_inception"] = True
+            else:
+                result["perf"]["15y_cagr_is_inception"] = False
+
+            if result["perf"]["20y_cagr"] is None and inception_cagr is not None:
+                result["perf"]["20y_cagr"] = inception_cagr
+                result["perf"]["20y_cagr_is_inception"] = True
+            else:
+                result["perf"]["20y_cagr_is_inception"] = False
+
+            if result["perf"]["15y"] is None and inception_return is not None:
+                result["perf"]["15y"] = inception_return
+
+            if result["perf"]["20y"] is None and inception_return is not None:
+                result["perf"]["20y"] = inception_return
+
             # Volume
             vol = meta.get("regularMarketVolume")
             if not vol and chart_daily:
