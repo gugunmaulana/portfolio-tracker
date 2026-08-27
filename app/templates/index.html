@@ -169,7 +169,7 @@
     </div>
 
     <!-- Main Navigation Header -->
-    <div class="max-w-[1720px] mx-auto px-4 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+    <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-3.5 flex items-center justify-between gap-4">
       
       <!-- Brand Logo & Title -->
       <div class="flex items-center gap-3.5">
@@ -223,7 +223,7 @@
     </div>
 
     <!-- Navigation Tabs (4 Main Menus) -->
-    <div class="px-4 lg:px-8 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800/60 overflow-x-auto whitespace-nowrap text-xs font-semibold">
+    <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800/60 overflow-x-auto whitespace-nowrap text-xs font-semibold">
       
       <button @click="activeView = 'portfolio'" 
               class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
@@ -258,9 +258,9 @@
   </header>
 
   <!-- ========================================================================= -->
-  <!-- MAIN CONTAINER                                                            -->
+  <!-- MAIN CONTAINER (ULTRA-WIDE EXPANDED VIEW)                                 -->
   <!-- ========================================================================= -->
-  <main class="max-w-[1720px] mx-auto px-4 lg:px-8 py-6 space-y-6">
+  <main class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-5 space-y-5">
 
     <!-- ======================================================================= -->
     <!-- TOP EXECUTIVE SUMMARY METRIC CARDS                                      -->
@@ -354,8 +354,8 @@
             <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/25'"></span>)</span>
           </button>
 
-          <!-- Quick Return Pillars / Column Quick Toggles -->
-          <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-xl">
+          <!-- Quick Return Pillars / Column Quick Toggles (Expanded Row) -->
+          <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-none">
             <template x-for="colKey in ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y', 'athZone', 'peValuation', 'curVal', 'pnl']" :key="colKey">
               <button @click="toggleCol(colKey)" 
                       class="px-2 py-0.5 rounded text-[11px] font-semibold transition shrink-0"
