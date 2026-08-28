@@ -633,6 +633,16 @@ def init_db():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, ("default_user", 2026, m_idx, m_name, outg, netw, inv_pwr, pnl_idr, pnl_pct, growth))
     
+    # Ensure column_order and visible_columns exist in users table for cross-device permanent sync
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN column_order TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN visible_columns TEXT")
+    except Exception:
+        pass
+
     # Enforce uppercase tickers across all existing database records
     cursor.execute("UPDATE portfolio_items SET ticker = UPPER(TRIM(ticker)) WHERE ticker IS NOT NULL")
     
@@ -804,6 +814,17 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
                 "items": items
             })
         
+    # Parse saved column settings if available
+    saved_col_order = None
+    saved_vis_cols = None
+    try:
+        if "column_order" in user.keys() and user["column_order"]:
+            saved_col_order = json.loads(user["column_order"])
+        if "visible_columns" in user.keys() and user["visible_columns"]:
+            saved_vis_cols = json.loads(user["visible_columns"])
+    except Exception:
+        pass
+
     return {
         "user_id": user["id"],
         "user_name": user["name"],
@@ -813,7 +834,9 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
         "target_annual_min_return": 10.0,
         "target_annual_ideal_return": 20.0,
         "currency_base": "IDR",
-        "categories": categories
+        "categories": categories,
+        "column_order": saved_col_order,
+        "visible_columns": saved_vis_cols
     }
 
 
@@ -917,6 +940,34 @@ def update_user_settings(user_id: str, target_ff: float, total_outgoings: float,
     cursor.execute("""
     UPDATE users SET target_financial_freedom = ?, total_outgoings = ?, cash_balance = ? WHERE id = ?
     """, (target_ff, total_outgoings, cash_balance, user_id))
+    conn.commit()
+    conn.close()
+
+
+def get_user_column_settings(user_id: str = "default_user") -> Dict[str, Any]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT column_order, visible_columns FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        c_order = json.loads(row["column_order"]) if row["column_order"] else None
+        v_cols = json.loads(row["visible_columns"]) if row["visible_columns"] else None
+        return {"column_order": c_order, "visible_columns": v_cols}
+    return {"column_order": None, "visible_columns": None}
+
+
+def update_user_column_settings(user_id: str, column_order: Optional[List[str]], visible_columns: Optional[Dict[str, bool]]):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    c_str = json.dumps(column_order) if column_order is not None else None
+    v_str = json.dumps(visible_columns) if visible_columns is not None else None
+    cursor.execute("""
+    UPDATE users SET column_order = ?, visible_columns = ? WHERE id = ?
+    """, (c_str, v_str, user_id))
     conn.commit()
     conn.close()
 

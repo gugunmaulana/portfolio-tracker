@@ -354,9 +354,9 @@
             <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/25'"></span>)</span>
           </button>
 
-          <!-- Quick Return Pillars / Column Quick Toggles (Expanded Row) -->
+          <!-- Quick Return Pillars / Column Quick Toggles (Expanded Row in Default Order) -->
           <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-none">
-            <template x-for="colKey in ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y', 'athZone', 'peValuation', 'curVal', 'pnl']" :key="colKey">
+            <template x-for="colKey in ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr15y', 'cagr5y', 'cagr10y', 'cagr20y']" :key="colKey">
               <button @click="toggleCol(colKey)" 
                       class="px-2 py-0.5 rounded text-[11px] font-semibold transition shrink-0"
                       :class="cols[colKey] ? (colKey.startsWith('cagr') ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-bold' : (colKey === 'signal' ? 'bg-white dark:bg-slate-900 shadow-sm text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400')) : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
@@ -543,13 +543,13 @@
                         </div>
                       </td>
 
-                      <!-- 4. Ticker Badge with Direct Yahoo Link -->
+                      <!-- 4. Ticker Badge with Direct Investing.com Link -->
                       <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400">
                         <div class="flex items-center gap-1">
                           <span x-text="item.ticker"></span>
-                          <a :href="getCredibleYearlyPnLLink(item)" target="_blank" 
+                          <a :href="getInvestingComLink(item)" target="_blank" 
                              class="text-sky-500 hover:text-white hover:bg-sky-500 p-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[10px] flex items-center transition" 
-                             :title="'Cek Kinerja Historis & Laporan Keuangan Resmi ' + item.ticker">
+                             :title="'Bandingkan Performa & Data ' + item.ticker + ' di Investing.com'">
                             <span>↗</span>
                           </a>
                         </div>
@@ -1830,9 +1830,47 @@
   <!-- ========================================================================= -->
   <script>
     function portfolioApp() {
-      // 25 total configurable columns
+      const serverPortfolio = {{ portfolio | tojson | safe }};
+
+      // 25 total configurable columns in user's exact default order
+      const defaultColumnOrder = [
+        'quantity',
+        'investedIdr',
+        'curVal',
+        'pnl',
+        'signal',
+        'athZone',
+        'athPrice',
+        'athDrawdown',
+        'peValuation',
+        'perf24h',
+        'perf5h',
+        'perf1m',
+        'perf6m',
+        'perf1y',
+        'perf5y',
+        'perf10y',
+        'cagr15y',
+        'cagr5y',
+        'cagr10y',
+        'cagr20y',
+        'perf15y',
+        'perf20y',
+        'marketCap',
+        'volume',
+        'avgPrice'
+      ];
+
       const defaultCols = {
+        quantity: true,
+        investedIdr: true,
+        curVal: true,
+        pnl: true,
         signal: true,
+        athZone: true,
+        athPrice: true,
+        athDrawdown: true,
+        peValuation: true,
         perf24h: true,
         perf5h: true,
         perf1m: true,
@@ -1840,34 +1878,27 @@
         perf1y: true,
         perf5y: true,
         perf10y: true,
-        perf15y: false,
-        perf20y: false,
+        cagr15y: true,
         cagr5y: false,
         cagr10y: false,
-        cagr15y: false,
         cagr20y: false,
-        athPrice: true,
-        athDrawdown: true,
-        athZone: true,
-        peValuation: true,
+        perf15y: false,
+        perf20y: false,
         marketCap: false,
         volume: false,
-        investedIdr: true,
-        quantity: true,
-        avgPrice: false,
-        curVal: true,
-        pnl: true
+        avgPrice: false
       };
 
-      const defaultColumnOrder = [
-        'signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'perf15y', 'perf20y',
-        'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y',
-        'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'marketCap', 'volume',
-        'investedIdr', 'quantity', 'avgPrice', 'curVal', 'pnl'
-      ];
-
       const COL_DEFINITIONS = {
+        quantity: { key: 'quantity', label: 'Quantity', short: 'Quantity', group: 'Posisi', align: 'text-right' },
+        investedIdr: { key: 'investedIdr', label: 'Modal Terinvestasi', short: 'Modal', group: 'Posisi', align: 'text-right' },
+        curVal: { key: 'curVal', label: 'Nilai Berjalan', short: 'Nilai Berjalan', group: 'Posisi', align: 'text-right' },
+        pnl: { key: 'pnl', label: 'Floating PnL', short: 'Floating PnL', group: 'Posisi', align: 'text-right' },
         signal: { key: 'signal', label: 'Sinyal Akumulasi (AI)', short: 'Sinyal AI', group: 'Sinyal AI', align: 'text-center' },
+        athZone: { key: 'athZone', label: 'Zonasi ATH', short: 'Zonasi ATH', group: 'Valuasi & ATH', align: 'text-center' },
+        athPrice: { key: 'athPrice', label: 'ATH Price', short: 'ATH Price', group: 'Valuasi & ATH', align: 'text-right' },
+        athDrawdown: { key: 'athDrawdown', label: '% from ATH', short: '% ATH', group: 'Valuasi & ATH', align: 'text-center' },
+        peValuation: { key: 'peValuation', label: 'Valuasi P/E', short: 'Valuasi P/E', group: 'Valuasi & ATH', align: 'text-center' },
         perf24h: { key: 'perf24h', label: '24H Return', short: '24H', group: 'Return', align: 'text-center' },
         perf5h: { key: 'perf5h', label: '5H Return (1W)', short: '5H', group: 'Return', align: 'text-center' },
         perf1m: { key: 'perf1m', label: '1M Return', short: '1M', group: 'Return', align: 'text-center' },
@@ -1875,47 +1906,51 @@
         perf1y: { key: 'perf1y', label: '1Y Return', short: '1Y', group: 'Return', align: 'text-center' },
         perf5y: { key: 'perf5y', label: '5Y Return', short: '5Y', group: 'Return', align: 'text-center' },
         perf10y: { key: 'perf10y', label: '10Y Return', short: '10Y', group: 'Return', align: 'text-center' },
-        perf15y: { key: 'perf15y', label: '15Y Return', short: '15Y', group: 'Return', align: 'text-center' },
-        perf20y: { key: 'perf20y', label: '20Y Return', short: '20Y', group: 'Return', align: 'text-center' },
+        cagr15y: { key: 'cagr15y', label: '15Y CAGR', short: '15Y CAGR', group: 'CAGR', align: 'text-center' },
         cagr5y: { key: 'cagr5y', label: '5Y CAGR', short: '5Y CAGR', group: 'CAGR', align: 'text-center' },
         cagr10y: { key: 'cagr10y', label: '10Y CAGR', short: '10Y CAGR', group: 'CAGR', align: 'text-center' },
-        cagr15y: { key: 'cagr15y', label: '15Y CAGR', short: '15Y CAGR', group: 'CAGR', align: 'text-center' },
         cagr20y: { key: 'cagr20y', label: '20Y CAGR', short: '20Y CAGR', group: 'CAGR', align: 'text-center' },
-        athPrice: { key: 'athPrice', label: 'ATH Price', short: 'ATH Price', group: 'Valuasi & ATH', align: 'text-right' },
-        athDrawdown: { key: 'athDrawdown', label: '% from ATH', short: '% ATH', group: 'Valuasi & ATH', align: 'text-center' },
-        athZone: { key: 'athZone', label: 'Zonasi ATH', short: 'Zonasi ATH', group: 'Valuasi & ATH', align: 'text-center' },
-        peValuation: { key: 'peValuation', label: 'Valuasi P/E', short: 'Valuasi P/E', group: 'Valuasi & ATH', align: 'text-center' },
+        perf15y: { key: 'perf15y', label: '15Y Return', short: '15Y', group: 'Return', align: 'text-center' },
+        perf20y: { key: 'perf20y', label: '20Y Return', short: '20Y', group: 'Return', align: 'text-center' },
         marketCap: { key: 'marketCap', label: 'Market Cap', short: 'Market Cap', group: 'Data Pasar', align: 'text-right' },
         volume: { key: 'volume', label: 'Volume (24H)', short: 'Volume', group: 'Data Pasar', align: 'text-right' },
-        investedIdr: { key: 'investedIdr', label: 'Modal Terinvestasi', short: 'Modal', group: 'Posisi', align: 'text-right' },
-        quantity: { key: 'quantity', label: 'Quantity', short: 'Quantity', group: 'Posisi', align: 'text-right' },
-        avgPrice: { key: 'avgPrice', label: 'AVG Price', short: 'AVG Price', group: 'Posisi', align: 'text-right' },
-        curVal: { key: 'curVal', label: 'Nilai Berjalan', short: 'Nilai Berjalan', group: 'Posisi', align: 'text-right' },
-        pnl: { key: 'pnl', label: 'Floating PnL', short: 'Floating PnL', group: 'Posisi', align: 'text-right' }
+        avgPrice: { key: 'avgPrice', label: 'AVG Price', short: 'AVG Price', group: 'Posisi', align: 'text-right' }
       };
 
       let savedCols = defaultCols;
-      try {
-        const stored = localStorage.getItem('radar_cols_v7');
-        if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
-      } catch (e) {
-        console.error(e);
+      if (serverPortfolio && serverPortfolio.visible_columns && typeof serverPortfolio.visible_columns === 'object' && Object.keys(serverPortfolio.visible_columns).length > 0) {
+        savedCols = { ...defaultCols, ...serverPortfolio.visible_columns };
+      } else {
+        try {
+          const stored = localStorage.getItem('radar_cols_v8');
+          if (stored) savedCols = { ...defaultCols, ...JSON.parse(stored) };
+        } catch (e) {
+          console.error(e);
+        }
       }
 
       let savedColOrder = [...defaultColumnOrder];
-      try {
-        const storedOrder = localStorage.getItem('radar_col_order_v1');
-        if (storedOrder) {
-          const parsed = JSON.parse(storedOrder);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const valid = parsed.filter(k => defaultColumnOrder.includes(k));
-            defaultColumnOrder.forEach(k => {
-              if (!valid.includes(k)) valid.push(k);
-            });
-            savedColOrder = valid;
+      if (serverPortfolio && Array.isArray(serverPortfolio.column_order) && serverPortfolio.column_order.length > 0) {
+        const valid = serverPortfolio.column_order.filter(k => defaultColumnOrder.includes(k));
+        defaultColumnOrder.forEach(k => {
+          if (!valid.includes(k)) valid.push(k);
+        });
+        savedColOrder = valid;
+      } else {
+        try {
+          const storedOrder = localStorage.getItem('radar_col_order_v2');
+          if (storedOrder) {
+            const parsed = JSON.parse(storedOrder);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const valid = parsed.filter(k => defaultColumnOrder.includes(k));
+              defaultColumnOrder.forEach(k => {
+                if (!valid.includes(k)) valid.push(k);
+              });
+              savedColOrder = valid;
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
 
       const AI_TICKER_SUGGESTIONS = {
         // --- CORE ETF & FONDASI INDEKS DUNIA ---
@@ -2144,28 +2179,44 @@
           return 'bg-slate-500/15 text-slate-600 dark:text-slate-400';
         },
 
-        moveCol(colKey, direction) {
+        async moveCol(colKey, direction) {
           const idx = this.columnOrder.indexOf(colKey);
           if (idx === -1) return;
           const targetIdx = direction === 'left' ? idx - 1 : idx + 1;
           if (targetIdx < 0 || targetIdx >= this.columnOrder.length) return;
           const [moved] = this.columnOrder.splice(idx, 1);
           this.columnOrder.splice(targetIdx, 0, moved);
-          this.saveColOrder();
+          await this.saveColOrder();
           this.showToast(`Kolom ${this.getColDef(colKey).short} dipindahkan ke posisi #${targetIdx + 1}`);
         },
 
-        saveColOrder() {
+        async saveColOrder() {
           try {
-            localStorage.setItem('radar_col_order_v1', JSON.stringify(this.columnOrder));
+            localStorage.setItem('radar_col_order_v2', JSON.stringify(this.columnOrder));
           } catch (e) {}
           this.$nextTick(() => lucide.createIcons());
+          await this.syncColumnSettingsToServer();
         },
 
-        resetColOrder() {
+        async resetColOrder() {
           this.columnOrder = [...defaultColumnOrder];
-          this.saveColOrder();
-          this.showToast('Urutan kolom direset ke standar!');
+          await this.saveColOrder();
+          this.showToast('Urutan kolom direset ke susunan default permanen!');
+        },
+
+        async syncColumnSettingsToServer() {
+          try {
+            await fetch('/api/settings/columns', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                column_order: this.columnOrder,
+                visible_columns: this.cols
+              })
+            });
+          } catch (err) {
+            console.error('Failed to sync column settings to server:', err);
+          }
         },
 
         // Table Header Drag & Drop Handlers
@@ -2181,14 +2232,14 @@
 
         onColHeaderDragLeave(e) {},
 
-        onColHeaderDrop(e, targetColKey, targetIdx) {
+        async onColHeaderDrop(e, targetColKey, targetIdx) {
           if (!this.draggedColKey || this.draggedColKey === targetColKey) return;
           const fromIdx = this.columnOrder.indexOf(this.draggedColKey);
           const toIdx = this.columnOrder.indexOf(targetColKey);
           if (fromIdx > -1 && toIdx > -1) {
             const [moved] = this.columnOrder.splice(fromIdx, 1);
             this.columnOrder.splice(toIdx, 0, moved);
-            this.saveColOrder();
+            await this.saveColOrder();
             this.showToast(`Kolom ${this.getColDef(this.draggedColKey).short} dipindahkan!`);
           }
           this.draggedColKey = null;
@@ -2209,14 +2260,14 @@
           e.dataTransfer.dropEffect = 'move';
         },
 
-        onColModalDrop(e, targetColKey, targetIdx) {
+        async onColModalDrop(e, targetColKey, targetIdx) {
           if (!this.draggedModalColKey || this.draggedModalColKey === targetColKey) return;
           const fromIdx = this.columnOrder.indexOf(this.draggedModalColKey);
           const toIdx = this.columnOrder.indexOf(targetColKey);
           if (fromIdx > -1 && toIdx > -1) {
             const [moved] = this.columnOrder.splice(fromIdx, 1);
             this.columnOrder.splice(toIdx, 0, moved);
-            this.saveColOrder();
+            await this.saveColOrder();
           }
           this.draggedModalColKey = null;
         },
@@ -2315,37 +2366,39 @@
         // =====================================================================
         // COLUMN VISIBILITY PRESETS
         // =====================================================================
-        toggleCol(colKey) {
+        async toggleCol(colKey) {
           if (this.cols[colKey] !== undefined) {
             this.cols[colKey] = !this.cols[colKey];
-            this.saveColsPref();
+            await this.saveColsPref();
           }
         },
 
-        saveColsPref() {
+        async saveColsPref() {
           try {
-            localStorage.setItem('radar_cols_v7', JSON.stringify(this.cols));
+            localStorage.setItem('radar_cols_v8', JSON.stringify(this.cols));
           } catch (e) {}
+          await this.syncColumnSettingsToServer();
         },
 
-        resetColsDefault() {
-          this.setColsPreset('default');
+        async resetColsDefault() {
+          await this.setColsPreset('default');
+          this.showToast('Kolom aktif direset ke susunan radar default!');
         },
 
-        setColsPreset(type) {
+        async setColsPreset(type) {
           if (type === 'all') {
             Object.keys(this.cols).forEach(k => this.cols[k] = true);
           } else if (type === 'default') {
             Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
+            ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr15y'].forEach(k => this.cols[k] = true);
           } else if (type === 'cagr') {
             Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['signal', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr5y', 'cagr10y', 'cagr15y', 'cagr20y', 'athPrice', 'athDrawdown', 'athZone', 'peValuation', 'investedIdr', 'quantity', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
+            ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr15y', 'cagr5y', 'cagr10y', 'cagr20y'].forEach(k => this.cols[k] = true);
           } else if (type === 'compact') {
             Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['signal', 'perf24h', 'perf1y', 'athZone', 'investedIdr', 'curVal', 'pnl'].forEach(k => this.cols[k] = true);
+            ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'perf24h', 'perf1y', 'athZone'].forEach(k => this.cols[k] = true);
           }
-          this.saveColsPref();
+          await this.saveColsPref();
         },
 
         activeColumnCount() {
@@ -2974,6 +3027,73 @@
 
           // 6. US Stocks (StockAnalysis Verified Company Performance & Historical Multi-Year Ratios)
           return `https://stockanalysis.com/stocks/${clean}/`;
+        },
+
+        // Direct Investing.com Performance & Financial Profile Link for Menu 1 Radar Portofolio
+        getInvestingComLink(item) {
+          if (!item || !item.ticker) return 'https://www.investing.com';
+          const raw = item.ticker.trim().toUpperCase();
+          const clean = raw.replace('.JK', '').replace('-USD', '').toLowerCase();
+
+          // Dedicated verified direct Investing.com routes
+          const directInvestingUrls = {
+            "VOO": "https://www.investing.com/etfs/vanguard-s-p-500",
+            "QQQ": "https://www.investing.com/etfs/powershares-qqqq",
+            "SMH": "https://www.investing.com/etfs/market-vectors-semiconductor",
+            "SPY": "https://www.investing.com/etfs/spdr-s-p-500",
+            "IVV": "https://www.investing.com/etfs/ishares-core-sp-500",
+            "VT": "https://www.investing.com/etfs/vanguard-total-world-stock",
+            "VTI": "https://www.investing.com/etfs/vanguard-total-stock-mkt",
+            "SCHD": "https://www.investing.com/etfs/schwab-us-dividend-equity-etf",
+            "XLK": "https://www.investing.com/etfs/technology-select-spdr",
+            "SOXX": "https://www.investing.com/etfs/ishares-phlx-semiconductor",
+            "ARKK": "https://www.investing.com/etfs/ark-innovation-etf",
+            "DIA": "https://www.investing.com/etfs/spdr-dj-industrial-average",
+            "NVDA": "https://www.investing.com/equities/nvidia-corp",
+            "AAPL": "https://www.investing.com/equities/apple-computer-inc",
+            "MSFT": "https://www.investing.com/equities/microsoft-corp",
+            "GOOGL": "https://www.investing.com/equities/google-inc-c",
+            "AMZN": "https://www.investing.com/equities/amazon-com-inc",
+            "META": "https://www.investing.com/equities/facebook-inc",
+            "TSLA": "https://www.investing.com/equities/tesla-motors",
+            "TSM": "https://www.investing.com/equities/taiwan-semicond.manufacturing-co",
+            "AVGO": "https://www.investing.com/equities/broadcom-corp",
+            "ASML": "https://www.investing.com/equities/asml-holding",
+            "KLAC": "https://www.investing.com/equities/kla-tencor-corp",
+            "AMAT": "https://www.investing.com/equities/applied-matls-inc",
+            "LRCX": "https://www.investing.com/equities/lam-research-corp",
+            "ETN": "https://www.investing.com/equities/eaton-corp",
+            "RTX": "https://www.investing.com/equities/raytheon-technologies",
+            "SNPS": "https://www.investing.com/equities/synopsys-inc",
+            "CEG": "https://www.investing.com/equities/constellation-energy-corp",
+            "PWR": "https://www.investing.com/equities/quanta-services-inc",
+            "CCJ": "https://www.investing.com/equities/cameco-corp",
+            "VRT": "https://www.investing.com/equities/vertiv-holdings-co",
+            "PLTR": "https://www.investing.com/equities/palantir-technologies-inc",
+            "BRK-B": "https://www.investing.com/equities/berkshire-hathaway",
+            "COST": "https://www.investing.com/equities/costco-whsl-corp-new",
+            "JPM": "https://www.investing.com/equities/jp-morgan-chase",
+            "V": "https://www.investing.com/equities/visa-inc",
+            "LLY": "https://www.investing.com/equities/eli-lilly-and-co",
+            "BTC-USD": "https://www.investing.com/crypto/bitcoin/btc-usd",
+            "BTC": "https://www.investing.com/crypto/bitcoin/btc-usd",
+            "ETH-USD": "https://www.investing.com/crypto/ethereum/eth-usd",
+            "ETH": "https://www.investing.com/crypto/ethereum/eth-usd",
+            "SOL-USD": "https://www.investing.com/crypto/solana/sol-usd",
+            "GC=F": "https://www.investing.com/commodities/gold",
+            "BBCA.JK": "https://www.investing.com/equities/bank-central-asia",
+            "BBRI.JK": "https://www.investing.com/equities/bank-rakyat-indonesia",
+            "BMRI.JK": "https://www.investing.com/equities/bank-mandiri",
+            "BBNI.JK": "https://www.investing.com/equities/bank-negara-indonesia",
+            "TLKM.JK": "https://www.investing.com/equities/telkom-indonesia",
+            "UNTR.JK": "https://www.investing.com/equities/united-tractors",
+            "BREN.JK": "https://www.investing.com/equities/barito-renewables",
+            "AMMN.JK": "https://www.investing.com/equities/amman-mineral-internasional"
+          };
+
+          if (directInvestingUrls[raw]) return directInvestingUrls[raw];
+          if (raw.endsWith('.JK')) return `https://stockbit.com/symbol/${clean.toUpperCase()}`;
+          return `https://www.investing.com/search/?q=${encodeURIComponent(clean)}`;
         }
       }
     }

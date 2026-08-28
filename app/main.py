@@ -228,6 +228,17 @@ async def api_update_settings(payload: SettingsPayload, user_id: str = "default_
     return JSONResponse(content={"status": "success", "data": portfolio})
 
 
+class ColumnSettingsPayload(BaseModel):
+    column_order: Optional[List[str]] = None
+    visible_columns: Optional[Dict[str, bool]] = None
+
+
+@app.post("/api/settings/columns")
+async def api_update_column_settings(payload: ColumnSettingsPayload, user_id: str = "default_user"):
+    update_user_column_settings(user_id, payload.column_order, payload.visible_columns)
+    return JSONResponse(content={"status": "success", "message": "Column settings saved permanently"})
+
+
 # Monthly Tracking APIs
 @app.get("/api/monthly")
 async def api_get_monthly(user_id: str = "default_user", year: int = 2026):

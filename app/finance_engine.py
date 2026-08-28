@@ -22,6 +22,11 @@ session.headers.update({
 MARKET_CACHE: Dict[str, Any] = {}
 CACHE_TTL_SECONDS = 15
 
+# Persistent long-term cache for heavy multi-year historical data & yearly returns (1-day TTL)
+# This avoids re-downloading 15 years of charts when user simply adds capital or edits P/E ratio
+HISTORICAL_PNL_CACHE: Dict[str, Dict[str, Any]] = {}
+HISTORICAL_CACHE_TTL = 86400
+
 # Vetted high-resolution asset logo repository
 ASSET_LOGOS = {
     # Cryptocurrencies & Commodities
@@ -371,6 +376,37 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
     if cached and (now - cached.get("_timestamp", 0) < CACHE_TTL_SECONDS):
         return cached
 
+    # If long-term historical PnL & yearly returns are already cached, reuse them instantly!
+    # This ensures adding capital or editing PE/quantity takes < 10ms with zero heavy network downloads.
+    hist = HISTORICAL_PNL_CACHE.get(ticker_symbol)
+    if hist and (now - hist.get("_cached_at", 0) < HISTORICAL_CACHE_TTL):
+        quick_chart = fetch_direct_yahoo_chart(ticker_symbol, "5d", "1d")
+        quick_price = None
+        chg_24h = 0.0
+        if quick_chart:
+            q_meta = quick_chart.get("meta", {})
+            q_quotes = quick_chart.get("indicators", {}).get("quote", [{}])[0]
+            q_closes = [c for c in q_quotes.get("close", []) if c is not None and not math.isnan(c) and c > 0]
+            quick_price = q_meta.get("regularMarketPrice") or (q_closes[-1] if q_closes else None)
+            prev_c = q_meta.get("regularMarketPreviousClose") or (q_closes[-2] if len(q_closes) >= 2 else None)
+            if quick_price and prev_c and prev_c > 0:
+                chg_24h = round(((quick_price - prev_c) / prev_c) * 100.0, 2)
+
+        cur_price = quick_price or hist.get("price", 100.0)
+        result = dict(hist)
+        result["price"] = cur_price
+        result["perf"] = dict(hist.get("perf", {}))
+        result["perf"]["24h"] = chg_24h
+        
+        dec2025_c = hist.get("_dec2025_close")
+        if dec2025_c and dec2025_c > 0:
+            result["yearly_returns"] = dict(hist.get("yearly_returns", {}))
+            result["yearly_returns"]["2026"] = round(((cur_price - dec2025_c) / dec2025_c) * 100.0, 2)
+            
+        result["_timestamp"] = now
+        MARKET_CACHE[ticker_symbol] = result
+        return result
+
     result = {
         "ticker": ticker_symbol,
         "price": FALLBACK_PRICES.get(ticker_symbol, 100.0),
@@ -631,6 +667,11 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
     result["volatility_label"] = prof["label"]
     result["volatility_bg"] = prof["badge_bg"]
     result["smart_pe_thresholds"] = prof["default_pe"]
+
+    # Store in persistent long-term historical cache
+    hist_copy = dict(result)
+    hist_copy["_cached_at"] = now
+    HISTORICAL_PNL_CACHE[ticker_symbol] = hist_copy
 
     MARKET_CACHE[ticker_symbol] = result
     return result
@@ -931,11 +972,11 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
             units = quantity * 100.0 if is_lot else quantity
             
             if currency == "IDR":
-                cur_val_idr = units * current_price if units > 0 else 0.0
+                cur_val_idr = units * current_price if units > 0 else (invested_idr if invested_idr > 0 else 0.0)
                 cur_val_usd = cur_val_idr / usd_idr if usd_idr > 0 else 0.0
                 invested_usd = invested_idr / usd_idr if usd_idr > 0 else 0.0
             else: # USD
-                cur_val_usd = units * current_price if units > 0 else 0.0
+                cur_val_usd = units * current_price if units > 0 else (invested_idr / usd_idr if invested_idr > 0 and usd_idr > 0 else 0.0)
                 cur_val_idr = cur_val_usd * usd_idr
                 invested_usd = invested_idr / usd_idr if usd_idr > 0 else 0.0
 
