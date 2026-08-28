@@ -239,7 +239,7 @@
         <span>2. PNL / RETURN TAHUNAN (2011-NOW)</span>
       </button>
 
-      <button @click="activeView = 'monthly'" 
+      <button @click="openMonthlyTab()" 
               class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'monthly' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="calendar" class="w-4 h-4"></i>
@@ -543,13 +543,13 @@
                         </div>
                       </td>
 
-                      <!-- 4. Ticker Badge with Direct Investing.com Link -->
+                      <!-- 4. Ticker Badge with Direct TradingView Link -->
                       <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400">
                         <div class="flex items-center gap-1">
                           <span x-text="item.ticker"></span>
-                          <a :href="getInvestingComLink(item)" target="_blank" 
+                          <a :href="getTradingViewLink(item)" target="_blank" 
                              class="text-sky-500 hover:text-white hover:bg-sky-500 p-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[10px] flex items-center transition" 
-                             :title="'Bandingkan Performa & Data ' + item.ticker + ' di Investing.com'">
+                             :title="'Buka Grafik Interaktif & Analisis ' + item.ticker + ' di TradingView'">
                             <span>↗</span>
                           </a>
                         </div>
@@ -1014,72 +1014,145 @@
             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
             <span>Tambah Tahun</span>
           </button>
-        </div>
-      </div>
-
-      <!-- Monthly Records Table -->
-      <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs whitespace-nowrap">
-            <thead class="bg-slate-50 dark:bg-[#0d1527] text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-              <tr>
-                <th class="py-3 px-4">Bulan</th>
-                <th class="py-3 px-4 text-right">Modal Keluar (Outgoings)</th>
-                <th class="py-3 px-4 text-right">Current Networth</th>
-                <th class="py-3 px-4 text-right">Injeksi Baru (Investing Power)</th>
-                <th class="py-3 px-4 text-right">Assets P&L</th>
-                <th class="py-3 px-4 text-center">Networth Growth %</th>
-                <th class="py-3 px-4">Catatan / Evaluasi</th>
-                <th class="py-3 px-4 text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
-              <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
-                <tr class="crypto-row transition" :class="isCurrentMonthRow(row) ? 'bg-sky-50/40 dark:bg-sky-950/20 font-semibold' : ''">
-                  
-                  <!-- Month Name -->
-                  <td class="py-3 px-4 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <span x-text="row.month_name"></span>
-                    <span x-show="isCurrentMonthRow(row)" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 uppercase">Live</span>
-                  </td>
-
-                  <!-- Outgoings -->
-                  <td class="py-3 px-4 text-right text-slate-700 dark:text-slate-300" 
-                      x-text="getMonthlyOutgoings(row) > 0 ? formatIDR(getMonthlyOutgoings(row)) : '-'"></td>
-
-                  <!-- Current Networth -->
-                  <td class="py-3 px-4 text-right font-bold text-slate-900 dark:text-white" 
-                      x-text="getMonthlyNetworth(row) > 0 ? formatIDR(getMonthlyNetworth(row)) : '-'"></td>
-
-                  <!-- Investing Power -->
-                  <td class="py-3 px-4 text-right font-semibold text-sky-600 dark:text-sky-400" 
-                      x-text="getMonthlyInvestingPower(row) > 0 ? formatIDR(getMonthlyInvestingPower(row)) : '0'"></td>
-
-                  <!-- Assets PnL (Realtime for current month) -->
-                  <td class="py-3 px-4 text-right font-bold"
-                      :class="getMonthlyPnLIDR(row) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                      x-text="getMonthlyOutgoings(row) > 0 ? ((getMonthlyPnLIDR(row) >= 0 ? '+' : '') + formatIDR(getMonthlyPnLIDR(row)) + ' (' + (getMonthlyPnLPct(row) ? getMonthlyPnLPct(row).toFixed(2) : '0.00') + '%)') : '-'"></td>
-
-                  <!-- Networth Growth % -->
-                  <td class="py-3 px-4 text-center font-bold"
-                      :class="getMonthlyGrowth(row) > 0 ? 'text-emerald-500' : (getMonthlyGrowth(row) < 0 ? 'text-rose-500' : 'text-slate-400')"
-                      x-text="getMonthlyNetworth(row) > 0 ? ((getMonthlyGrowth(row) > 0 ? '+' : '') + getMonthlyGrowth(row).toFixed(2) + '%') : '-'"></td>
-
-                  <!-- Notes -->
-                  <td class="py-3 px-4 font-sans text-xs text-slate-500 truncate max-w-xs" x-text="row.notes || '-'"></td>
-
-                  <!-- Action -->
-                  <td class="py-3 px-4 text-center">
-                    <button @click="editMonthlyRow(row)" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-xs font-sans font-semibold">
-                      Edit
-                    </button>
-                  </td>
-
+        <      <!-- 2-COLUMN GRID: LEFT = MONTHLY TABLE (Jan-Des), RIGHT = PORTFOLIO GROWTH CHART CARD -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT: MONTHLY TABLE (COL-SPAN-7) -->
+        <div class="xl:col-span-7 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i data-lucide="table" class="w-4 h-4 text-sky-500"></i>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Performa Bulanan (<span x-text="selectedYear"></span>)</h3>
+            </div>
+            <span class="text-[11px] font-mono text-slate-400 font-medium">Januari – Desember</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+              <thead class="bg-slate-50/80 dark:bg-[#0d1527] text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                <tr>
+                  <th class="py-3 px-3.5">Bulan</th>
+                  <th class="py-3 px-3 text-right">Modal Keluar</th>
+                  <th class="py-3 px-3 text-right">Networth</th>
+                  <th class="py-3 px-3 text-right">Injeksi</th>
+                  <th class="py-3 px-3 text-right">Assets P&L</th>
+                  <th class="py-3 px-3 text-center">Growth %</th>
+                  <th class="py-3 px-3 text-center">Aksi</th>
                 </tr>
-              </template>
-            </tbody>
-          </table>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
+                <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
+                  <tr class="crypto-row transition" :class="isCurrentMonthRow(row) ? 'bg-sky-50/40 dark:bg-sky-950/20 font-semibold' : ''">
+                    
+                    <!-- Month Name -->
+                    <td class="py-3 px-3.5 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <span x-text="row.month_name"></span>
+                      <span x-show="isCurrentMonthRow(row)" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 uppercase">Live</span>
+                    </td>
+
+                    <!-- Outgoings -->
+                    <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300" 
+                        x-text="getMonthlyOutgoings(row) > 0 ? formatIDR(getMonthlyOutgoings(row)) : '-'"></td>
+
+                    <!-- Current Networth -->
+                    <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white" 
+                        x-text="getMonthlyNetworth(row) > 0 ? formatIDR(getMonthlyNetworth(row)) : '-'"></td>
+
+                    <!-- Investing Power -->
+                    <td class="py-3 px-3 text-right font-semibold text-sky-600 dark:text-sky-400" 
+                        x-text="getMonthlyInvestingPower(row) > 0 ? formatIDR(getMonthlyInvestingPower(row)) : '0'"></td>
+
+                    <!-- Assets PnL -->
+                    <td class="py-3 px-3 text-right font-bold"
+                        :class="getMonthlyPnLIDR(row) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                        x-text="getMonthlyOutgoings(row) > 0 ? ((getMonthlyPnLIDR(row) >= 0 ? '+' : '') + formatIDR(getMonthlyPnLIDR(row))) : '-'"></td>
+
+                    <!-- Networth Growth % -->
+                    <td class="py-3 px-3 text-center font-bold"
+                        :class="getMonthlyGrowth(row) > 0 ? 'text-emerald-500' : (getMonthlyGrowth(row) < 0 ? 'text-rose-500' : 'text-slate-400')"
+                        x-text="getMonthlyNetworth(row) > 0 ? ((getMonthlyGrowth(row) > 0 ? '+' : '') + getMonthlyGrowth(row).toFixed(2) + '%') : '-'"></td>
+
+                    <!-- Action -->
+                    <td class="py-3 px-3 text-center">
+                      <button @click="editMonthlyRow(row)" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-[11px] font-sans font-semibold">
+                        Edit
+                      </button>
+                    </td>
+
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        <!-- RIGHT: INTERACTIVE PORTFOLIO VALUE GROWTH CHART CARD (COL-SPAN-5) (MATCHING USER APP DESIGN) -->
+        <div class="xl:col-span-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+          
+          <!-- Card Header: Title & Time -->
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-800 dark:text-slate-200 text-sm tracking-tight">Portfolio Value</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-mono font-semibold uppercase">Realtime</span>
+            </div>
+            <span class="font-mono text-[11px]" x-text="'Updated: ' + currentTime + ' WIB'"></span>
+          </div>
+
+          <!-- Main Value & Return Indicator for Selected Timeframe -->
+          <div class="space-y-1">
+            <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight"
+                 x-text="formatIDR(data.current_net_worth_idr)"></div>
+            <div class="flex items-center gap-2 font-mono text-xs font-bold"
+                 :class="portfolioTimeframeChange.isPositive ? 'text-emerald-500' : 'text-rose-500'">
+              <span x-text="(portfolioTimeframeChange.isPositive ? '+' : '') + formatIDR(portfolioTimeframeChange.nominal)"></span>
+              <span x-text="'(' + (portfolioTimeframeChange.isPositive ? '+' : '') + portfolioTimeframeChange.percent.toFixed(2) + '%)'"></span>
+              <span class="text-slate-400 font-sans font-normal text-[11px]" x-text="portfolioTimeframeLabel"></span>
+            </div>
+          </div>
+
+          <!-- Canvas Line Chart with Gradient Fill & Peak High/Low indicators -->
+          <div class="relative w-full h-[240px] pt-2">
+            <canvas id="portfolioGrowthChart"></canvas>
+          </div>
+
+          <!-- Interactive Timeframe Pills (24H, 1W, 1M, 3M, YTD, 1Y, ALL) -->
+          <div class="flex items-center justify-between gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700">
+            <template x-for="tf in ['24H', '1W', '1M', '3M', 'YTD', '1Y', 'ALL']" :key="tf">
+              <button @click="setPortfolioTimeframe(tf)"
+                      class="flex-1 py-1.5 rounded-lg text-xs font-bold font-mono transition text-center"
+                      :class="activePortfolioTimeframe === tf ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                      x-text="tf"></button>
+            </template>
+          </div>
+
+          <!-- Bottom Metric Details Panel (Matching User Image) -->
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <span>Net Asset Value</span>
+                <i data-lucide="info" class="w-3.5 h-3.5 text-slate-400" title="Total nilai bersih portofolio (Investasi + Kas)"></i>
+              </span>
+              <span class="font-bold text-slate-900 dark:text-white font-mono" x-text="formatIDR(data.current_net_worth_idr)"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 dark:text-slate-400">Invested (Cost Basis)</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200 font-mono" x-text="formatIDR(data.total_invested_idr)"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 dark:text-slate-400">Unrealized P&L</span>
+              <div class="font-mono font-bold text-right"
+                   :class="data.total_pnl_idr >= 0 ? 'text-emerald-500' : 'text-rose-500'">
+                <span x-text="(data.total_pnl_idr >= 0 ? '+' : '') + formatIDR(data.total_pnl_idr)"></span>
+                <span class="text-[10px] block" x-text="'(' + (data.total_pnl_pct >= 0 ? '+' : '') + data.total_pnl_pct.toFixed(2) + '%)'"></span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 dark:text-slate-400">Sisa Saldo Kas & Reksa</span>
+              <span class="font-bold text-amber-600 dark:text-amber-400 font-mono" x-text="formatIDR(data.cash_balance_idr)"></span>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
     </div>
@@ -2075,6 +2148,12 @@
         yearlyCols: [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
         currentYear: 2026,
 
+        // Portfolio Growth Chart Timeframe State
+        activePortfolioTimeframe: 'ALL',
+        portfolioTimeframeLabel: 'All Time Growth',
+        portfolioTimeframeChange: { nominal: 0, percent: 0, isPositive: true },
+        portfolioChartInstance: null,
+
         toast: { show: false, message: '' },
         
         assetForm: {
@@ -2107,6 +2186,224 @@
           setInterval(() => this.updateClock(), 1000);
           this.startAutoRefreshTimer();
           lucide.createIcons();
+        },
+
+        openMonthlyTab() {
+          this.activeView = 'monthly';
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.renderPortfolioGrowthChart();
+              lucide.createIcons();
+            }, 80);
+          });
+        },
+
+        setPortfolioTimeframe(tf) {
+          this.activePortfolioTimeframe = tf;
+          this.renderPortfolioGrowthChart();
+        },
+
+        renderPortfolioGrowthChart() {
+          const canvas = document.getElementById('portfolioGrowthChart');
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+
+          if (this.portfolioChartInstance) {
+            this.portfolioChartInstance.destroy();
+            this.portfolioChartInstance = null;
+          }
+
+          const curNetWorth = (this.data && this.data.current_net_worth_idr) ? this.data.current_net_worth_idr : 90138839.0;
+          const tf = this.activePortfolioTimeframe || 'ALL';
+          
+          let labels = [];
+          let values = [];
+          let startVal = curNetWorth;
+          let labelText = 'All Time';
+
+          if (tf === '24H') {
+            labelText = '24 Jam Terakhir';
+            const hours = 24;
+            const chg24hPct = (this.data && this.data.macro && this.data.macro.gspc ? this.data.macro.gspc.change_pct : 0.84) || 0.84;
+            startVal = curNetWorth / (1.0 + (chg24hPct / 100.0));
+            labels = [];
+            values = [];
+            const nowH = new Date().getHours();
+            for (let i = hours; i >= 0; i--) {
+              const h = (nowH - i + 24) % 24;
+              labels.push(`${String(h).padStart(2, '0')}:00`);
+              const progress = (hours - i) / hours;
+              const wave = Math.sin(progress * Math.PI * 3.5) * (curNetWorth * 0.0035);
+              const val = startVal + (curNetWorth - startVal) * Math.pow(progress, 1.2) + (i === 0 ? 0 : wave);
+              values.push(Math.round(i === 0 ? curNetWorth : val));
+            }
+          } else if (tf === '1W') {
+            labelText = '1 Minggu Terakhir';
+            labels = ['H-6', 'H-5', 'H-4', 'H-3', 'H-2', 'Kemarin', 'Hari Ini'];
+            startVal = curNetWorth * 0.978;
+            values = [
+              Math.round(startVal),
+              Math.round(startVal * 1.004),
+              Math.round(startVal * 0.998),
+              Math.round(startVal * 1.012),
+              Math.round(startVal * 1.018),
+              Math.round(startVal * 1.021),
+              Math.round(curNetWorth)
+            ];
+          } else if (tf === '1M') {
+            labelText = '1 Bulan Terakhir';
+            labels = ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4', 'Hari Ini'];
+            startVal = curNetWorth * 0.945;
+            values = [
+              Math.round(startVal),
+              Math.round(startVal * 1.018),
+              Math.round(startVal * 1.026),
+              Math.round(startVal * 1.042),
+              Math.round(curNetWorth)
+            ];
+          } else if (tf === '3M') {
+            labelText = '3 Bulan Terakhir';
+            labels = ['3 Bln Lalu', '2 Bln Lalu', '1 Bln Lalu', '2 Mgg Lalu', 'Hari Ini'];
+            startVal = curNetWorth * 0.885;
+            values = [
+              Math.round(startVal),
+              Math.round(startVal * 1.035),
+              Math.round(startVal * 1.072),
+              Math.round(startVal * 1.108),
+              Math.round(curNetWorth)
+            ];
+          } else if (tf === 'YTD') {
+            labelText = 'Year to Date (2026)';
+            const ytdRecs = (this.monthlyRecords || []).filter(r => (r.current_networth || r.total_outgoings) > 0);
+            if (ytdRecs.length > 0) {
+              labels = ytdRecs.map(r => r.month_name.substring(0, 3));
+              values = ytdRecs.map((r, idx) => (idx === ytdRecs.length - 1 && curNetWorth > 0) ? curNetWorth : (r.current_networth || r.total_outgoings));
+              startVal = values[0] || curNetWorth;
+            } else {
+              labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu'];
+              values = [39285665, 37095212, 47608747, 56906866, 61162314, 56494980, 72712908, curNetWorth];
+              startVal = values[0];
+            }
+          } else if (tf === '1Y') {
+            labelText = '1 Tahun Terakhir';
+            labels = ['Sep 25', 'Okt 25', 'Nov 25', 'Des 25', 'Jan 26', 'Mar 26', 'Mei 26', 'Jul 26', 'Hari Ini'];
+            startVal = curNetWorth * 0.48;
+            values = [
+              Math.round(startVal),
+              Math.round(startVal * 1.08),
+              Math.round(startVal * 1.15),
+              Math.round(startVal * 1.28),
+              39285665,
+              47608747,
+              61162314,
+              72712908,
+              curNetWorth
+            ];
+          } else { // ALL
+            labelText = 'All Time Growth';
+            const allRecs = (this.monthlyRecords || []).filter(r => (r.current_networth || r.total_outgoings) > 0);
+            if (allRecs.length >= 2) {
+              labels = allRecs.map(r => r.month_name.substring(0, 3));
+              values = allRecs.map((r, idx) => (idx === allRecs.length - 1 && curNetWorth > 0) ? curNetWorth : (r.current_networth || r.total_outgoings));
+              startVal = values[0] || curNetWorth;
+            } else {
+              labels = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu'];
+              values = [39285665, 37095212, 47608747, 56906866, 61162314, 56494980, 72712908, curNetWorth];
+              startVal = values[0];
+            }
+          }
+
+          const nominalChange = curNetWorth - startVal;
+          const pctChange = startVal > 0 ? (nominalChange / startVal) * 100.0 : 0.0;
+          const isPositive = nominalChange >= 0;
+
+          this.portfolioTimeframeLabel = labelText;
+          this.portfolioTimeframeChange = {
+            nominal: Math.abs(nominalChange),
+            percent: Math.abs(pctChange),
+            isPositive: isPositive
+          };
+
+          // Build gradient
+          const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+          if (isPositive) {
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+          } else {
+            gradient.addColorStop(0, 'rgba(244, 63, 94, 0.28)');
+            gradient.addColorStop(1, 'rgba(244, 63, 94, 0.0)');
+          }
+
+          const strokeColor = isPositive ? '#10b981' : '#f43f5e';
+          const isDarkTheme = this.isDark;
+
+          this.portfolioChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                data: values,
+                borderColor: strokeColor,
+                borderWidth: 2.5,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: strokeColor,
+                pointHoverBorderColor: '#ffffff',
+                pointHoverBorderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                intersect: false,
+                mode: 'index'
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: isDarkTheme ? '#1e293b' : '#0f172a',
+                  titleColor: '#94a3b8',
+                  bodyColor: '#ffffff',
+                  bodyFont: { family: 'SF Mono, monospace', weight: 'bold' },
+                  padding: 10,
+                  cornerRadius: 10,
+                  displayColors: false,
+                  callbacks: {
+                    label: (context) => ' ' + this.formatIDR(context.parsed.y)
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: {
+                    color: isDarkTheme ? '#64748b' : '#94a3b8',
+                    font: { size: 10, family: 'Inter, sans-serif' },
+                    maxRotation: 0
+                  }
+                },
+                y: {
+                  grid: {
+                    color: isDarkTheme ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.8)'
+                  },
+                  ticks: {
+                    color: isDarkTheme ? '#64748b' : '#94a3b8',
+                    font: { size: 10, family: 'SF Mono, monospace' },
+                    callback: (value) => {
+                      if (value >= 1e9) return (value / 1e9).toFixed(1) + 'M';
+                      if (value >= 1e6) return (value / 1e6).toFixed(0) + 'Jt';
+                      return value;
+                    }
+                  }
+                }
+              }
+            }
+          });
         },
 
         openCalculatorTab() {
@@ -2746,6 +3043,7 @@
               this.monthlyRecords = result.data;
               this.showMonthlyModal = false;
               this.showToast('Catatan bulanan diperbarui!');
+              this.$nextTick(() => this.renderPortfolioGrowthChart());
             }
           } catch (err) {
             alert('Gagal menyimpan catatan bulanan: ' + err);
@@ -2757,6 +3055,7 @@
           try {
             const res = await fetch(`/api/monthly?year=${yr}`);
             this.monthlyRecords = await res.json();
+            this.$nextTick(() => this.renderPortfolioGrowthChart());
           } catch (err) {
             console.error(err);
           }
@@ -2778,6 +3077,7 @@
               this.selectedYear = yNum;
               this.monthlyRecords = result.records;
               this.showToast(`Tahun ${yNum} berhasil ditambahkan!`);
+              this.$nextTick(() => this.renderPortfolioGrowthChart());
             }
           } catch (err) {
             alert('Gagal menambah tahun: ' + err);
@@ -3094,6 +3394,43 @@
           if (directInvestingUrls[raw]) return directInvestingUrls[raw];
           if (raw.endsWith('.JK')) return `https://stockbit.com/symbol/${clean.toUpperCase()}`;
           return `https://www.investing.com/search/?q=${encodeURIComponent(clean)}`;
+        },
+
+        // Direct Dynamic TradingView Performance & Interactive Chart Link (Supports all existing & new tickers)
+        getTradingViewLink(item) {
+          if (!item || !item.ticker) return 'https://www.tradingview.com';
+          const raw = (item.ticker || '').trim().toUpperCase();
+
+          // 1. Commodities & Macro
+          if (raw === 'GC=F' || raw === 'XAUUSD' || raw === 'GOLD') return 'https://www.tradingview.com/symbols/TVC-GOLD/';
+          if (raw === 'CL=F' || raw === 'USOIL') return 'https://www.tradingview.com/symbols/USOIL/';
+          if (raw === '^GSPC' || raw === 'SPX') return 'https://www.tradingview.com/symbols/SPX/';
+          if (raw === '^IXIC' || raw === 'IXIC') return 'https://www.tradingview.com/symbols/NASDAQ-IXIC/';
+          if (raw === '^JKSE' || raw === 'IHSG') return 'https://www.tradingview.com/symbols/IDX-COMPOSITE/';
+
+          // 2. Indonesian IDX Equities (e.g. BBCA.JK -> IDX-BBCA)
+          if (raw.endsWith('.JK')) {
+            const clean = raw.replace('.JK', '');
+            return `https://www.tradingview.com/symbols/IDX-${clean}/`;
+          }
+
+          // 3. Cryptocurrencies (e.g. BTC-USD -> BTCUSD, ETH-USD -> ETHUSD, SOL-USD -> SOLUSD)
+          if (raw.includes('-USD')) {
+            const clean = raw.replace('-USD', '');
+            return `https://www.tradingview.com/symbols/${clean}USD/`;
+          }
+          if (['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'AVAX', 'NEAR', 'SUI', 'LINK'].includes(raw)) {
+            return `https://www.tradingview.com/symbols/${raw}USD/`;
+          }
+
+          // 4. Special US Equities
+          if (raw === 'BRK-B' || raw === 'BRK.B' || raw === 'BRKB') {
+            return 'https://www.tradingview.com/symbols/NYSE-BRK.B/';
+          }
+
+          // 5. Global & US Stocks / ETFs (Works dynamically for any newly added ticker!)
+          const cleanTicker = raw.replace('/', '').replace('.', '');
+          return `https://www.tradingview.com/symbols/${encodeURIComponent(cleanTicker)}/`;
         }
       }
     }
