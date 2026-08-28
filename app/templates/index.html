@@ -841,7 +841,7 @@
     <!-- ======================================================================= -->
     <!-- VIEW 2: PNL / RETURN TAHUNAN (2011 - SEKARANG)                          -->
     <!-- ======================================================================= -->
-    <div x-show="activeView === 'yearly_pnl'" class="space-y-6" x-cloak>
+    <div x-show="activeView === 'yearly_pnl'" class="max-w-[1440px] mx-auto space-y-6" x-cloak>
       
       <!-- Top Action & Info Bar -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
@@ -986,7 +986,7 @@
     <!-- ======================================================================= -->
     <!-- VIEW 3: TRACK BULANAN (MULTI-TAHUN) — REALTIME SYNC                     -->
     <!-- ======================================================================= -->
-    <div x-show="activeView === 'monthly'" class="space-y-6" x-cloak>
+    <div x-show="activeView === 'monthly'" class="max-w-[1440px] mx-auto space-y-6" x-cloak>
       
       <!-- Top Action Bar for Monthly Tracking -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
@@ -1018,104 +1018,108 @@
         </div>
       </div>
 
-      <!-- 2-COLUMN GRID: LEFT = MONTHLY TABLE (Jan-Des), RIGHT = MONTHLY GROWTH CHART CARD -->
-      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+      <!-- 2-COLUMN GRID: LEFT = MONTHLY TABLE (Jan-Des), RIGHT = MONTHLY GROWTH CHART CARD (SEJAJAR PERSIS) -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
         
         <!-- LEFT: MONTHLY TABLE (COL-SPAN-7) -->
-        <div class="xl:col-span-7 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i data-lucide="table" class="w-4 h-4 text-sky-500"></i>
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Performa Bulanan (<span x-text="selectedYear"></span>)</h3>
+        <div class="xl:col-span-7 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col justify-between h-full">
+          <div>
+            <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="table" class="w-4 h-4 text-sky-500"></i>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Performa Bulanan (<span x-text="selectedYear"></span>)</h3>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400 font-medium">Januari – Desember</span>
             </div>
-            <span class="text-[11px] font-mono text-slate-400 font-medium">Januari – Desember</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs whitespace-nowrap">
-              <thead class="bg-slate-50/80 dark:bg-[#0d1527] text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                <tr>
-                  <th class="py-3 px-3.5">Bulan</th>
-                  <th class="py-3 px-3 text-right">Modal Keluar</th>
-                  <th class="py-3 px-3 text-right">Networth</th>
-                  <th class="py-3 px-3 text-right">Injeksi</th>
-                  <th class="py-3 px-3 text-right">Assets P&L</th>
-                  <th class="py-3 px-3 text-center">Growth %</th>
-                  <th class="py-3 px-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
-                <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
-                  <tr class="crypto-row transition" :class="isCurrentMonthRow(row) ? 'bg-sky-50/40 dark:bg-sky-950/20 font-semibold' : ''">
-                    
-                    <!-- Month Name -->
-                    <td class="py-3 px-3.5 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <span x-text="row.month_name"></span>
-                      <span x-show="isCurrentMonthRow(row)" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 uppercase">Live</span>
-                    </td>
-
-                    <!-- Outgoings -->
-                    <td class="py-3 px-3 text-right text-slate-700 dark:text-slate-300" 
-                        x-text="getMonthlyOutgoings(row) > 0 ? formatIDR(getMonthlyOutgoings(row)) : '-'"></td>
-
-                    <!-- Current Networth -->
-                    <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white" 
-                        x-text="getMonthlyNetworth(row) > 0 ? formatIDR(getMonthlyNetworth(row)) : '-'"></td>
-
-                    <!-- Investing Power -->
-                    <td class="py-3 px-3 text-right font-semibold text-sky-600 dark:text-sky-400" 
-                        x-text="getMonthlyInvestingPower(row) > 0 ? formatIDR(getMonthlyInvestingPower(row)) : '0'"></td>
-
-                    <!-- Assets PnL -->
-                    <td class="py-3 px-3 text-right font-bold"
-                        :class="getMonthlyPnLIDR(row) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                        x-text="getMonthlyOutgoings(row) > 0 ? ((getMonthlyPnLIDR(row) >= 0 ? '+' : '') + formatIDR(getMonthlyPnLIDR(row))) : '-'"></td>
-
-                    <!-- Networth Growth % -->
-                    <td class="py-3 px-3 text-center font-bold"
-                        :class="getMonthlyGrowth(row) > 0 ? 'text-emerald-500' : (getMonthlyGrowth(row) < 0 ? 'text-rose-500' : 'text-slate-400')"
-                        x-text="getMonthlyNetworth(row) > 0 ? ((getMonthlyGrowth(row) > 0 ? '+' : '') + getMonthlyGrowth(row).toFixed(2) + '%') : '-'"></td>
-
-                    <!-- Action -->
-                    <td class="py-3 px-3 text-center">
-                      <button @click="editMonthlyRow(row)" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-[11px] font-sans font-semibold">
-                        Edit
-                      </button>
-                    </td>
-
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-slate-50/80 dark:bg-[#0d1527] text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                  <tr>
+                    <th class="py-2.5 px-3.5">Bulan</th>
+                    <th class="py-2.5 px-3 text-right">Modal Keluar</th>
+                    <th class="py-2.5 px-3 text-right">Networth</th>
+                    <th class="py-2.5 px-3 text-right">Injeksi</th>
+                    <th class="py-2.5 px-3 text-right">Assets P&L</th>
+                    <th class="py-2.5 px-3 text-center">Growth %</th>
+                    <th class="py-2.5 px-3 text-center">Aksi</th>
                   </tr>
-                </template>
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
+                  <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
+                    <tr class="crypto-row transition" :class="isCurrentMonthRow(row) ? 'bg-sky-50/40 dark:bg-sky-950/20 font-semibold' : ''">
+                      
+                      <!-- Month Name -->
+                      <td class="py-2.5 px-3.5 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <span x-text="row.month_name"></span>
+                        <span x-show="isCurrentMonthRow(row)" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 uppercase">Live</span>
+                      </td>
+
+                      <!-- Outgoings -->
+                      <td class="py-2.5 px-3 text-right text-slate-700 dark:text-slate-300" 
+                          x-text="getMonthlyOutgoings(row) > 0 ? formatIDR(getMonthlyOutgoings(row)) : '-'"></td>
+
+                      <!-- Current Networth -->
+                      <td class="py-2.5 px-3 text-right font-bold text-slate-900 dark:text-white" 
+                          x-text="getMonthlyNetworth(row) > 0 ? formatIDR(getMonthlyNetworth(row)) : '-'"></td>
+
+                      <!-- Investing Power -->
+                      <td class="py-2.5 px-3 text-right font-semibold text-sky-600 dark:text-sky-400" 
+                          x-text="getMonthlyInvestingPower(row) > 0 ? formatIDR(getMonthlyInvestingPower(row)) : '0'"></td>
+
+                      <!-- Assets PnL -->
+                      <td class="py-2.5 px-3 text-right font-bold"
+                          :class="getMonthlyPnLIDR(row) >= 0 ? 'text-emerald-500' : 'text-rose-500'"
+                          x-text="getMonthlyOutgoings(row) > 0 ? ((getMonthlyPnLIDR(row) >= 0 ? '+' : '') + formatIDR(getMonthlyPnLIDR(row))) : '-'"></td>
+
+                      <!-- Networth Growth % -->
+                      <td class="py-2.5 px-3 text-center font-bold"
+                          :class="getMonthlyGrowth(row) > 0 ? 'text-emerald-500' : (getMonthlyGrowth(row) < 0 ? 'text-rose-500' : 'text-slate-400')"
+                          x-text="getMonthlyNetworth(row) > 0 ? ((getMonthlyGrowth(row) > 0 ? '+' : '') + getMonthlyGrowth(row).toFixed(2) + '%') : '-'"></td>
+
+                      <!-- Action -->
+                      <td class="py-2.5 px-3 text-center">
+                        <button @click="editMonthlyRow(row)" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-[11px] font-sans font-semibold">
+                          Edit
+                        </button>
+                      </td>
+
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- RIGHT: MONTHLY PORTFOLIO VALUE GROWTH CHART CARD (COL-SPAN-5) (PERBULAN JAN-DES) -->
-        <div class="xl:col-span-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 space-y-4">
+        <!-- RIGHT: MONTHLY PORTFOLIO VALUE GROWTH CHART CARD (COL-SPAN-5) (MATCHING HEIGHT & SEJAJAR) -->
+        <div class="xl:col-span-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 flex flex-col justify-between h-full space-y-4">
           
-          <!-- Card Header: Title & Time -->
-          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <div class="flex items-center gap-2">
-              <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
-              <span class="font-bold text-slate-800 dark:text-slate-200 text-sm tracking-tight">Grafik Nilai Portofolio (Bulanan)</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-semibold uppercase">Tahun <span x-text="selectedYear"></span></span>
+          <div>
+            <!-- Card Header: Title & Time -->
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
+                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm tracking-tight">Grafik Nilai Portofolio (Bulanan)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-semibold uppercase">Tahun <span x-text="selectedYear"></span></span>
+              </div>
+              <span class="font-mono text-[11px]" x-text="'Live: ' + currentTime + ' WIB'"></span>
             </div>
-            <span class="font-mono text-[11px]" x-text="'Live: ' + currentTime + ' WIB'"></span>
-          </div>
 
-          <!-- Main Value & Return Indicator -->
-          <div class="space-y-1">
-            <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight"
-                 x-text="formatIDR(data.current_net_worth_idr)"></div>
-            <div class="flex items-center gap-2 font-mono text-xs font-bold"
-                 :class="portfolioMonthlyGrowthSummary.isPositive ? 'text-emerald-500' : 'text-rose-500'">
-              <span x-text="(portfolioMonthlyGrowthSummary.isPositive ? '+' : '') + formatIDR(portfolioMonthlyGrowthSummary.nominal)"></span>
-              <span x-text="'(' + (portfolioMonthlyGrowthSummary.isPositive ? '+' : '') + portfolioMonthlyGrowthSummary.percent.toFixed(2) + '%)'"></span>
-              <span class="text-slate-400 font-sans font-normal text-[11px]">Pertumbuhan Tahun <span x-text="selectedYear"></span></span>
+            <!-- Main Value & Return Indicator -->
+            <div class="space-y-1 mt-3">
+              <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight"
+                   x-text="formatIDR(data.current_net_worth_idr)"></div>
+              <div class="flex items-center gap-2 font-mono text-xs font-bold"
+                   :class="portfolioMonthlyGrowthSummary.isPositive ? 'text-emerald-500' : 'text-rose-500'">
+                <span x-text="(portfolioMonthlyGrowthSummary.isPositive ? '+' : '') + formatIDR(portfolioMonthlyGrowthSummary.nominal)"></span>
+                <span x-text="'(' + (portfolioMonthlyGrowthSummary.isPositive ? '+' : '') + portfolioMonthlyGrowthSummary.percent.toFixed(2) + '%)'"></span>
+                <span class="text-slate-400 font-sans font-normal text-[11px]">Pertumbuhan Tahun <span x-text="selectedYear"></span></span>
+              </div>
             </div>
           </div>
 
           <!-- Canvas Line Chart (12 Months Jan - Des) -->
-          <div class="relative w-full h-[260px] pt-1">
+          <div class="relative w-full flex-1 min-h-[300px] max-h-[370px] pt-1">
             <canvas id="portfolioGrowthChart"></canvas>
           </div>
 
@@ -1153,9 +1157,9 @@
     </div>
 
     <!-- ======================================================================= -->
-    <!-- VIEW 3: KALKULATOR FF (PROTOKOL NAGA) — RESPONSIVE REALTIME ENGINE     -->
+    <!-- VIEW 4: KALKULATOR FF (PROTOKOL NAGA) — RESPONSIVE REALTIME ENGINE     -->
     <!-- ======================================================================= -->
-    <div x-show="activeView === 'calculator'" class="space-y-6" x-cloak>
+    <div x-show="activeView === 'calculator'" class="max-w-[1440px] mx-auto space-y-6" x-cloak>
       
       <!-- Topbar Info -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">

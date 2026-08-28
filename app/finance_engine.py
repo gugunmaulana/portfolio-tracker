@@ -513,30 +513,30 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                 if earliest_dt and (target_dt < (earliest_dt - relativedelta(days=45))):
                     return None
                     
-                # 1. TradingView window: start candle open on or after target_dt
-                cands = [b for b in daily_pts if b["dt"] >= target_dt]
-                if cands and cands[0]["ts"] != cur_ts:
-                    base_price = cands[0]["open"] or cands[0]["close"]
-                    if base_price > 0:
-                        return round(((cur_price - base_price) / base_price) * 100.0, 2)
-                        
-                # 2. Daily candle on or before target_dt
+                # 1. TradingView & Bloomberg standard: Close price on or before target date
                 before_cands = [b for b in daily_pts if b["dt"] <= target_dt]
                 if before_cands:
                     base_price = before_cands[-1]["close"]
                     if base_price > 0:
                         return round(((cur_price - base_price) / base_price) * 100.0, 2)
+
+                # 2. Start candle on or after target_dt (if target_dt is near the very beginning of the series)
+                cands = [b for b in daily_pts if b["dt"] >= target_dt]
+                if cands and cands[0]["ts"] != cur_ts:
+                    base_price = cands[0]["close"] or cands[0]["open"]
+                    if base_price > 0:
+                        return round(((cur_price - base_price) / base_price) * 100.0, 2)
                         
                 # 3. Monthly max series for >10y timeframes
                 if max_pts:
-                    m_cands = [b for b in max_pts if b["dt"] >= target_dt]
-                    if m_cands:
-                        base_price = m_cands[0]["open"] or m_cands[0]["close"]
-                        if base_price > 0:
-                            return round(((cur_price - base_price) / base_price) * 100.0, 2)
                     m_before = [b for b in max_pts if b["dt"] <= target_dt]
                     if m_before:
                         base_price = m_before[-1]["close"]
+                        if base_price > 0:
+                            return round(((cur_price - base_price) / base_price) * 100.0, 2)
+                    m_cands = [b for b in max_pts if b["dt"] >= target_dt]
+                    if m_cands:
+                        base_price = m_cands[0]["close"] or m_cands[0]["open"]
                         if base_price > 0:
                             return round(((cur_price - base_price) / base_price) * 100.0, 2)
                             
@@ -550,21 +550,22 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
                     return None
                 return round(((growth_factor ** (1.0 / years)) - 1.0) * 100.0, 2)
 
-            # Accurate 5H / 1W Return (1 full trading week: 5 trading sessions for equities, 7 for crypto)
+            # Accurate 5H / 1W Return (1 full trading week: 5 trading sessions for equities, 7 daily bars for crypto)
             is_crypto = "-USD" in ticker_symbol or ticker_symbol in ["BTC-USD", "ETH-USD", "SOL-USD"]
-            target_5h_dt = cur_dt - datetime.timedelta(days=7)
-            cands_5h = [b for b in daily_pts if b["dt"] <= target_5h_dt]
-            if cands_5h:
-                base_5h = cands_5h[-1]["close"]
-                if base_5h > 0:
-                    result["perf"]["5h"] = round(((cur_price - base_5h) / base_5h) * 100.0, 2)
-            elif len(daily_pts) >= (8 if is_crypto else 6):
-                n_bars = 7 if is_crypto else 5
+            n_bars = 7 if is_crypto else 5
+            if len(daily_pts) > n_bars:
                 base_5h = daily_pts[-1 - n_bars]["close"]
                 if base_5h > 0:
                     result["perf"]["5h"] = round(((cur_price - base_5h) / base_5h) * 100.0, 2)
             else:
-                result["perf"]["5h"] = get_window_return(datetime.timedelta(days=7))
+                target_5h_dt = cur_dt - datetime.timedelta(days=7)
+                cands_5h = [b for b in daily_pts if b["dt"] <= target_5h_dt]
+                if cands_5h:
+                    base_5h = cands_5h[-1]["close"]
+                    if base_5h > 0:
+                        result["perf"]["5h"] = round(((cur_price - base_5h) / base_5h) * 100.0, 2)
+                else:
+                    result["perf"]["5h"] = get_window_return(datetime.timedelta(days=7))
                 
             result["perf"]["1w"] = result["perf"]["5h"]
             result["perf"]["1m"] = get_window_return(relativedelta(months=1))
