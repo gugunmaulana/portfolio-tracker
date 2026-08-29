@@ -573,33 +573,73 @@ def init_db():
     # Seed default user if not exists
     cursor.execute("SELECT id FROM users WHERE id = 'default_user'")
     if not cursor.fetchone():
-        cursor.execute(
-            "INSERT INTO users (id, email, password_hash, name, target_financial_freedom, total_outgoings, cash_balance) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ("default_user", "investor@antigravity.ai", "demo_hash", "Master Investor", 8844000000.0, 91457683.0, 7525939.0)
-        )
-        
-        for category in DEFAULT_PORTFOLIO_CONFIG["categories"]:
-            for item in category["items"]:
-                if "BMRI" in item.get("ticker", "").upper() and category.get("id") == "core_radar":
-                    continue
-                avg_p = item.get("avg_price_usd") if item.get("currency") == "USD" else item.get("avg_price_idr", 0.0)
-                cursor.execute("""
-                INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, pe_great, pe_good, pe_exp, sort_order)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
-                """, (
-                    "default_user",
-                    item.get("category"),
-                    item.get("ticker"),
-                    item.get("name"),
-                    item.get("currency", "USD"),
-                    item.get("invested_idr", 0.0),
-                    item.get("quantity", 0.0),
-                    avg_p or 0.0,
-                    1 if item.get("is_lot") else 0,
-                    item.get("pe_great"),
-                    item.get("pe_good"),
-                    item.get("pe_exp")
-                ))
+        backup_path = os.path.join(os.path.dirname(__file__), "portfolio_state.json")
+        loaded_from_json = False
+        if os.path.exists(backup_path):
+            try:
+                with open(backup_path, "r", encoding="utf-8") as f:
+                    state = json.load(f)
+                cursor.execute(
+                    "INSERT INTO users (id, email, password_hash, name, target_financial_freedom, total_outgoings, cash_balance) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    ("default_user", "investor@antigravity.ai", "demo_hash", state.get("user_name", "Master Investor"), state.get("target_financial_freedom", 8844000000.0), state.get("total_outgoings", 91457683.0), state.get("cash_balance", 7525939.0))
+                )
+                for cat in state.get("categories", []):
+                    cursor.execute("""
+                    INSERT OR REPLACE INTO categories (id, user_id, name, subtitle, color, sort_order)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """, (cat.get("id"), "default_user", cat.get("name"), cat.get("subtitle", ""), cat.get("color", "blue"), cat.get("sort_order", 0)))
+                    for item in cat.get("items", []):
+                        if "BMRI" in item.get("ticker", "").upper() and cat.get("id") == "core_radar":
+                            continue
+                        cursor.execute("""
+                        INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, pe_great, pe_good, pe_exp, sort_order)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            "default_user",
+                            cat.get("id"),
+                            item.get("ticker"),
+                            item.get("name"),
+                            item.get("currency", "USD"),
+                            float(item.get("invested_idr") or 0.0),
+                            float(item.get("quantity") or 0.0),
+                            float(item.get("avg_price") or 0.0),
+                            1 if item.get("is_lot") else 0,
+                            item.get("pe_great"),
+                            item.get("pe_good"),
+                            item.get("pe_exp"),
+                            item.get("sort_order", 0)
+                        ))
+                loaded_from_json = True
+            except Exception:
+                pass
+
+        if not loaded_from_json:
+            cursor.execute(
+                "INSERT INTO users (id, email, password_hash, name, target_financial_freedom, total_outgoings, cash_balance) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                ("default_user", "investor@antigravity.ai", "demo_hash", "Master Investor", 8844000000.0, 91457683.0, 7525939.0)
+            )
+            for category in DEFAULT_PORTFOLIO_CONFIG["categories"]:
+                for item in category["items"]:
+                    if "BMRI" in item.get("ticker", "").upper() and category.get("id") == "core_radar":
+                        continue
+                    avg_p = item.get("avg_price_usd") if item.get("currency") == "USD" else item.get("avg_price_idr", 0.0)
+                    cursor.execute("""
+                    INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, pe_great, pe_good, pe_exp, sort_order)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                    """, (
+                        "default_user",
+                        item.get("category"),
+                        item.get("ticker"),
+                        item.get("name"),
+                        item.get("currency", "USD"),
+                        item.get("invested_idr", 0.0),
+                        item.get("quantity", 0.0),
+                        avg_p or 0.0,
+                        1 if item.get("is_lot") else 0,
+                        item.get("pe_great"),
+                        item.get("pe_good"),
+                        item.get("pe_exp")
+                    ))
 
     # Seed default categories if not exist
     cursor.execute("SELECT COUNT(*) FROM categories WHERE user_id = 'default_user'")
@@ -735,6 +775,7 @@ def upsert_category(user_id: str, data: Dict[str, Any]):
     """, (cat_id, user_id, name, subtitle, color, sort_order))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def delete_category(user_id: str, category_id: str):
@@ -745,6 +786,7 @@ def delete_category(user_id: str, category_id: str):
     # Note: we do not delete assets, we can keep them or user can reassign
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
@@ -942,6 +984,7 @@ def update_user_settings(user_id: str, target_ff: float, total_outgoings: float,
     """, (target_ff, total_outgoings, cash_balance, user_id))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def get_user_column_settings(user_id: str = "default_user") -> Dict[str, Any]:
@@ -1004,6 +1047,7 @@ def upsert_portfolio_item(user_id: str, item_data: Dict[str, Any]):
         ))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def delete_portfolio_item(user_id: str, item_id: int):
@@ -1013,6 +1057,7 @@ def delete_portfolio_item(user_id: str, item_id: int):
     cursor.execute("DELETE FROM portfolio_items WHERE id = ? AND user_id = ?", (item_id, user_id))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def move_portfolio_item(user_id: str, item_id: int, target_category: str, target_sort_order: int = 0):
@@ -1026,6 +1071,7 @@ def move_portfolio_item(user_id: str, item_id: int, target_category: str, target
     """, (target_category, target_sort_order, item_id, user_id))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def reorder_portfolio_items(user_id: str, item_orders: List[Dict[str, Any]]):
@@ -1044,6 +1090,7 @@ def reorder_portfolio_items(user_id: str, item_orders: List[Dict[str, Any]]):
             """, (category, sort_order, item_id, user_id))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
 
 
 def reorder_categories(user_id: str, category_orders: List[Dict[str, Any]]):
@@ -1061,3 +1108,15 @@ def reorder_categories(user_id: str, category_orders: List[Dict[str, Any]]):
             """, (sort_order, cat_id, user_id))
     conn.commit()
     conn.close()
+    backup_portfolio_state_to_json(user_id)
+
+
+def backup_portfolio_state_to_json(user_id: str = "default_user"):
+    """Automatically persist current active user portfolio and categories to a JSON backup file."""
+    try:
+        data = get_user_portfolio(user_id)
+        backup_path = os.path.join(os.path.dirname(__file__), "portfolio_state.json")
+        with open(backup_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        pass
