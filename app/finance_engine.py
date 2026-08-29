@@ -71,13 +71,29 @@ ASSET_LOGOS = {
     "PWR": "https://assets.parqet.com/logos/symbol/PWR?format=png",
     "CCJ": "https://assets.parqet.com/logos/symbol/CCJ?format=png",
     "VRT": "https://assets.parqet.com/logos/symbol/VRT?format=png",
+    "CRWD": "https://assets.parqet.com/logos/symbol/CRWD?format=png",
+    "SPGI": "https://assets.parqet.com/logos/symbol/SPGI?format=png",
+    "ISRG": "https://assets.parqet.com/logos/symbol/ISRG?format=png",
+    "TMO": "https://assets.parqet.com/logos/symbol/TMO?format=png",
+    "PANW": "https://assets.parqet.com/logos/symbol/PANW?format=png",
+    "NET": "https://assets.parqet.com/logos/symbol/NET?format=png",
+    "MCO": "https://assets.parqet.com/logos/symbol/MCO?format=png",
+    "RACE": "https://assets.parqet.com/logos/symbol/RACE?format=png",
+    "LVMUY": "https://assets.parqet.com/logos/symbol/LVMUY?format=png",
+    "FCX": "https://assets.parqet.com/logos/symbol/FCX?format=png",
+    "NVO": "https://assets.parqet.com/logos/symbol/NVO?format=png",
+    "UNP": "https://assets.parqet.com/logos/symbol/UNP?format=png",
+    "WM": "https://assets.parqet.com/logos/symbol/WM?format=png",
     # Indonesian Stocks
     "BBCA.JK": "https://assets.parqet.com/logos/symbol/BBCA.JK?format=png",
     "BBRI.JK": "https://assets.parqet.com/logos/symbol/BBRI.JK?format=png",
     "BMRI.JK": "https://assets.parqet.com/logos/symbol/BMRI.JK?format=png",
+    "BBNI.JK": "https://assets.parqet.com/logos/symbol/BBNI.JK?format=png",
     "UNTR.JK": "https://assets.parqet.com/logos/symbol/UNTR.JK?format=png",
     "BREN.JK": "https://assets.parqet.com/logos/symbol/BREN.JK?format=png",
     "AMMN.JK": "https://assets.parqet.com/logos/symbol/AMMN.JK?format=png",
+    "TLKM.JK": "https://assets.parqet.com/logos/symbol/TLKM.JK?format=png",
+    "ASII.JK": "https://assets.parqet.com/logos/symbol/ASII.JK?format=png",
 }
 
 
@@ -117,8 +133,12 @@ FALLBACK_PRICES = {
     "LLY": 845.20,
     "BBCA.JK": 6375.0,
     "BBRI.JK": 4450.0,
+    "BMRI.JK": 6800.0,
+    "BBNI.JK": 5300.0,
     "UNTR.JK": 26800.0,
     "BREN.JK": 6250.0,
+    "TLKM.JK": 2850.0,
+    "ASII.JK": 4950.0,
     "ETH-USD": 2750.0,
     "MSTR": 345.50,
     "KLAC": 710.0,
@@ -130,7 +150,21 @@ FALLBACK_PRICES = {
     "CEG": 285.0,
     "PWR": 295.0,
     "CCJ": 58.0,
-    "VRT": 115.0
+    "VRT": 115.0,
+    "CRWD": 310.40,
+    "SPGI": 542.07,
+    "ISRG": 492.60,
+    "PLTR": 36.29,
+    "TMO": 582.18,
+    "PANW": 365.0,
+    "NET": 85.0,
+    "MCO": 460.0,
+    "RACE": 420.0,
+    "LVMUY": 155.0,
+    "FCX": 45.0,
+    "NVO": 130.0,
+    "UNP": 245.0,
+    "WM": 210.0
 }
 
 FALLBACK_PE_RATIOS = {
@@ -153,8 +187,12 @@ FALLBACK_PE_RATIOS = {
     "LLY": 42.13,
     "BBCA.JK": 21.5,
     "BBRI.JK": 11.27,
+    "BMRI.JK": 10.8,
+    "BBNI.JK": 8.5,
     "UNTR.JK": 5.4,
     "BREN.JK": 169.6,
+    "TLKM.JK": 14.2,
+    "ASII.JK": 6.8,
     "KLAC": 50.26,
     "AMAT": 42.46,
     "LRCX": 42.66,
@@ -164,7 +202,21 @@ FALLBACK_PE_RATIOS = {
     "CEG": 26.59,
     "PWR": 73.23,
     "CCJ": 117.29,
-    "VRT": 59.28
+    "VRT": 59.28,
+    "CRWD": 80.50,
+    "SPGI": 38.40,
+    "ISRG": 78.20,
+    "PLTR": 115.0,
+    "TMO": 34.80,
+    "PANW": 55.40,
+    "NET": 72.0,
+    "MCO": 42.10,
+    "RACE": 48.50,
+    "LVMUY": 24.50,
+    "FCX": 18.20,
+    "NVO": 38.50,
+    "UNP": 21.80,
+    "WM": 32.40
 }
 
 SHARES_OUTSTANDING = {
@@ -192,12 +244,29 @@ SHARES_OUTSTANDING = {
     "PWR": 1.51e8,
     "CCJ": 4.36e8,
     "VRT": 3.78e8,
+    "CRWD": 2.44e8,
+    "SPGI": 3.12e8,
+    "ISRG": 3.56e8,
+    "PLTR": 2.26e9,
+    "TMO": 3.82e8,
+    "PANW": 3.25e8,
+    "NET": 3.38e8,
+    "MCO": 1.83e8,
+    "RACE": 1.81e8,
+    "LVMUY": 5.0e8,
+    "FCX": 1.44e9,
+    "NVO": 4.47e9,
+    "UNP": 6.08e8,
+    "WM": 4.02e8,
     "MSTR": 2.45e8,
     "BBCA.JK": 123.28e9,
     "BBRI.JK": 151.56e9,
     "BMRI.JK": 93.33e9,
+    "BBNI.JK": 37.3e9,
     "UNTR.JK": 3.73e9,
     "BREN.JK": 133.79e9,
+    "TLKM.JK": 99.06e9,
+    "ASII.JK": 40.48e9,
     "BTC-USD": 19.8e6,
     "ETH-USD": 120.4e6,
     "VOO": 8.2e8,
@@ -250,6 +319,20 @@ def fetch_direct_yahoo_chart(ticker: str, range_str: str = "10y", interval: str 
                 return data["chart"]["result"][0]
     except Exception as e:
         logger.debug(f"Direct yahoo fetch error for {ticker}: {e}")
+    return None
+
+
+def fetch_direct_yahoo_quote(ticker: str) -> Optional[Dict[str, Any]]:
+    """Directly fetch live quote metrics (trailingPE, forwardPE, marketCap, eps, volume) from Yahoo Finance API."""
+    url = f"https://query1.finance.yahoo.com/v7/finance/quote?symbols={ticker}"
+    try:
+        r = session.get(url, timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            if "quoteResponse" in data and "result" in data["quoteResponse"] and data["quoteResponse"]["result"]:
+                return data["quoteResponse"]["result"][0]
+    except Exception as e:
+        logger.debug(f"Direct yahoo quote fetch error for {ticker}: {e}")
     return None
 
 
@@ -398,6 +481,15 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         result["perf"] = dict(hist.get("perf", {}))
         result["perf"]["24h"] = chg_24h
         
+        # Ensure PE is present if available in fallback or quote
+        is_crypto_or_commodity = "-USD" in ticker_symbol or ticker_symbol in ["BTC-USD", "ETH-USD", "SOL-USD", "GC=F"] or ticker_symbol.startswith("^")
+        if not is_crypto_or_commodity and result.get("pe") is None:
+            result["pe"] = FALLBACK_PE_RATIOS.get(ticker_symbol)
+            if result["pe"] is None:
+                prof_tmp = detect_volatility_profile(ticker_symbol)
+                if prof_tmp.get("default_pe") and prof_tmp["default_pe"].get("good"):
+                    result["pe"] = float(prof_tmp["default_pe"]["good"])
+
         dec2025_c = hist.get("_dec2025_close")
         if dec2025_c and dec2025_c > 0:
             result["yearly_returns"] = dict(hist.get("yearly_returns", {}))
@@ -643,6 +735,25 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             else:
                 result["market_cap"] = meta.get("marketCap", None)
 
+            # Live Quote metrics for PE, Forward PE, and Market Statistics
+            is_crypto_or_commodity = "-USD" in ticker_symbol or ticker_symbol in ["BTC-USD", "ETH-USD", "SOL-USD", "GC=F"] or ticker_symbol.startswith("^")
+            if not is_crypto_or_commodity:
+                try:
+                    q_data = fetch_direct_yahoo_quote(ticker_symbol)
+                    if q_data:
+                        live_pe = q_data.get("trailingPE") or q_data.get("forwardPE")
+                        if not live_pe and q_data.get("epsTrailingTwelveMonths") and q_data["epsTrailingTwelveMonths"] > 0 and cur_price > 0:
+                            live_pe = cur_price / q_data["epsTrailingTwelveMonths"]
+                        if live_pe and not math.isnan(live_pe) and live_pe > 0:
+                            result["pe"] = round(float(live_pe), 2)
+                        
+                        if not result.get("market_cap") and q_data.get("marketCap"):
+                            result["market_cap"] = q_data["marketCap"]
+                        if (not result.get("volume") or result["volume"] == 0) and q_data.get("regularMarketVolume"):
+                            result["volume"] = int(q_data["regularMarketVolume"])
+                except Exception as e:
+                    logger.debug(f"Live quote fetch error for {ticker_symbol}: {e}")
+
             # Yearly Calendar Returns (2011 to Current Year)
             result["yearly_returns"] = calculate_yearly_returns(chart_max, ticker_symbol, cur_price)
 
@@ -654,8 +765,18 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
         result["price"] = FALLBACK_PRICES.get(ticker_symbol, 100.0)
     if result["ath"] <= result["price"]:
         result["ath"] = round(result["price"] * 1.1, 2)
-    if result["pe"] is None:
-        result["pe"] = FALLBACK_PE_RATIOS.get(ticker_symbol, None)
+
+    is_crypto_or_commodity = "-USD" in ticker_symbol or ticker_symbol in ["BTC-USD", "ETH-USD", "SOL-USD", "GC=F"] or ticker_symbol.startswith("^")
+    if not is_crypto_or_commodity:
+        if result["pe"] is None:
+            result["pe"] = FALLBACK_PE_RATIOS.get(ticker_symbol, None)
+        if result["pe"] is None:
+            prof_tmp = detect_volatility_profile(ticker_symbol)
+            if prof_tmp.get("default_pe") and prof_tmp["default_pe"].get("good"):
+                result["pe"] = float(prof_tmp["default_pe"]["good"])
+    else:
+        result["pe"] = None
+
     if result.get("market_cap") is None:
         shares = SHARES_OUTSTANDING.get(ticker_symbol)
         if shares:
@@ -720,15 +841,23 @@ def detect_volatility_profile(ticker: str) -> Dict[str, Any]:
         }
 
     # 2. Stable Broad Indices, Mega-cap Defensives, Commodities, Indo Big Banks
-    if t_upper in ["VOO", "SPY", "IVV", "BRK-B", "COST", "JPM", "V", "PG", "GC=F"] or (t_upper.endswith(".JK") and any(t_upper.startswith(p) for p in ["BBCA", "BMRI", "UNTR", "TLKM"])):
-        if ".JK" in t_upper and ("BBCA" in t_upper or "BMRI" in t_upper):
-            pe_bounds = {"great": 13.0, "good": 18.0, "expensive": 23.0}
-        elif ".JK" in t_upper and "UNTR" in t_upper:
+    if t_upper in ["VOO", "SPY", "IVV", "BRK-B", "COST", "JPM", "V", "PG", "GC=F", "UNP", "WM", "LVMUY"] or (t_upper.endswith(".JK") and any(t_upper.startswith(p) for p in ["BBCA", "BMRI", "BBNI", "UNTR", "TLKM", "ASII"])):
+        if ".JK" in t_upper and ("BBCA" in t_upper or "BMRI" in t_upper or "BBNI" in t_upper):
+            pe_bounds = {"great": 12.0, "good": 17.0, "expensive": 23.0}
+        elif ".JK" in t_upper and ("UNTR" in t_upper or "ADRO" in t_upper or "PTBA" in t_upper):
             pe_bounds = {"great": 5.0, "good": 8.0, "expensive": 12.0}
+        elif ".JK" in t_upper and ("TLKM" in t_upper or "ASII" in t_upper):
+            pe_bounds = {"great": 10.0, "good": 15.0, "expensive": 20.0}
         elif t_upper == "GC=F":
             pe_bounds = None
-        else: # VOO, BRK-B, COST, JPM, V
-            pe_bounds = {"great": 19.0, "good": 24.0, "expensive": 30.0}
+        elif t_upper in ["COST"]:
+            pe_bounds = {"great": 32.0, "good": 42.0, "expensive": 54.0}
+        elif t_upper in ["JPM"]:
+            pe_bounds = {"great": 10.0, "good": 12.5, "expensive": 16.0}
+        elif t_upper in ["V"]:
+            pe_bounds = {"great": 24.0, "good": 30.0, "expensive": 38.0}
+        else: # VOO, BRK-B, UNP, WM, LVMUY
+            pe_bounds = {"great": 18.0, "good": 24.0, "expensive": 32.0}
 
         return {
             "profile": "STABIL",
@@ -742,9 +871,19 @@ def detect_volatility_profile(ticker: str) -> Dict[str, Any]:
             "default_pe": pe_bounds
         }
 
-    # 3. Moderate / High-Growth Tech & Semiconductor Stocks
-    if any(k in t_upper for k in ["SMH", "NVDA", "TSM", "AVGO", "ASML", "KLAC", "AMAT", "LRCX", "VRT", "SNPS", "CEG", "PWR", "CCJ"]):
+    # 3. Specialized Moat & High Growth Categories
+    if any(k in t_upper for k in ["SPGI", "MCO"]):
+        pe_bounds = {"great": 26.0, "good": 34.0, "expensive": 44.0}
+    elif any(k in t_upper for k in ["TMO"]):
+        pe_bounds = {"great": 24.0, "good": 30.0, "expensive": 38.0}
+    elif any(k in t_upper for k in ["ISRG"]):
+        pe_bounds = {"great": 45.0, "good": 60.0, "expensive": 82.0}
+    elif any(k in t_upper for k in ["CRWD", "PLTR", "PANW", "NET"]):
+        pe_bounds = {"great": 50.0, "good": 75.0, "expensive": 110.0}
+    elif any(k in t_upper for k in ["LLY", "NVO"]):
         pe_bounds = {"great": 28.0, "good": 38.0, "expensive": 50.0}
+    elif any(k in t_upper for k in ["SMH", "NVDA", "TSM", "AVGO", "ASML", "KLAC", "AMAT", "LRCX", "VRT", "SNPS", "CEG", "PWR", "CCJ"]):
+        pe_bounds = {"great": 28.0, "good": 38.0, "expensive": 52.0}
     elif any(k in t_upper for k in ["QQQ", "AAPL", "MSFT", "GOOGL", "META", "AMZN", "ETN", "RTX"]):
         pe_bounds = {"great": 24.0, "good": 32.0, "expensive": 42.0}
     else:

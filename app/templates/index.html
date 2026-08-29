@@ -1041,7 +1041,6 @@
                     <th class="py-2.5 px-3 text-right">Injeksi</th>
                     <th class="py-2.5 px-3 text-right">Assets P&L</th>
                     <th class="py-2.5 px-3 text-center">Growth %</th>
-                    <th class="py-2.5 px-3 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
@@ -1075,13 +1074,6 @@
                       <td class="py-2.5 px-3 text-center font-bold"
                           :class="getMonthlyGrowth(row) > 0 ? 'text-emerald-500' : (getMonthlyGrowth(row) < 0 ? 'text-rose-500' : 'text-slate-400')"
                           x-text="getMonthlyNetworth(row) > 0 ? ((getMonthlyGrowth(row) > 0 ? '+' : '') + getMonthlyGrowth(row).toFixed(2) + '%') : '-'"></td>
-
-                      <!-- Action -->
-                      <td class="py-2.5 px-3 text-center">
-                        <button @click="editMonthlyRow(row)" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 text-[11px] font-sans font-semibold">
-                          Edit
-                        </button>
-                      </td>
 
                     </tr>
                   </template>
