@@ -464,15 +464,15 @@
                 <thead class="bg-slate-50/80 dark:bg-[#0d1527]/80 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80">
                   <tr>
                     <!-- 1. AKSI (DI PALING KIRI) -->
-                    <th class="py-3 px-3 text-center w-16">Aksi</th>
+                    <th class="py-3 px-2 text-center w-[72px] min-w-[72px] max-w-[72px]">Aksi</th>
                     <!-- 2. # -->
-                    <th class="py-3 px-3 w-8">#</th>
+                    <th class="py-3 px-2 text-center w-[36px] min-w-[36px] max-w-[36px]">#</th>
                     <!-- 3. NAMA ASET -->
-                    <th class="py-3 px-4">Nama Aset</th>
+                    <th class="py-3 px-3 w-[260px] min-w-[260px] max-w-[260px]">Nama Aset</th>
                     <!-- 4. TICKER -->
-                    <th class="py-3 px-3">Ticker</th>
+                    <th class="py-3 px-3 w-[95px] min-w-[95px] max-w-[95px]">Ticker</th>
                     <!-- 5. HARGA PASAR -->
-                    <th class="py-3 px-3 text-right">Harga Pasar</th>
+                    <th class="py-3 px-3 text-right w-[110px] min-w-[110px] max-w-[110px]">Harga Pasar</th>
                     
                     <!-- DYNAMIC REORDERABLE COLUMNS (Iterated via columnOrder) -->
                     <template x-for="(colKey, cIdx) in columnOrder" :key="colKey">
@@ -483,8 +483,8 @@
                           @dragleave="onColHeaderDragLeave($event)"
                           @drop="onColHeaderDrop($event, colKey, cIdx)"
                           @dragend="onColHeaderDragEnd($event)"
-                          class="py-3 px-3 select-none cursor-grab active:cursor-grabbing hover:bg-sky-500/10 transition border-r border-transparent"
-                          :class="[getColHeaderAlign(colKey), draggedColKey === colKey ? 'opacity-30 bg-sky-500/20' : '']"
+                          class="py-3 px-2 select-none cursor-grab active:cursor-grabbing hover:bg-sky-500/10 transition border-r border-transparent"
+                          :class="[getColHeaderAlign(colKey), getColWidth(colKey), draggedColKey === colKey ? 'opacity-30 bg-sky-500/20' : '']"
                           :title="'Tarik kolom ' + getColDef(colKey).label + ' ke kiri/kanan untuk mengubah posisi'">
                         <div class="inline-flex items-center gap-1">
                           <span x-text="getColHeaderLabel(colKey)"></span>
@@ -504,7 +504,7 @@
                         :class="{ 'opacity-40 bg-sky-50/50 dark:bg-sky-950/20': draggedItem && draggedItem.id === item.id }">
                       
                       <!-- 1. AKSI (DI PALING KIRI) -->
-                      <td class="py-3 px-3 text-center font-sans">
+                      <td class="py-3 px-2 text-center w-[72px] min-w-[72px] max-w-[72px] font-sans">
                         <div class="flex items-center justify-center gap-1">
                           <button @click="editAsset(item, category.id)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-sky-600 dark:text-sky-400" title="Edit Aset / Pindahkan Kategori">
                             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
@@ -519,11 +519,11 @@
                       </td>
 
                       <!-- 2. Index Number -->
-                      <td class="py-3 px-3 text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
+                      <td class="py-3 px-2 text-center w-[36px] min-w-[36px] max-w-[36px] text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
                       
                       <!-- 3. Logo & Name (Cryptorank style with uniform alignment) -->
-                      <td class="py-3 px-4 font-sans font-medium text-slate-900 dark:text-slate-100">
-                        <div class="flex items-center gap-2.5 max-w-[280px]">
+                      <td class="py-3 px-3 w-[260px] min-w-[260px] max-w-[260px] font-sans font-medium text-slate-900 dark:text-slate-100">
+                        <div class="flex items-center gap-2.5 max-w-[250px]">
                           <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             <img :src="item.logo_url" 
                                  :alt="item.ticker"
@@ -545,7 +545,7 @@
                       </td>
 
                       <!-- 4. Ticker Badge with Direct TradingView Link -->
-                      <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400">
+                      <td class="py-3 px-3 w-[95px] min-w-[95px] max-w-[95px] font-bold text-sky-600 dark:text-sky-400 font-mono">
                         <div class="flex items-center gap-1">
                           <span x-text="item.ticker"></span>
                           <a :href="getTradingViewLink(item)" target="_blank" 
@@ -557,13 +557,13 @@
                       </td>
 
                       <!-- 5. Current Price -->
-                      <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white">
+                      <td class="py-3 px-3 text-right w-[110px] min-w-[110px] max-w-[110px] font-bold text-slate-900 dark:text-white font-mono">
                         <span x-text="item.currency === 'USD' ? formatUSD(item.current_price) : formatIDR(item.current_price)"></span>
                       </td>
 
                       <!-- DYNAMIC REORDERABLE CELLS (Iterated via columnOrder) -->
                       <template x-for="colKey in columnOrder" :key="colKey">
-                        <td x-show="cols[colKey]" class="py-3 px-2 text-center" :class="getColCellAlign(colKey)">
+                        <td x-show="cols[colKey]" class="py-3 px-2 text-xs" :class="[getColCellAlign(colKey), getColWidth(colKey)]">
                           
                           <!-- signal -->
                           <template x-if="colKey === 'signal'">
@@ -905,13 +905,13 @@
               <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50/80 dark:bg-[#0d1527]/80 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/80">
                   <tr>
-                    <th class="py-3 px-3 w-8 text-center">#</th>
-                    <th class="py-3 px-4 min-w-[200px]">Asset Description</th>
-                    <th class="py-3 px-3 w-24">Ticker</th>
+                    <th class="py-3 px-2 text-center w-[40px] min-w-[40px] max-w-[40px]">#</th>
+                    <th class="py-3 px-3 w-[280px] min-w-[280px] max-w-[280px]">Asset Description</th>
+                    <th class="py-3 px-3 w-[100px] min-w-[100px] max-w-[100px]">Ticker</th>
                     
                     <!-- Dynamic Year Columns from 2011 to Current Year -->
                     <template x-for="year in yearlyCols" :key="year">
-                      <th class="py-3 px-2 text-center w-20 font-mono font-bold" 
+                      <th class="py-3 px-1 text-center w-[76px] min-w-[76px] max-w-[76px] font-mono font-bold" 
                           :class="year === currentYear ? 'text-sky-600 dark:text-sky-400' : ''"
                           x-text="year === currentYear ? (year + ' (YTD)') : year"></th>
                     </template>
@@ -922,11 +922,11 @@
                     <tr class="crypto-row hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
                       
                       <!-- # -->
-                      <td class="py-3 px-3 text-center text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
+                      <td class="py-3 px-2 text-center w-[40px] min-w-[40px] max-w-[40px] text-slate-400 font-sans text-xs" x-text="idx + 1"></td>
 
                       <!-- Name & Logo (with max-width and clean alignment) -->
-                      <td class="py-3 px-4 font-sans font-medium text-slate-900 dark:text-slate-100">
-                        <div class="flex items-center gap-2.5 max-w-[280px]">
+                      <td class="py-3 px-3 w-[280px] min-w-[280px] max-w-[280px] font-sans font-medium text-slate-900 dark:text-slate-100">
+                        <div class="flex items-center gap-2.5 max-w-[270px]">
                           <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             <img :src="item.logo_url" 
                                  :alt="item.ticker"
@@ -946,7 +946,7 @@
                       </td>
 
                       <!-- Ticker with Credible Annual PnL Source Link -->
-                      <td class="py-3 px-3 font-bold text-sky-600 dark:text-sky-400 font-mono">
+                      <td class="py-3 px-3 w-[100px] min-w-[100px] max-w-[100px] font-bold text-sky-600 dark:text-sky-400 font-mono">
                         <div class="flex items-center gap-1.5">
                           <span x-text="item.ticker"></span>
                           <a :href="getCredibleYearlyPnLLink(item)" target="_blank" 
@@ -959,7 +959,7 @@
 
                       <!-- Year Cells (2011 to Current Year) -->
                       <template x-for="year in yearlyCols" :key="year">
-                        <td class="py-2.5 px-1 text-center">
+                        <td class="py-2.5 px-1 text-center w-[76px] min-w-[76px] max-w-[76px]">
                           <template x-if="item.yearly_returns && item.yearly_returns[year] !== null && item.yearly_returns[year] !== undefined">
                             <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] shadow-xs"
                                  :class="item.yearly_returns[year] >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'"
@@ -1985,31 +1985,31 @@
       };
 
       const COL_DEFINITIONS = {
-        quantity: { key: 'quantity', label: 'Quantity', short: 'Quantity', group: 'Posisi', align: 'text-right' },
-        investedIdr: { key: 'investedIdr', label: 'Modal Terinvestasi', short: 'Modal', group: 'Posisi', align: 'text-right' },
-        curVal: { key: 'curVal', label: 'Nilai Berjalan', short: 'Nilai Berjalan', group: 'Posisi', align: 'text-right' },
-        pnl: { key: 'pnl', label: 'Floating PnL', short: 'Floating PnL', group: 'Posisi', align: 'text-right' },
-        signal: { key: 'signal', label: 'Sinyal Akumulasi (AI)', short: 'Sinyal AI', group: 'Sinyal AI', align: 'text-center' },
-        athZone: { key: 'athZone', label: 'Zonasi ATH', short: 'Zonasi ATH', group: 'Valuasi & ATH', align: 'text-center' },
-        athPrice: { key: 'athPrice', label: 'ATH Price', short: 'ATH Price', group: 'Valuasi & ATH', align: 'text-right' },
-        athDrawdown: { key: 'athDrawdown', label: '% from ATH', short: '% ATH', group: 'Valuasi & ATH', align: 'text-center' },
-        peValuation: { key: 'peValuation', label: 'Valuasi P/E', short: 'Valuasi P/E', group: 'Valuasi & ATH', align: 'text-center' },
-        perf24h: { key: 'perf24h', label: '24H Return', short: '24H', group: 'Return', align: 'text-center' },
-        perf5h: { key: 'perf5h', label: '5H Return (1W)', short: '5H', group: 'Return', align: 'text-center' },
-        perf1m: { key: 'perf1m', label: '1M Return', short: '1M', group: 'Return', align: 'text-center' },
-        perf6m: { key: 'perf6m', label: '6M Return', short: '6M', group: 'Return', align: 'text-center' },
-        perf1y: { key: 'perf1y', label: '1Y Return', short: '1Y', group: 'Return', align: 'text-center' },
-        perf5y: { key: 'perf5y', label: '5Y Return', short: '5Y', group: 'Return', align: 'text-center' },
-        perf10y: { key: 'perf10y', label: '10Y Return', short: '10Y', group: 'Return', align: 'text-center' },
-        cagr15y: { key: 'cagr15y', label: '15Y CAGR', short: '15Y CAGR', group: 'CAGR', align: 'text-center' },
-        cagr5y: { key: 'cagr5y', label: '5Y CAGR', short: '5Y CAGR', group: 'CAGR', align: 'text-center' },
-        cagr10y: { key: 'cagr10y', label: '10Y CAGR', short: '10Y CAGR', group: 'CAGR', align: 'text-center' },
-        cagr20y: { key: 'cagr20y', label: '20Y CAGR', short: '20Y CAGR', group: 'CAGR', align: 'text-center' },
-        perf15y: { key: 'perf15y', label: '15Y Return', short: '15Y', group: 'Return', align: 'text-center' },
-        perf20y: { key: 'perf20y', label: '20Y Return', short: '20Y', group: 'Return', align: 'text-center' },
-        marketCap: { key: 'marketCap', label: 'Market Cap', short: 'Market Cap', group: 'Data Pasar', align: 'text-right' },
-        volume: { key: 'volume', label: 'Volume (24H)', short: 'Volume', group: 'Data Pasar', align: 'text-right' },
-        avgPrice: { key: 'avgPrice', label: 'AVG Price', short: 'AVG Price', group: 'Posisi', align: 'text-right' }
+        quantity: { key: 'quantity', label: 'Quantity', short: 'Quantity', group: 'Posisi', align: 'text-right', width: 'w-[105px] min-w-[105px] max-w-[105px]' },
+        investedIdr: { key: 'investedIdr', label: 'Modal Terinvestasi', short: 'Modal', group: 'Posisi', align: 'text-right', width: 'w-[135px] min-w-[135px] max-w-[135px]' },
+        curVal: { key: 'curVal', label: 'Nilai Berjalan', short: 'Nilai Berjalan', group: 'Posisi', align: 'text-right', width: 'w-[135px] min-w-[135px] max-w-[135px]' },
+        pnl: { key: 'pnl', label: 'Floating PnL', short: 'Floating PnL', group: 'Posisi', align: 'text-right', width: 'w-[135px] min-w-[135px] max-w-[135px]' },
+        signal: { key: 'signal', label: 'Sinyal Akumulasi (AI)', short: 'Sinyal AI', group: 'Sinyal AI', align: 'text-center', width: 'w-[125px] min-w-[125px] max-w-[125px]' },
+        athZone: { key: 'athZone', label: 'Zonasi ATH', short: 'Zonasi ATH', group: 'Valuasi & ATH', align: 'text-center', width: 'w-[130px] min-w-[130px] max-w-[130px]' },
+        athPrice: { key: 'athPrice', label: 'ATH Price', short: 'ATH Price', group: 'Valuasi & ATH', align: 'text-right', width: 'w-[110px] min-w-[110px] max-w-[110px]' },
+        athDrawdown: { key: 'athDrawdown', label: '% from ATH', short: '% ATH', group: 'Valuasi & ATH', align: 'text-center', width: 'w-[90px] min-w-[90px] max-w-[90px]' },
+        peValuation: { key: 'peValuation', label: 'Valuasi P/E', short: 'Valuasi P/E', group: 'Valuasi & ATH', align: 'text-center', width: 'w-[125px] min-w-[125px] max-w-[125px]' },
+        perf24h: { key: 'perf24h', label: '24H Return', short: '24H', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf5h: { key: 'perf5h', label: '5H Return (1W)', short: '5H', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf1m: { key: 'perf1m', label: '1M Return', short: '1M', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf6m: { key: 'perf6m', label: '6M Return', short: '6M', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf1y: { key: 'perf1y', label: '1Y Return', short: '1Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf5y: { key: 'perf5y', label: '5Y Return', short: '5Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf10y: { key: 'perf10y', label: '10Y Return', short: '10Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        cagr15y: { key: 'cagr15y', label: '15Y CAGR', short: '15Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
+        cagr5y: { key: 'cagr5y', label: '5Y CAGR', short: '5Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
+        cagr10y: { key: 'cagr10y', label: '10Y CAGR', short: '10Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
+        cagr20y: { key: 'cagr20y', label: '20Y CAGR', short: '20Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
+        perf15y: { key: 'perf15y', label: '15Y Return', short: '15Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        perf20y: { key: 'perf20y', label: '20Y Return', short: '20Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
+        marketCap: { key: 'marketCap', label: 'Market Cap', short: 'Market Cap', group: 'Data Pasar', align: 'text-right', width: 'w-[110px] min-w-[110px] max-w-[110px]' },
+        volume: { key: 'volume', label: 'Volume (24H)', short: 'Volume', group: 'Data Pasar', align: 'text-right', width: 'w-[100px] min-w-[100px] max-w-[100px]' },
+        avgPrice: { key: 'avgPrice', label: 'AVG Price', short: 'AVG Price', group: 'Posisi', align: 'text-right', width: 'w-[110px] min-w-[110px] max-w-[110px]' }
       };
 
       let savedCols = defaultCols;
@@ -2477,6 +2477,10 @@
         // =====================================================================
         // COLUMN REGISTRY & REORDERING HELPERS (MOVE LEFT/RIGHT & DRAG-AND-DROP)
         // =====================================================================
+        getColWidth(key) {
+          return COL_DEFINITIONS[key]?.width || 'w-24 min-w-[96px]';
+        },
+
         getColDef(key) {
           return COL_DEFINITIONS[key] || { key: key, label: key, short: key, group: 'Umum', align: 'text-center' };
         },

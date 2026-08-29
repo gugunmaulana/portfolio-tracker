@@ -3,7 +3,7 @@
   "user_name": "Master Investor",
   "target_financial_freedom": 8844000000.0,
   "total_outgoings": 91457683.0,
-  "cash_balance": 10000000.0,
+  "cash_balance": 7000000.0,
   "target_annual_min_return": 10.0,
   "target_annual_ideal_return": 20.0,
   "currency_base": "IDR",
@@ -15,21 +15,6 @@
       "color": "blue",
       "sort_order": 1,
       "items": [
-        {
-          "id": 45,
-          "ticker": "VOO",
-          "name": "Vanguard S&P 500 ETF",
-          "category": "core_radar",
-          "currency": "USD",
-          "invested_idr": 15000000.0,
-          "quantity": 1.5,
-          "avg_price": 450.0,
-          "is_lot": false,
-          "pe_great": null,
-          "pe_good": null,
-          "pe_exp": null,
-          "sort_order": 0
-        },
         {
           "id": 1,
           "ticker": "VOO",
