@@ -418,7 +418,7 @@
             <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/21'"></span>)</span>
           </button>
 
-          <!-- Quick Column Visibility Toggles (Clean 21 Active Columns, No CAGR) -->
+          <!-- Quick Column Visibility Toggles (Clean 21 Active Columns) -->
           <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-none">
             <template x-for="colKey in ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'perf15y', 'perf20y', 'marketCap', 'volume', 'avgPrice']" :key="colKey">
               <button @click="toggleCol(colKey)" 
@@ -2811,6 +2811,60 @@
           const curYear = now.getFullYear();
           return row.month_index === curMonth && (this.selectedYear === curYear || row.year === curYear);
         },
+
+        // =====================================================================
+        // MENU 2: DYNAMIC CAGR FORMULA & TIME-FRAME GETTERS
+        // =====================================================================
+        getCagrHeaderLabel() {
+          const tf = this.selectedCagrTimeframe || '5y';
+          if (tf === '10y') return '10Y CAGR';
+          if (tf === '15y') return '15Y CAGR';
+          if (tf === 'all') return 'ALL TIME';
+          return '5Y CAGR';
+        },
+
+        getSelectedCagrVal(item) {
+          if (!item) return null;
+          const tf = this.selectedCagrTimeframe || '5y';
+          const p = item.perf || {};
+          const yr = item.yearly_returns || {};
+
+          // 1. Direct backend high-precision CAGR if available
+          if (tf === '10y' && p['10y_cagr'] !== undefined && p['10y_cagr'] !== null) return p['10y_cagr'];
+          if (tf === '15y' && p['15y_cagr'] !== undefined && p['15y_cagr'] !== null) return p['15y_cagr'];
+          if (tf === 'all' && p['inception_cagr'] !== undefined && p['inception_cagr'] !== null) return p['inception_cagr'];
+          if (tf === '5y' && p['5y_cagr'] !== undefined && p['5y_cagr'] !== null) return p['5y_cagr'];
+
+          // 2. Direct On-The-Fly CAGR Calculation from Table Return Matrix:
+          // Formula: CAGR = ((1 + r1) * (1 + r2) * ... * (1 + rn))^(1/n) - 1
+          const years = Object.keys(yr).map(Number).filter(y => yr[y] !== null && yr[y] !== undefined && !isNaN(yr[y])).sort((a, b) => a - b);
+          if (years.length === 0) return null;
+
+          let targetYears = [];
+          if (tf === '5y') targetYears = years.slice(-5);
+          else if (tf === '10y') targetYears = years.slice(-10);
+          else if (tf === '15y') targetYears = years.slice(-15);
+          else targetYears = [...years];
+
+          if (targetYears.length === 0) return null;
+          
+          let compound = 1.0;
+          targetYears.forEach(y => {
+            compound *= (1.0 + (Number(yr[y]) / 100.0));
+          });
+          
+          if (compound <= 0) return null;
+          const n = targetYears.length;
+          const cagr = (Math.pow(compound, 1.0 / n) - 1.0) * 100.0;
+          return Math.round(cagr * 100) / 100;
+        },
+
+        getCagrTooltip(item) {
+          const val = this.getSelectedCagrVal(item);
+          const lbl = this.getCagrHeaderLabel();
+          return `${item.ticker} ${lbl}: ${val !== null ? (val >= 0 ? '+' : '') + val.toFixed(2) + '%' : 'Data tidak cukup'}`;
+        },
+
 
         getMonthlyOutgoings(row) {
           if (this.isCurrentMonthRow(row)) {
