@@ -509,6 +509,12 @@
                     <span class="text-[10px] text-slate-400 block uppercase">NILAI BERJALAN</span>
                     <span class="font-bold text-sky-600 dark:text-sky-400" x-text="formatIDR(category.total_value_idr)"></span>
                   </div>
+                  <div class="pl-3 border-l border-slate-200 dark:border-slate-800">
+                    <span class="text-[10px] text-slate-400 block uppercase">PNL</span>
+                    <span class="font-bold"
+                          :class="(category.total_pnl_idr || (category.total_value_idr - category.total_invested_idr)) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
+                          x-text="((category.total_pnl_idr || (category.total_value_idr - category.total_invested_idr)) >= 0 ? '+' : '') + formatIDR(category.total_pnl_idr !== undefined ? category.total_pnl_idr : (category.total_value_idr - category.total_invested_idr))"></span>
+                  </div>
                 </div>
 
                 <!-- + Tambah Aset Button for this category -->
@@ -560,8 +566,6 @@
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono tabular-nums">
                   <template x-for="(item, idx) in filteredCategoryItems(category)" :key="item.id || item.ticker">
                     <tr class="crypto-row transition"
-                        draggable="true"
-                        @dragstart="onAssetDragStart($event, item, category)"
                         @dragover.prevent="onAssetDragOver($event)"
                         @drop="onAssetDrop($event, item, category)"
                         :class="{ 'opacity-40 bg-sky-50/50 dark:bg-sky-950/20': draggedItem && draggedItem.id === item.id }">
@@ -575,7 +579,11 @@
                           <button @click="deleteAsset(item)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400" title="Hapus Aset">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                           </button>
-                          <span class="p-1 text-slate-300 dark:text-slate-600 cursor-grab active:cursor-grabbing hover:text-slate-500" title="Tarik untuk memindahkan aset / susun urutan">
+                          <span draggable="true"
+                                @dragstart="onAssetDragStart($event, item, category)"
+                                @dragend="onAssetDragEnd($event)"
+                                class="p-1 text-slate-400 dark:text-slate-500 hover:text-sky-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded cursor-grab active:cursor-grabbing transition" 
+                                title="Tarik icon titik 6 ini untuk memindahkan / menyusun urutan aset">
                             <i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>
                           </span>
                         </div>
@@ -1981,7 +1989,7 @@
     function portfolioApp() {
       const serverPortfolio = {{ portfolio | tojson | safe }};
 
-      // 25 total configurable columns in user's exact default order
+      // 21 total configurable columns in user's exact default order (CAGR migrated to Menu 2)
       const defaultColumnOrder = [
         'quantity',
         'investedIdr',
@@ -1999,10 +2007,6 @@
         'perf1y',
         'perf5y',
         'perf10y',
-        'cagr15y',
-        'cagr5y',
-        'cagr10y',
-        'cagr20y',
         'perf15y',
         'perf20y',
         'marketCap',
@@ -2027,10 +2031,6 @@
         perf1y: true,
         perf5y: true,
         perf10y: true,
-        cagr15y: true,
-        cagr5y: false,
-        cagr10y: false,
-        cagr20y: false,
         perf15y: false,
         perf20y: false,
         marketCap: false,
@@ -2083,7 +2083,7 @@
         savedColOrder = valid;
       } else {
         try {
-          const storedOrder = localStorage.getItem('radar_col_order_v2');
+          const storedOrder = localStorage.getItem('radar_col_order_v2') || localStorage.getItem('radar_col_order_v8');
           if (storedOrder) {
             const parsed = JSON.parse(storedOrder);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -2096,6 +2096,21 @@
           }
         } catch (e) {}
       }
+
+      // Explicitly purge legacy CAGR columns from savedCols and savedColOrder
+      const legacyCagrKeys = ['cagr5y', 'cagr10y', 'cagr15y', 'cagr20y'];
+      legacyCagrKeys.forEach(k => {
+        delete savedCols[k];
+      });
+      savedColOrder = savedColOrder.filter(k => !legacyCagrKeys.includes(k) && defaultColumnOrder.includes(k));
+      defaultColumnOrder.forEach(k => {
+        if (!savedColOrder.includes(k)) savedColOrder.push(k);
+      });
+      try {
+        localStorage.setItem('radar_cols_v8', JSON.stringify(savedCols));
+        localStorage.setItem('radar_col_order_v8', JSON.stringify(savedColOrder));
+        localStorage.removeItem('radar_col_order_v2');
+      } catch (e) {}
 
       const AI_TICKER_SUGGESTIONS = {
         // --- CORE ETF & FONDASI INDEKS DUNIA ---
@@ -3582,11 +3597,13 @@
     }
 
     function fY(y) {
-      if (y === null || y > 100) return '>100 thn';
+      if (y === null || y === undefined || !isFinite(y) || y > 99999) return 'Mustahil';
       if (y === 0) return '—';
-      if (y < 1/12) return Math.round(y*12*4) + ' mgg';
-      if (y < 1) return Math.round(y*12) + ' bln';
-      return y.toFixed(1) + ' thn';
+      if (y < 1/12) return Math.round(y * 12 * 4) + ' mgg';
+      if (y < 1) return Math.round(y * 12) + ' bln';
+      if (y < 10) return y.toFixed(1) + ' thn';
+      if (y < 100) return Math.round(y) + ' thn';
+      return Math.round(y).toLocaleString('id-ID') + ' thn';
     }
 
     function bCol(g, al) {
@@ -3601,7 +3618,8 @@
 
     function dInfo(g, al) {
       if (al) return ['rgba(24,163,116,.12)', '#18A374', 'Dimiliki'];
-      if (g === null) return ['rgba(61,10,10,.12)', '#ff6b6b', 'Terlalu jauh'];
+      if (g === null || g > 99999 || !isFinite(g)) return ['rgba(61,10,10,.12)', '#ff6b6b', 'Mustahil'];
+      if (g > 100) return ['rgba(61,10,10,.12)', '#ff6b6b', 'Sangat jauh'];
       if (g > 10) return ['rgba(163,45,45,.1)', '#ff7a7a', 'Sangat sulit'];
       if (g > 5) return ['rgba(226,75,74,.1)', '#f87171', 'Sulit'];
       if (g > 2) return ['rgba(186,117,23,.1)', '#f59e0b', 'Sedang'];
@@ -3722,27 +3740,68 @@
     }
 
     function calcAllFF(v) {
-      const mr = v.ret / 12;
+      const netRet = v.ret - v.wr;
+      const mr = netRet / 12;
+      const hit = MS.map(() => null);
+
+      // Exact mathematical calculation for all 20 milestones (up to 99,999 years)
+      MS.forEach((ms, i) => {
+        if (v.cur >= ms.v) {
+          hit[i] = 0;
+          return;
+        }
+        if (v.ipg === 0 && mr > 0) {
+          const denom = v.cur + (v.mo / mr);
+          const numer = ms.v + (v.mo / mr);
+          if (denom > 0 && numer > 0) {
+            const ratio = numer / denom;
+            if (ratio > 1) {
+              const months = Math.log(ratio) / Math.log(1 + mr);
+              const yr = months / 12;
+              hit[i] = yr <= 99999 ? yr : null;
+            }
+          }
+        } else if (mr <= 0) {
+          if (v.mo > 0) {
+            const months = (ms.v - v.cur) / v.mo;
+            const yr = months / 12;
+            hit[i] = yr <= 99999 ? yr : null;
+          }
+        } else {
+          // With investing power growth, step calculate exact year
+          let p = v.cur;
+          for (let y = 1; y <= 100000; y++) {
+            const moNow = v.mo * Math.pow(1 + v.ipg, y - 1);
+            let hitFound = false;
+            for (let m = 1; m <= 12; m++) {
+              p = p * (1 + mr) + moNow;
+              if (p >= ms.v) {
+                hit[i] = (y - 1) + (m / 12);
+                hitFound = true;
+                break;
+              }
+            }
+            if (hitFound) break;
+            if (p > ms.v * 10) break;
+          }
+        }
+      });
+
+      // Standard 100-year series for charts
       const maxYears = 100;
       let p = v.cur, inv = v.cur;
-      const hit = MS.map(() => null);
       const yrP = [], yrI = [];
-      const annRet = [Math.max(0, v.cur * (v.ret - v.wr))];
+      const annRet = [Math.max(0, v.cur * netRet)];
       const annSav = [v.mo * 12];
-
-      MS.forEach((ms, i) => { if (p >= ms.v) hit[i] = 0; });
-
       let pPrev = v.cur;
       let yrContrib = 0;
 
       for (let m = 1; m <= maxYears * 12; m++) {
         const yrIdx = Math.floor((m - 1) / 12);
         const moNow = v.mo * Math.pow(1 + v.ipg, yrIdx);
-        p = p * (1 + mr) - p * (v.wr / 12) + moNow;
+        p = p * (1 + mr) + moNow;
         inv += moNow;
         yrContrib += moNow;
-
-        MS.forEach((ms, i) => { if (hit[i] === null && p >= ms.v) hit[i] = m / 12; });
 
         if (m % 12 === 0) {
           yrP.push(Math.round(p));
@@ -3855,38 +3914,69 @@
       function setKpiText(id, ids, r) {
         const e1 = document.getElementById(id);
         const e2 = document.getElementById(ids);
-        if (e1) e1.textContent = r === 0 ? 'Sekarang' : (r ? 'Usia ' + Math.round(v.age + r) : '>100 thn');
-        if (e2) e2.textContent = r === 0 ? '(saat ini)' : (r ? 'thn ke-' + r.toFixed(1) : '>100 thn');
+        if (e1) {
+          if (r === 0) e1.textContent = 'Sekarang';
+          else if (r && r <= 99999) e1.textContent = 'Usia ' + Math.round(v.age + r).toLocaleString('id-ID');
+          else e1.textContent = 'Mustahil';
+        }
+        if (e2) {
+          if (r === 0) e2.textContent = '(saat ini)';
+          else if (r && r <= 99999) e2.textContent = 'thn ke-' + (r < 10 ? r.toFixed(1) : Math.round(r).toLocaleString('id-ID'));
+          else e2.textContent = 'Tidak tercapai';
+        }
       }
       setKpiText('kpi-hn', 'kpi-hn-s', hit[hnI]);
       setKpiText('kpi-vh', 'kpi-vh-s', hit[vhI]);
       setKpiText('kpi-uh', 'kpi-uh-s', hit[uhI]);
       setKpiText('kpi-1t', 'kpi-1t-s', hit[MS.length - 1]);
 
-      // What-if table
+      // What-if table (exact crossover calculation up to 99,999 years)
       const scenarios = [0, 500000, 1000000, 2000000, 5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 50000000];
       let wiHtml = '';
       scenarios.forEach(mo => {
         const isAct = Math.abs(mo - v.mo) < 50000;
         const { yrP: p2, annRet: ar2, annSav: as2 } = calcAllFF({ ...v, mo });
         let cy = null;
-        if ((as2[0] || 0) === 0) cy = 0;
-        else for (let y = 0; y <= 100; y++) if ((ar2[y] || 0) >= (as2[y] || 0)) { cy = y; break; }
+        if ((mo * 12) === 0) cy = 0;
+        else {
+          for (let y = 0; y <= 100; y++) {
+            if ((ar2[y] || 0) >= (as2[y] || 0)) { cy = y; break; }
+          }
+          if (cy === null && (v.ret - v.wr) > 0) {
+            // Solve crossover beyond 100 years
+            const neededCapital = (mo * 12) / (v.ret - v.wr);
+            const netRet = v.ret - v.wr;
+            const mr = netRet / 12;
+            const denom = v.cur + (mo / mr);
+            const numer = neededCapital + (mo / mr);
+            if (denom > 0 && numer > 0) {
+              const months = Math.log(numer / denom) / Math.log(1 + mr);
+              const yr = months / 12;
+              if (yr <= 99999) cy = Math.round(yr);
+            }
+          }
+        }
         const lbl = mo === 0 ? 'Rp 0' : mo >= 1e6 ? 'Rp ' + (mo / 1e6) + ' jt' : 'Rp ' + (mo / 1000) + ' rb';
-        const cyt = cy === null ? '>100 thn 🔴' : cy === 0 ? 'Sekarang 🟢' : 'Y' + cy + (cy <= 10 ? ' 🟢' : cy <= 30 ? ' 🟡' : ' 🔴');
+        let cyt = 'Mustahil 🔴';
+        if (cy === 0) cyt = 'Sekarang 🟢';
+        else if (cy !== null && cy <= 10) cyt = 'Y' + cy + ' 🟢';
+        else if (cy !== null && cy <= 30) cyt = 'Y' + cy + ' 🟡';
+        else if (cy !== null && cy <= 99999) cyt = 'Y' + cy.toLocaleString('id-ID') + ' 🔴';
+        
         const cols = [9, 19, 29, 39, 49].map(i => '<td class="py-2 px-3">' + fS(p2[i] || v.cur) + '</td>').join('');
         wiHtml += `<tr class="${isAct ? 'bg-sky-500/10 font-bold text-sky-600 dark:text-sky-400' : ''}"><td class="py-2 px-3">${lbl}${isAct ? ' ← kamu' : ''}</td><td class="py-2 px-3">${cyt}</td>${cols}</tr>`;
       });
       const elWi = document.getElementById('wi-tbl'); if (elWi) elWi.innerHTML = wiHtml;
 
-      // 20 Milestones table
-      const maxG = Math.max(1, ...gaps.filter(g => g !== null && g > 0));
+      // 20 Milestones table with exact numbers and "Mustahil"
+      const maxG = Math.max(1, ...gaps.filter(g => g !== null && g > 0 && g <= 99999));
       let msHtml = '';
       MS.forEach((ms, i) => {
         const al = hit[i] === 0, g = gaps[i], r = hit[i];
-        const ageAt = r && r > 0 ? Math.round(v.age + r) : null;
+        const ageAt = r && r > 0 && (v.age + r) <= 99999 ? 'Usia ' + Math.round(v.age + r).toLocaleString('id-ID') : (r > 99999 ? 'Mustahil' : null);
+        const thnKeText = al ? '(saat ini)' : (r && r > 0 && r <= 99999 ? 'thn ke-' + (r < 10 ? r.toFixed(1) : Math.round(r).toLocaleString('id-ID')) : '—');
         const [dbg, dtx, dlbl] = dInfo(g, al);
-        const bw = al ? 100 : g === null ? 100 : Math.min(100, (g / maxG) * 100);
+        const bw = al ? 100 : (g === null || g > 99999) ? 100 : Math.min(100, (g / maxG) * 100);
         const bc = bCol(g, al);
         const tr = TR.find(x => x.k === ms.t) || TR[0];
         const pas = fS((ms.v * v.ret) / 12);
@@ -3899,8 +3989,8 @@
           <span class="text-slate-500">${fU(ms.v / v.rt)}</span>
           <span class="text-emerald-500 font-bold">${pas}</span>
           <div>
-            <div class="font-bold text-slate-900 dark:text-white">${al ? 'Sekarang' : ageAt ? 'Usia ' + ageAt : '>100 thn'}</div>
-            <div class="text-[10px] text-slate-400">${al ? '(saat ini)' : r && r > 0 ? 'thn ke-' + r.toFixed(1) : '—'}</div>
+            <div class="font-bold text-slate-900 dark:text-white">${al ? 'Sekarang' : (r && r <= 99999 ? ageAt : 'Mustahil')}</div>
+            <div class="text-[10px] text-slate-400">${thnKeText}</div>
           </div>
           <div>
             <div class="font-bold text-slate-700 dark:text-slate-300">${al ? '—' : fY(g)}</div>
