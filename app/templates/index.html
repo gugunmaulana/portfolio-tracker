@@ -956,8 +956,9 @@
                     <!-- 3. Frozen Column: Ticker -->
                     <th class="py-3 px-3 w-[95px] min-w-[95px] max-w-[95px] sticky left-[320px] z-30 bg-slate-50 dark:bg-[#0d1527]">Ticker</th>
                     <!-- 4. Frozen Column: Selected CAGR -->
-                    <th class="py-3 px-2 text-center w-[95px] min-w-[95px] max-w-[95px] sticky left-[415px] z-30 bg-slate-50 dark:bg-[#0d1527] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)] text-blue-600 dark:text-blue-400 font-bold"
-                        x-text="getCagrHeaderLabel()"></th>
+                    <th class="py-3 px-2 text-center w-[95px] min-w-[95px] max-w-[95px] sticky left-[415px] z-30 bg-slate-50 dark:bg-[#0d1527] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)] text-blue-600 dark:text-blue-400 font-bold tracking-wider">
+                      <span x-text="getCagrHeaderLabel()">5Y CAGR</span>
+                    </th>
                     
                     <!-- Dynamic Year Columns from 2011 to Current Year -->
                     <template x-for="year in yearlyCols" :key="year">
@@ -1009,14 +1010,10 @@
 
                       <!-- 4. Frozen Column: Dynamic CAGR Cell -->
                       <td class="py-3 px-2 text-center w-[95px] min-w-[95px] max-w-[95px] sticky left-[415px] z-20 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]">
-                        <template x-if="getSelectedCagrVal(item) !== null && getSelectedCagrVal(item) !== undefined">
-                          <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs cursor-help"
-                               :title="getCagrTooltip(item)"
-                               x-text="formatPct(getSelectedCagrVal(item))"></div>
-                        </template>
-                        <template x-if="getSelectedCagrVal(item) === null || getSelectedCagrVal(item) === undefined">
-                          <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                        </template>
+                        <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center shadow-xs cursor-help"
+                             :class="getSelectedCagrVal(item) !== null ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'"
+                             :title="getCagrTooltip(item)"
+                             x-text="getSelectedCagrVal(item) !== null ? formatPct(getSelectedCagrVal(item)) : '-'"></div>
                       </td>
 
                       <!-- Year Cells (2011 to Current Year) -->
