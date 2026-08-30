@@ -543,10 +543,58 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
 
     try:
         # Tier 1: High-precision daily bars for up to 10 years
-        chart_daily = fetch_direct_yahoo_chart(ticker_symbol, "10y", "1d")
+        if ticker_symbol == "CNYIDR=X":
+            usd_chart = fetch_direct_yahoo_chart("USDIDR=X", "10y", "1d")
+            cny_chart = fetch_direct_yahoo_chart("CNY=X", "10y", "1d")
+            chart_daily = None
+            if usd_chart and cny_chart:
+                u_ts = usd_chart.get("timestamp", [])
+                u_quotes = usd_chart.get("indicators", {}).get("quote", [{}])[0]
+                u_closes = u_quotes.get("close", [])
+                
+                c_ts = cny_chart.get("timestamp", [])
+                c_quotes = cny_chart.get("indicators", {}).get("quote", [{}])[0]
+                c_closes = c_quotes.get("close", [])
+                
+                c_dict = {}
+                for t, cl in zip(c_ts, c_closes):
+                    if cl and cl > 0:
+                        dt_str = datetime.datetime.fromtimestamp(t, tz=datetime.timezone.utc).strftime("%Y-%m-%d")
+                        c_dict[dt_str] = cl
+                        
+                syn_ts, syn_closes = [], []
+                for t, u_cl in zip(u_ts, u_closes):
+                    if u_cl and u_cl > 0:
+                        dt_str = datetime.datetime.fromtimestamp(t, tz=datetime.timezone.utc).strftime("%Y-%m-%d")
+                        c_cl = c_dict.get(dt_str)
+                        if c_cl and c_cl > 0:
+                            syn_val = round(u_cl / c_cl, 2)
+                            syn_ts.append(t)
+                            syn_closes.append(syn_val)
+                            
+                chart_daily = {
+                    "timestamp": syn_ts,
+                    "indicators": {
+                        "quote": [{
+                            "close": syn_closes,
+                            "high": syn_closes,
+                            "low": syn_closes,
+                            "open": syn_closes
+                        }]
+                    },
+                    "meta": {
+                        "regularMarketPrice": syn_closes[-1] if syn_closes else 2632.0,
+                        "regularMarketPreviousClose": syn_closes[-2] if len(syn_closes) >= 2 else 2632.0
+                    }
+                }
+        else:
+            chart_daily = fetch_direct_yahoo_chart(ticker_symbol, "10y", "1d")
         
         # Tier 2: Monthly max bars for >10y history (15y, 20y) and true lifetime ATH
-        chart_max = fetch_direct_yahoo_chart(ticker_symbol, "max", "1mo")
+        if ticker_symbol == "CNYIDR=X":
+            chart_max = chart_daily
+        else:
+            chart_max = fetch_direct_yahoo_chart(ticker_symbol, "max", "1mo")
         
         daily_pts = []
         highs_daily = []
@@ -992,8 +1040,8 @@ def calculate_dislocation_and_valuation(
     if status_code in ["Z3", "Z4"]:
         if pe_state in ["GREAT", "GOOD"] or pe_state == "NA":
             signal_code = "PRIME_BUY"
-            signal_label = "🟢 Prime Buy"
-            signal_bg = "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 font-bold shadow-sm"
+            signal_label = "🟢 PRIME BUY"
+            signal_bg = "bg-emerald-500 text-white font-black shadow-[0_0_14px_rgba(16,185,129,0.85)] ring-2 ring-emerald-400/60 animate-pulse border border-emerald-300 dark:border-emerald-400"
             signal_desc = "Diskon ATH dalam & Valuasi Murah/Wajar (Double Discount)"
         elif pe_state == "EXPENSIVE":
             signal_code = "ACCUMULATE"
@@ -1002,14 +1050,14 @@ def calculate_dislocation_and_valuation(
             signal_desc = "Diskon harga bagus tapi P/E masih agak premium"
         else:
             signal_code = "PRIME_BUY"
-            signal_label = "🟢 Prime Buy"
-            signal_bg = "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 font-bold"
+            signal_label = "🟢 PRIME BUY"
+            signal_bg = "bg-emerald-500 text-white font-black shadow-[0_0_14px_rgba(16,185,129,0.85)] ring-2 ring-emerald-400/60 animate-pulse border border-emerald-300 dark:border-emerald-400"
             signal_desc = "Penurunan tajam dari ATH (Peluang Akumulasi Besar)"
     elif status_code == "Z2":
         if pe_state == "EXPENSIVE":
             signal_code = "HOLD"
             signal_label = "⚪ Hold"
-            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-medium"
+            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium"
             signal_desc = "Koreksi wajar namun valuasi masih tinggi"
         else:
             signal_code = "ACCUMULATE"
@@ -1019,8 +1067,8 @@ def calculate_dislocation_and_valuation(
     else:  # Z1 (Near ATH)
         if pe_state == "EXPENSIVE":
             signal_code = "WAIT"
-            signal_label = "🔴 Wait / Mahal"
-            signal_bg = "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-semibold"
+            signal_label = "⚪ Wait / Mahal"
+            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium"
             signal_desc = "Harga di puncak ATH dan P/E overvalued"
         elif pe_state == "GREAT":
             signal_code = "ACCUMULATE"
@@ -1030,7 +1078,7 @@ def calculate_dislocation_and_valuation(
         else:
             signal_code = "HOLD"
             signal_label = "⚪ Hold"
-            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 font-medium"
+            signal_bg = "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium"
             signal_desc = "Harga stabil di zona normal"
 
     return {

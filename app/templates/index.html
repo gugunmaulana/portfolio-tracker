@@ -130,11 +130,10 @@
             </a>
             <span class="text-slate-900 dark:text-white font-bold" x-text="formatIDR(data.macro.usd_idr)"></span>
             <span :class="data.macro.usd_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'" 
-                  x-text="(data.macro.usd_idr_chg >= 0 ? '+' : '') + data.macro.usd_idr_chg + '%'"></span>
+                  x-text="'(' + (data.macro.usd_idr_chg >= 0 ? '+' : '') + data.macro.usd_idr_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip (24h, 1w, 1m, 6m, 1y, 5y) -->
+          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.usd_idr_perf">
-            <span>24H:<strong :class="data.macro.usd_idr_perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['24h'])"></strong></span>
             <span>1W:<strong :class="data.macro.usd_idr_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.usd_idr_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['1m'])"></strong></span>
             <span>6M:<strong :class="data.macro.usd_idr_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['6m'])"></strong></span>
@@ -154,11 +153,10 @@
             </a>
             <span class="text-slate-900 dark:text-white font-bold" x-text="formatIDR(data.macro.cny_idr)"></span>
             <span :class="data.macro.cny_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                  x-text="(data.macro.cny_idr_chg >= 0 ? '+' : '') + data.macro.cny_idr_chg + '%'"></span>
+                  x-text="'(' + (data.macro.cny_idr_chg >= 0 ? '+' : '') + data.macro.cny_idr_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip -->
+          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.cny_idr_perf">
-            <span>24H:<strong :class="data.macro.cny_idr_perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['24h'])"></strong></span>
             <span>1W:<strong :class="data.macro.cny_idr_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.cny_idr_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['1m'])"></strong></span>
             <span>6M:<strong :class="data.macro.cny_idr_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['6m'])"></strong></span>
@@ -178,11 +176,10 @@
             </a>
             <span class="text-slate-900 dark:text-white font-bold" x-text="data.macro.benchmarks.ihsg.price.toLocaleString('id-ID')"></span>
             <span :class="data.macro.ihsg_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                  x-text="(data.macro.ihsg_chg >= 0 ? '+' : '') + data.macro.ihsg_chg + '%'"></span>
+                  x-text="'(' + (data.macro.ihsg_chg >= 0 ? '+' : '') + data.macro.ihsg_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip -->
+          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.ihsg_perf">
-            <span>24H:<strong :class="data.macro.ihsg_perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['24h'])"></strong></span>
             <span>1W:<strong :class="data.macro.ihsg_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.ihsg_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['1m'])"></strong></span>
             <span>6M:<strong :class="data.macro.ihsg_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['6m'])"></strong></span>
@@ -202,11 +199,10 @@
             </a>
             <span class="text-slate-900 dark:text-white font-bold" x-text="data.macro.benchmarks.sp500.price.toLocaleString('en-US')"></span>
             <span :class="data.macro.sp500_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
-                  x-text="(data.macro.sp500_chg >= 0 ? '+' : '') + data.macro.sp500_chg + '%'"></span>
+                  x-text="'(' + (data.macro.sp500_chg >= 0 ? '+' : '') + data.macro.sp500_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip -->
+          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.sp500_perf">
-            <span>24H:<strong :class="data.macro.sp500_perf['24h'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['24h'])"></strong></span>
             <span>1W:<strong :class="data.macro.sp500_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.sp500_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['1m'])"></strong></span>
             <span>6M:<strong :class="data.macro.sp500_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['6m'])"></strong></span>
@@ -766,59 +762,7 @@
                             </div>
                           </template>
 
-                          <!-- cagr5y (Blue Background with White Font) -->
-                          <template x-if="colKey === 'cagr5y'">
-                            <div>
-                              <template x-if="item.perf['5y_cagr'] !== null && item.perf['5y_cagr'] !== undefined">
-                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs"
-                                     x-text="formatPct(item.perf['5y_cagr'])"></div>
-                              </template>
-                              <template x-if="item.perf['5y_cagr'] === null || item.perf['5y_cagr'] === undefined">
-                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                              </template>
-                            </div>
-                          </template>
 
-                          <!-- cagr10y (Blue Background with White Font) -->
-                          <template x-if="colKey === 'cagr10y'">
-                            <div>
-                              <template x-if="item.perf['10y_cagr'] !== null && item.perf['10y_cagr'] !== undefined">
-                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs"
-                                     x-text="formatPct(item.perf['10y_cagr'])"></div>
-                              </template>
-                              <template x-if="item.perf['10y_cagr'] === null || item.perf['10y_cagr'] === undefined">
-                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                              </template>
-                            </div>
-                          </template>
-
-                          <!-- cagr15y (Blue Background with Inception Fallback & Tooltip) -->
-                          <template x-if="colKey === 'cagr15y'">
-                            <div>
-                              <template x-if="item.perf['15y_cagr'] !== null && item.perf['15y_cagr'] !== undefined">
-                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs cursor-help"
-                                     :title="item.perf['15y_cagr_is_inception'] ? ('CAGR sejak rilis (' + item.perf['inception_years'] + ' thn dari ' + item.perf['inception_date'] + ')') : '15-Year Annualized CAGR'"
-                                     x-text="formatPct(item.perf['15y_cagr'])"></div>
-                              </template>
-                              <template x-if="item.perf['15y_cagr'] === null || item.perf['15y_cagr'] === undefined">
-                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                              </template>
-                            </div>
-                          </template>
-
-                          <!-- cagr20y (Blue Background with Inception Fallback & Tooltip) -->
-                          <template x-if="colKey === 'cagr20y'">
-                            <div>
-                              <template x-if="item.perf['20y_cagr'] !== null && item.perf['20y_cagr'] !== undefined">
-                                <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs cursor-help"
-                                     :title="item.perf['20y_cagr_is_inception'] ? ('CAGR sejak rilis (' + item.perf['inception_years'] + ' thn dari ' + item.perf['inception_date'] + ')') : '20-Year Annualized CAGR'"
-                                     x-text="formatPct(item.perf['20y_cagr'])"></div>
-                              </template>
-                              <template x-if="item.perf['20y_cagr'] === null || item.perf['20y_cagr'] === undefined">
-                                <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
-                              </template>
-                            </div>
-                          </template>
 
                           <!-- athPrice -->
                           <template x-if="colKey === 'athPrice'">
@@ -910,7 +854,7 @@
     <!-- ======================================================================= -->
     <div x-show="activeView === 'yearly_pnl'" class="max-w-[1440px] mx-auto space-y-6" x-cloak>
       
-      <!-- Top Action & Info Bar -->
+      <!-- Top Action & Info Bar with Interactive CAGR Timeframe Selector -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -918,23 +862,48 @@
             <span>MATRIKS PNL / RETURN TAHUNAN SEJAK 2011 — SEKARANG</span>
           </h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Rekam jejak performa profit/loss per tahun kalender untuk seluruh aset di portofolio Anda. Urutan aset & kategori otomatis tersinkronisasi 100% dengan Radar Portofolio.
+            Rekam jejak performa return tahunan dan CAGR majemuk setiap aset. Kolom identitas dan CAGR terkunci di kiri layar.
           </p>
         </div>
 
-        <!-- Legend & Quick Metrics -->
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Profit / Positif (&ge; 0%)</span>
-          </span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">
-            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-            <span>Loss / Negatif (&lt; 0%)</span>
-          </span>
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-medium">
-            <span>- : Pra-Listing / Belum Rilis</span>
-          </span>
+        <!-- Interactive CAGR Timeframe Selector & Legend -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- CAGR Timeframe Toggle Buttons -->
+          <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+            <span class="text-[10px] text-slate-400 font-bold uppercase px-2 font-mono">PILIH CAGR:</span>
+            <button @click="selectedCagrTimeframe = '5y'" 
+                    class="px-2.5 py-1 rounded-lg transition text-xs font-bold"
+                    :class="selectedCagrTimeframe === '5y' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-sky-500'">
+              5Y CAGR
+            </button>
+            <button @click="selectedCagrTimeframe = '10y'" 
+                    class="px-2.5 py-1 rounded-lg transition text-xs font-bold"
+                    :class="selectedCagrTimeframe === '10y' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-sky-500'">
+              10Y CAGR
+            </button>
+            <button @click="selectedCagrTimeframe = '15y'" 
+                    class="px-2.5 py-1 rounded-lg transition text-xs font-bold"
+                    :class="selectedCagrTimeframe === '15y' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-sky-500'">
+              15Y CAGR
+            </button>
+            <button @click="selectedCagrTimeframe = 'all'" 
+                    class="px-2.5 py-1 rounded-lg transition text-xs font-bold"
+                    :class="selectedCagrTimeframe === 'all' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-sky-500'">
+              All Time
+            </button>
+          </div>
+
+          <!-- Quick Legend -->
+          <div class="flex items-center gap-2 text-xs">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Profit (&ge; 0%)</span>
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold border border-rose-500/20">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Loss (&lt; 0%)</span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -977,7 +946,10 @@
                     <!-- 2. Frozen Column: Asset Description -->
                     <th class="py-3 px-3 w-[280px] min-w-[280px] max-w-[280px] sticky left-[40px] z-30 bg-slate-50 dark:bg-[#0d1527]">Asset Description</th>
                     <!-- 3. Frozen Column: Ticker -->
-                    <th class="py-3 px-3 w-[100px] min-w-[100px] max-w-[100px] sticky left-[320px] z-30 bg-slate-50 dark:bg-[#0d1527] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]">Ticker</th>
+                    <th class="py-3 px-3 w-[95px] min-w-[95px] max-w-[95px] sticky left-[320px] z-30 bg-slate-50 dark:bg-[#0d1527]">Ticker</th>
+                    <!-- 4. Frozen Column: Selected CAGR -->
+                    <th class="py-3 px-2 text-center w-[95px] min-w-[95px] max-w-[95px] sticky left-[415px] z-30 bg-slate-50 dark:bg-[#0d1527] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)] text-blue-600 dark:text-blue-400 font-bold"
+                        x-text="getCagrHeaderLabel()"></th>
                     
                     <!-- Dynamic Year Columns from 2011 to Current Year -->
                     <template x-for="year in yearlyCols" :key="year">
@@ -1016,7 +988,7 @@
                       </td>
 
                       <!-- 3. Frozen Column: Ticker -->
-                      <td class="py-3 px-3 w-[100px] min-w-[100px] max-w-[100px] font-bold text-sky-600 dark:text-sky-400 font-mono sticky left-[320px] z-20 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]">
+                      <td class="py-3 px-3 w-[95px] min-w-[95px] max-w-[95px] font-bold text-sky-600 dark:text-sky-400 font-mono sticky left-[320px] z-20 bg-white dark:bg-[#111827]">
                         <div class="flex items-center gap-1.5">
                           <span x-text="item.ticker"></span>
                           <a :href="getCredibleYearlyPnLLink(item)" target="_blank" 
@@ -1025,6 +997,18 @@
                             <span>↗</span>
                           </a>
                         </div>
+                      </td>
+
+                      <!-- 4. Frozen Column: Dynamic CAGR Cell -->
+                      <td class="py-3 px-2 text-center w-[95px] min-w-[95px] max-w-[95px] sticky left-[415px] z-20 bg-white dark:bg-[#111827] border-r border-slate-200 dark:border-slate-800 shadow-[4px_0_6px_-2px_rgba(0,0,0,0.06)]">
+                        <template x-if="getSelectedCagrVal(item) !== null && getSelectedCagrVal(item) !== undefined">
+                          <div class="py-1 px-1.5 rounded-lg text-xs font-mono font-bold inline-block min-w-[56px] text-center bg-blue-600 text-white shadow-xs cursor-help"
+                               :title="getCagrTooltip(item)"
+                               x-text="formatPct(getSelectedCagrVal(item))"></div>
+                        </template>
+                        <template x-if="getSelectedCagrVal(item) === null || getSelectedCagrVal(item) === undefined">
+                          <span class="text-slate-300 dark:text-slate-700 font-mono text-xs">-</span>
+                        </template>
                       </td>
 
                       <!-- Year Cells (2011 to Current Year) -->
@@ -1763,7 +1747,7 @@
             <span>Pengaturan Kolom Tabel</span>
           </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 25 kolom aktif'"></span>).
+            Pilih kolom mana saja yang ingin ditampilkan atau disembunyikan (<span class="font-bold text-sky-600 dark:text-sky-400" x-text="activeColumnCount() + ' dari 21 kolom aktif'"></span>).
           </p>
         </div>
         <button @click="showColumnModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
@@ -1776,7 +1760,7 @@
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-slate-400 font-semibold text-[11px]">PRESET CEPAT:</span>
           <button @click="setColsPreset('all')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
-            Semua (25)
+            Semua (21)
           </button>
           <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
             Standar Rekomendasi (16)
@@ -2071,10 +2055,6 @@
         perf1y: { key: 'perf1y', label: '1Y Return', short: '1Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
         perf5y: { key: 'perf5y', label: '5Y Return', short: '5Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
         perf10y: { key: 'perf10y', label: '10Y Return', short: '10Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
-        cagr15y: { key: 'cagr15y', label: '15Y CAGR', short: '15Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
-        cagr5y: { key: 'cagr5y', label: '5Y CAGR', short: '5Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
-        cagr10y: { key: 'cagr10y', label: '10Y CAGR', short: '10Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
-        cagr20y: { key: 'cagr20y', label: '20Y CAGR', short: '20Y CAGR', group: 'CAGR', align: 'text-center', width: 'w-[88px] min-w-[88px] max-w-[88px]' },
         perf15y: { key: 'perf15y', label: '15Y Return', short: '15Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
         perf20y: { key: 'perf20y', label: '20Y Return', short: '20Y', group: 'Return', align: 'text-center', width: 'w-[80px] min-w-[80px] max-w-[80px]' },
         marketCap: { key: 'marketCap', label: 'Market Cap', short: 'Market Cap', group: 'Data Pasar', align: 'text-right', width: 'w-[110px] min-w-[110px] max-w-[110px]' },
@@ -2241,6 +2221,7 @@
         isSavingAsset: false,
         yearlyCols: [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
         currentYear: 2026,
+        selectedCagrTimeframe: '5y',
 
         // Portfolio Monthly Growth Chart State
         portfolioMonthlyGrowthSummary: { nominal: 0, percent: 0, isPositive: true },
@@ -2271,10 +2252,15 @@
         },
 
         getUsdIdrRate() {
-          if (this.data && this.data.macro && this.data.macro.usd_idr && this.data.macro.usd_idr.price) {
-            return this.data.macro.usd_idr.price;
+          if (this.data && this.data.macro) {
+            if (typeof this.data.macro.usd_idr === 'number' && this.data.macro.usd_idr > 0) {
+              return this.data.macro.usd_idr;
+            }
+            if (this.data.macro.usd_idr && typeof this.data.macro.usd_idr === 'object' && this.data.macro.usd_idr.price) {
+              return this.data.macro.usd_idr.price;
+            }
           }
-          return 16300.0;
+          return 17685.0;
         },
 
         initApp() {
@@ -3999,12 +3985,6 @@
                     return ' ' + c.dataset.label + ': ' + fS(c.parsed.y);
                   },
                   footer: (items) => {
-                    if (!items || items.length < 2) return '';
-                    const pVal = items[0].parsed.y;
-                    const iVal = items[1].parsed.y;
-                    if (pVal !== null && iVal !== null && !isNaN(pVal) && !isNaN(iVal) && pVal >= iVal) {
-                      return '✨ Keajaiban Compounding: +' + fS(pVal - iVal);
-                    }
                     return '';
                   }
                 }
@@ -4087,13 +4067,6 @@
                     return ' ' + c.dataset.label + ': ' + fS(c.parsed.y);
                   },
                   footer: (items) => {
-                    const retItem = items.find(it => it.dataset.label === 'Return/thn');
-                    const savItem = items.find(it => it.dataset.label === 'Tabungan/thn');
-                    if (retItem && savItem) {
-                      if (retItem.parsed.y >= savItem.parsed.y && savItem.parsed.y > 0) {
-                        return '✅ Titik Crossover Tercapai! (Uang bekerja lebih keras)';
-                      }
-                    }
                     return '';
                   }
                 }
