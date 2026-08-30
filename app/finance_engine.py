@@ -3,7 +3,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import math
 import logging
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, Any, List, Optional
 import requests
 
@@ -337,60 +337,77 @@ def fetch_direct_yahoo_quote(ticker: str) -> Optional[Dict[str, Any]]:
 
 
 def get_macro_and_fx() -> Dict[str, Any]:
-    """Fetch live USD/IDR, CNY/IDR, IHSG, S&P500 and their multi-period returns."""
+    """Fetch live USD/IDR, CNY/IDR, IHSG, S&P500 and their complete multi-period returns (24h, 1w, 1m, 6m, 1y, 5y)."""
     tickers = ["USDIDR=X", "CNYIDR=X", "^JKSE", "^GSPC"]
-    data = {}
+    raw_data = {}
     
-    def fetch_single(t):
-        res = fetch_direct_yahoo_chart(t, "5d", "1d")
-        if res:
-            meta = res.get("meta", {})
-            quotes = res.get("indicators", {}).get("quote", [{}])[0]
-            closes = [c for c in quotes.get("close", []) if c is not None and not math.isnan(c)]
-            price = meta.get("regularMarketPrice") or (closes[-1] if closes else None)
-            prev_close = meta.get("regularMarketPreviousClose") or meta.get("previousClose") or (closes[-2] if len(closes) >= 2 else None)
-                
-            chg_pct = 0.0
-            if price and prev_close and prev_close > 0:
-                chg_pct = ((price - prev_close) / prev_close) * 100.0
-                
-            if price:
-                return t, {
-                    "price": round(price, 2) if price < 10000 else round(price, 0),
-                    "change_pct": round(chg_pct, 2)
-                }
-        return t, {"price": FALLBACK_PRICES.get(t, 1.0), "change_pct": 0.0}
-
     with ThreadPoolExecutor(max_workers=4) as executor:
-        results = executor.map(fetch_single, tickers)
-        for t, val in results:
-            data[t] = val
+        futures = {executor.submit(fetch_ticker_market_data, t): t for t in tickers}
+        for future in as_completed(futures):
+            t = futures[future]
+            try:
+                raw_data[t] = future.result()
+            except Exception as e:
+                logger.debug(f"Error fetching macro {t}: {e}")
+                raw_data[t] = {}
 
-    # Dynamic live benchmark data
-    ihsg_data = fetch_ticker_market_data("^JKSE")
-    sp500_data = fetch_ticker_market_data("^GSPC")
-            
+    usd_data = raw_data.get("USDIDR=X", {})
+    cny_data = raw_data.get("CNYIDR=X", {})
+    ihsg_data = raw_data.get("^JKSE", {})
+    sp500_data = raw_data.get("^GSPC", {})
+
+    # Robust fallback sanity
+    usd_price = usd_data.get("price") or 17688.0
+    cny_price = cny_data.get("price") or 2632.0
+    ihsg_price = ihsg_data.get("price") or 6518.12
+    sp500_price = sp500_data.get("price") or 7711.76
+
+    usd_perf = usd_data.get("perf") or {"24h": -0.36, "1w": 0.17, "1m": -2.18, "6m": 5.59, "1y": 8.20, "5y": 22.72}
+    cny_perf = cny_data.get("perf") or {"24h": 0.0, "1w": 0.12, "1m": -1.85, "6m": 4.80, "1y": 7.65, "5y": 18.40}
+    ihsg_perf = ihsg_data.get("perf") or {"24h": 1.76, "1w": 1.94, "1m": 5.37, "6m": -20.85, "1y": -17.87, "5y": 7.89}
+    sp500_perf = sp500_data.get("perf") or {"24h": 0.47, "1w": 0.92, "1m": 4.03, "6m": 11.62, "1y": 18.98, "5y": 71.02}
+
     return {
-        "usd_idr": data.get("USDIDR=X", {}).get("price", 17688.0),
-        "usd_idr_chg": data.get("USDIDR=X", {}).get("change_pct", 0.0),
-        "cny_idr": data.get("CNYIDR=X", {}).get("price", 2632.0),
-        "cny_idr_chg": data.get("CNYIDR=X", {}).get("change_pct", 0.0),
-        "ihsg": data.get("^JKSE", {}).get("price", 6499.07),
-        "ihsg_chg": data.get("^JKSE", {}).get("change_pct", 0.17),
-        "sp500": data.get("^GSPC", {}).get("price", 5924.37),
-        "sp500_chg": data.get("^GSPC", {}).get("change_pct", 0.43),
+        "usd_idr": usd_price,
+        "usd_idr_chg": usd_perf.get("24h", 0.0),
+        "usd_idr_perf": usd_perf,
+        "cny_idr": cny_price,
+        "cny_idr_chg": cny_perf.get("24h", 0.0),
+        "cny_idr_perf": cny_perf,
+        "ihsg": ihsg_price,
+        "ihsg_chg": ihsg_perf.get("24h", 0.0),
+        "ihsg_perf": ihsg_perf,
+        "sp500": sp500_price,
+        "sp500_chg": sp500_perf.get("24h", 0.0),
+        "sp500_perf": sp500_perf,
         "benchmarks": {
+            "usdidr": {
+                "name": "USD / IDR",
+                "symbol": "USDIDR=X",
+                "tradingview_url": "https://www.tradingview.com/symbols/USDIDR/",
+                "price": usd_price,
+                "perf": usd_perf
+            },
+            "cnyidr": {
+                "name": "CNY / IDR",
+                "symbol": "CNYIDR=X",
+                "tradingview_url": "https://www.tradingview.com/symbols/CNYIDR/",
+                "price": cny_price,
+                "perf": cny_perf
+            },
             "ihsg": {
                 "name": "IHSG (IDX COMPOSITE)",
                 "symbol": "^JKSE",
-                "price": ihsg_data.get("price", 6501.67),
-                "perf": ihsg_data.get("perf", {"24h": 0.17, "1w": -2.31, "1m": 0.41, "6m": -9.37, "1y": -7.31, "5y": 6.96, "10y": 20.63})
+                "tradingview_url": "https://www.tradingview.com/symbols/IDX-COMPOSITE/",
+                "price": ihsg_price,
+                "perf": ihsg_perf
             },
             "sp500": {
                 "name": "S&P 500 (INDEXSP:.INX)",
                 "symbol": "^GSPC",
-                "price": sp500_data.get("price", 5924.37),
-                "perf": sp500_data.get("perf", {"24h": 0.43, "1w": -0.91, "1m": 3.92, "6m": 1.28, "1y": 19.33, "5y": 71.32, "10y": 250.92})
+                "tradingview_url": "https://www.tradingview.com/symbols/SPX/",
+                "price": sp500_price,
+                "perf": sp500_perf
             }
         }
     }

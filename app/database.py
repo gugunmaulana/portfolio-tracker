@@ -483,6 +483,66 @@ DEFAULT_PORTFOLIO_CONFIG = {
                     "pe_great": 22.0,
                     "pe_good": 30.0,
                     "pe_exp": 38.0
+                },
+                {
+                    "ticker": "CRWD",
+                    "name": "Raja Proteksi Endpoint & AI Security",
+                    "category": "watchlist",
+                    "currency": "USD",
+                    "invested_idr": 0.0,
+                    "quantity": 0.0,
+                    "avg_price_usd": 0.0,
+                    "pe_great": 35.0,
+                    "pe_good": 48.0,
+                    "pe_exp": 65.0
+                },
+                {
+                    "ticker": "SPGI",
+                    "name": "Duopoli Rating Obligasi & Lisensi Indeks",
+                    "category": "watchlist",
+                    "currency": "USD",
+                    "invested_idr": 0.0,
+                    "quantity": 0.0,
+                    "avg_price_usd": 0.0,
+                    "pe_great": 24.0,
+                    "pe_good": 30.0,
+                    "pe_exp": 38.0
+                },
+                {
+                    "ticker": "ISRG",
+                    "name": "Monopoli Robot Bedah",
+                    "category": "watchlist",
+                    "currency": "USD",
+                    "invested_idr": 0.0,
+                    "quantity": 0.0,
+                    "avg_price_usd": 0.0,
+                    "pe_great": 35.0,
+                    "pe_good": 45.0,
+                    "pe_exp": 60.0
+                },
+                {
+                    "ticker": "PLTR",
+                    "name": "Sistem Operasi AI Militer & Enterprise",
+                    "category": "watchlist",
+                    "currency": "USD",
+                    "invested_idr": 0.0,
+                    "quantity": 0.0,
+                    "avg_price_usd": 0.0,
+                    "pe_great": 35.0,
+                    "pe_good": 50.0,
+                    "pe_exp": 75.0
+                },
+                {
+                    "ticker": "TMO",
+                    "name": "Pemasok Alat Lab & Sains Terbesar",
+                    "category": "watchlist",
+                    "currency": "USD",
+                    "invested_idr": 0.0,
+                    "quantity": 0.0,
+                    "avg_price_usd": 0.0,
+                    "pe_great": 20.0,
+                    "pe_good": 26.0,
+                    "pe_exp": 34.0
                 }
             ]
         }
