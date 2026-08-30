@@ -415,15 +415,15 @@
           <button @click="showColumnModal = true" 
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-600 dark:text-sky-400 font-bold border border-sky-200 dark:border-sky-800 transition active:scale-95 shadow-sm">
             <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-            <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/25'"></span>)</span>
+            <span>⚙️ Pengaturan Kolom (<span x-text="activeColumnCount() + '/21'"></span>)</span>
           </button>
 
-          <!-- Quick Return Pillars / Column Quick Toggles (Expanded Row in Default Order) -->
+          <!-- Quick Column Visibility Toggles (Clean 21 Active Columns, No CAGR) -->
           <div class="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-none">
-            <template x-for="colKey in ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr15y', 'cagr5y', 'cagr10y', 'cagr20y']" :key="colKey">
+            <template x-for="colKey in ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'perf15y', 'perf20y', 'marketCap', 'volume', 'avgPrice']" :key="colKey">
               <button @click="toggleCol(colKey)" 
                       class="px-2 py-0.5 rounded text-[11px] font-semibold transition shrink-0"
-                      :class="cols[colKey] ? (colKey.startsWith('cagr') ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-bold' : (colKey === 'signal' ? 'bg-white dark:bg-slate-900 shadow-sm text-emerald-600 dark:text-emerald-400' : 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400')) : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+                      :class="cols[colKey] ? (colKey === 'signal' ? 'bg-white dark:bg-slate-900 shadow-sm text-emerald-600 dark:text-emerald-400 font-bold' : 'bg-white dark:bg-slate-900 shadow-sm text-sky-600 dark:text-sky-400 font-bold') : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                       x-text="getColDef(colKey).short"></button>
             </template>
           </div>
@@ -1773,9 +1773,7 @@
           <button @click="setColsPreset('default')" class="px-2.5 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 font-semibold border border-sky-500/30 transition">
             Standar Rekomendasi (16)
           </button>
-          <button @click="setColsPreset('cagr')" class="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-500/30 transition">
-            Dengan CAGR (20)
-          </button>
+
           <button @click="setColsPreset('compact')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-700 dark:text-slate-200 transition">
             Ringkas (7)
           </button>
@@ -2795,10 +2793,7 @@
             Object.keys(this.cols).forEach(k => this.cols[k] = true);
           } else if (type === 'default') {
             Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr15y'].forEach(k => this.cols[k] = true);
-          } else if (type === 'cagr') {
-            Object.keys(this.cols).forEach(k => this.cols[k] = false);
-            ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y', 'cagr15y', 'cagr5y', 'cagr10y', 'cagr20y'].forEach(k => this.cols[k] = true);
+            ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'athZone', 'athPrice', 'athDrawdown', 'peValuation', 'perf24h', 'perf5h', 'perf1m', 'perf6m', 'perf1y', 'perf5y', 'perf10y'].forEach(k => this.cols[k] = true);
           } else if (type === 'compact') {
             Object.keys(this.cols).forEach(k => this.cols[k] = false);
             ['quantity', 'investedIdr', 'curVal', 'pnl', 'signal', 'perf24h', 'perf1y', 'athZone'].forEach(k => this.cols[k] = true);
@@ -3931,7 +3926,7 @@
       setKpiText('kpi-1t', 'kpi-1t-s', hit[MS.length - 1]);
 
       // What-if table (exact crossover calculation up to 99,999 years)
-      const scenarios = [0, 500000, 1000000, 2000000, 5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 50000000];
+      const scenarios = [500000, 1000000, 2000000, 5000000, 10000000, 15000000, 20000000, 25000000, 30000000, 50000000];
       let wiHtml = '';
       scenarios.forEach(mo => {
         const isAct = Math.abs(mo - v.mo) < 50000;
