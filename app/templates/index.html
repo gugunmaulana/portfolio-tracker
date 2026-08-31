@@ -368,60 +368,6 @@
   <!-- ========================================================================= -->
   <main class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-4 space-y-4">
 
-
-
-    
-          <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono" x-text="data.ff_progress_pct + '%'"></span>
-        </div>
-      </div>
-
-      <!-- Current Net Worth -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-          <span>Current Net Worth</span>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold font-mono">REALTIME</span>
-        </div>
-        <div class="text-xl lg:text-2xl font-extrabold text-sky-600 dark:text-sky-400 tabular-nums" x-text="formatIDR(data.current_net_worth_idr)"></div>
-        <div class="text-xs text-slate-500 font-mono" x-text="'≈ ' + formatUSD(data.current_net_worth_usd)"></div>
-      </div>
-
-      <!-- Total Modal Terinvestasi -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-          <span>Modal Terinvestasi</span>
-          <span class="text-slate-400 text-[11px]">Cost Basis</span>
-        </div>
-        <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" x-text="formatIDR(data.total_invested_idr)"></div>
-        <div class="text-xs text-slate-500 font-mono" x-text="'Nilai Portofolio: ' + formatIDR(data.current_value_investment_idr)"></div>
-      </div>
-
-      <!-- Total Floating PnL -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-          <span>Total Floating Profit / Loss</span>
-          <span class="text-slate-400 text-[11px]">Return</span>
-        </div>
-        <div class="text-xl lg:text-2xl font-extrabold tabular-nums flex items-baseline gap-1"
-             :class="data.total_pnl_idr >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
-          <span x-text="(data.total_pnl_idr >= 0 ? '+' : '') + formatIDR(data.total_pnl_idr)"></span>
-        </div>
-        <div class="text-xs font-semibold tabular-nums"
-             :class="data.total_pnl_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
-             x-text="(data.total_pnl_pct >= 0 ? '+' : '') + data.total_pnl_pct + '%'"></div>
-      </div>
-
-      <!-- Sisa Saldo Kas -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-          <span>Sisa Saldo Kas & Reksa</span>
-          <button @click="showSettingsModal = true" class="text-sky-500 hover:underline text-[11px]">Edit</button>
-        </div>
-        <div class="text-xl lg:text-2xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums" x-text="formatIDR(data.cash_balance_idr)"></div>
-        <div class="text-xs text-slate-500 tabular-nums" x-text="'Total Outgoings: ' + formatIDR(data.total_outgoings_idr)"></div>
-      </div>
-
-    </div>
-
     <!-- ======================================================================= -->
     <!-- ⚡ PRIME TO BUY & RADAR DISKON EMAS (BELOW 5 METRIC CARDS)              -->
     <!-- ======================================================================= -->
@@ -2416,7 +2362,7 @@
           target_financial_freedom: 8844000000.0,
           target_financial_freedom_usd: 500000.0,
           total_outgoings: 91457683.0,
-          cash_balance: 7000000.0
+          cash_balance: 3000000.0
         },
 
         monthlyForm: {
@@ -2452,7 +2398,7 @@
             target_financial_freedom: targetIdr,
             target_financial_freedom_usd: targetUsd,
             total_outgoings: this.data.total_outgoings_idr || 91457683.0,
-            cash_balance: this.data.cash_balance_idr || 7000000.0
+            cash_balance: (this.data && this.data.cash_balance_idr !== undefined) ? this.data.cash_balance_idr : 3000000.0
           };
           this.updateClock();
           setInterval(() => this.updateClock(), 1000);
@@ -2487,7 +2433,7 @@
             target_financial_freedom: targetIdr,
             target_financial_freedom_usd: targetUsd,
             total_outgoings: (this.data && this.data.total_outgoings_idr) ? this.data.total_outgoings_idr : 91457683.0,
-            cash_balance: (this.data && this.data.cash_balance_idr) ? this.data.cash_balance_idr : 7000000.0
+            cash_balance: (this.data && this.data.cash_balance_idr !== undefined) ? this.data.cash_balance_idr : 3000000.0
           };
           this.showSettingsModal = true;
           this.$nextTick(() => lucide.createIcons());

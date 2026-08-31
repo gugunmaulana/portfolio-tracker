@@ -18,7 +18,7 @@ DEFAULT_PORTFOLIO_CONFIG = {
     "user_id": "default_user",
     "target_financial_freedom": 8844000000.0,
     "total_outgoings": 91457683.0,
-    "cash_balance": 7525939.0, # Sisa saldo kas / Reksadana / BPJS
+    "cash_balance": 3000000.0, # Sisa saldo kas
     "target_annual_min_return": 10.0,
     "target_annual_ideal_return": 20.0,
     "currency_base": "IDR",
@@ -752,8 +752,8 @@ def init_db():
     except Exception:
         pass
 
-    # Ensure default target is 500k USD in USD mode
-    cursor.execute("UPDATE users SET target_financial_freedom_usd = 500000.0, target_mode = 'USD' WHERE id = 'default_user' AND (target_financial_freedom_usd IS NULL OR target_financial_freedom_usd = 0)")
+    # Ensure default target is 500k USD in USD mode and cash balance is 3,000,000 IDR
+    cursor.execute("UPDATE users SET target_financial_freedom_usd = 500000.0, target_mode = 'USD', cash_balance = 3000000.0 WHERE id = 'default_user'")
 
     # Ensure category reksadana and items exist
     cursor.execute("SELECT COUNT(*) FROM categories WHERE user_id = 'default_user' AND id = 'reksadana'")
