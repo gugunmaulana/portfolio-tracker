@@ -164,7 +164,9 @@ FALLBACK_PRICES = {
     "FCX": 45.0,
     "NVO": 130.0,
     "UNP": 245.0,
-    "WM": 210.0
+    "WM": 210.0,
+    "MNC-BAROKAH": 1.0,
+    "CAPITAL-FIXED": 1.0
 }
 
 FALLBACK_PE_RATIOS = {

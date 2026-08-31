@@ -11,6 +11,7 @@ DEFAULT_CATEGORIES_DATA = [
     ("global_stock", "default_user", "US & GLOBAL MONOPOLY STOCK", "Tech Backbone & Semiconductor Chokepoint", "indigo", 3),
     ("satellites", "default_user", "EXTENDED RADAR — Indonesia & Crypto Satellites", "Diversifikasi Lokal IHSG & High-Beta Crypto", "emerald", 4),
     ("watchlist", "default_user", "WATCHLIST — AI Infrastructure & Energy Grid", "Rantai Pasok Semikonduktor, Software & Nuklir", "cyan", 5),
+    ("reksadana", "default_user", "REKSA DANA — Pasar Uang & Pendapatan Tetap", "Posisi Investasi Reksa Dana & Yield Stabil", "teal", 6),
 ]
 
 DEFAULT_PORTFOLIO_CONFIG = {
@@ -750,6 +751,23 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN target_mode TEXT DEFAULT 'USD'")
     except Exception:
         pass
+
+    # Ensure category reksadana and items exist
+    cursor.execute("SELECT COUNT(*) FROM categories WHERE user_id = 'default_user' AND id = 'reksadana'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+        INSERT INTO categories (id, user_id, name, subtitle, color, sort_order)
+        VALUES ('reksadana', 'default_user', 'REKSA DANA — Pasar Uang & Pendapatan Tetap', 'Posisi Investasi Reksa Dana & Yield Stabil', 'teal', 6)
+        """)
+        
+    cursor.execute("SELECT COUNT(*) FROM portfolio_items WHERE user_id = 'default_user' AND category = 'reksadana'")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+        INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, sort_order)
+        VALUES 
+        ('default_user', 'reksadana', 'MNC-BAROKAH', 'MNC Dana Syariah Barokah (Pasar Uang)', 'IDR', 4000000.0, 4011553.0, 0.99712, 0, 1),
+        ('default_user', 'reksadana', 'CAPITAL-FIXED', 'Capital Fixed Income Fund (Pendapatan Tetap)', 'IDR', 3010000.0, 3063669.0, 0.98248, 0, 2)
+        """)
 
     # Enforce uppercase tickers across all existing database records
     cursor.execute("UPDATE portfolio_items SET ticker = UPPER(TRIM(ticker)) WHERE ticker IS NOT NULL")
