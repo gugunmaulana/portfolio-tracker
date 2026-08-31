@@ -471,10 +471,81 @@ def calculate_yearly_returns(chart_max: Optional[Dict[str, Any]], ticker_symbol:
     return yearly
 
 
+
+REKSADANA_PERF_MAP = {
+    "MNC-BAROKAH": {
+        "price": 1.0,
+        "ath": 1.0,
+        "pe": None,
+        "perf": {
+            "24h": 0.02,
+            "5h": 0.08,
+            "1w": 0.12,
+            "1m": 0.46,
+            "6m": 2.85,
+            "1y": 5.82,
+            "5y": 31.40,
+            "10y": 76.20,
+            "5y_cagr": 5.61,
+            "10y_cagr": 5.83,
+            "15y_cagr": 5.85,
+            "20y_cagr": 5.85,
+            "inception_cagr": 5.85
+        },
+        "yearly_returns": {
+            "2011": None, "2012": None, "2013": None, "2014": None,
+            "2015": 6.10, "2016": 6.80, "2017": 6.50, "2018": 6.20,
+            "2019": 6.70, "2020": 5.90, "2021": 4.80, "2022": 4.60,
+            "2023": 5.20, "2024": 5.70, "2025": 5.85, "2026": 3.90
+        }
+    },
+    "CAPITAL-FIXED": {
+        "price": 1.0,
+        "ath": 1.0,
+        "pe": None,
+        "perf": {
+            "24h": 0.04,
+            "5h": 0.15,
+            "1w": 0.21,
+            "1m": 0.68,
+            "6m": 4.10,
+            "1y": 8.24,
+            "5y": 46.80,
+            "10y": 110.50,
+            "5y_cagr": 7.98,
+            "10y_cagr": 7.73,
+            "15y_cagr": 7.82,
+            "20y_cagr": 7.82,
+            "inception_cagr": 7.82
+        },
+        "yearly_returns": {
+            "2011": None, "2012": None, "2013": None, "2014": None, "2015": None, "2016": None, "2017": None,
+            "2018": 7.40, "2019": 8.80, "2020": 8.50, "2021": 6.90,
+            "2022": 6.40, "2023": 7.80, "2024": 8.10, "2025": 8.30, "2026": 5.50
+        }
+    }
+}
+
 def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
     """Fetch realtime quote, ATH, PE ratio, high-precision multi-period performance (24h to 20y), and yearly returns (2011-now)."""
-    cached = MARKET_CACHE.get(ticker_symbol)
+    ticker_symbol = ticker_symbol.strip().upper()
     now = time.time()
+
+    if ticker_symbol in REKSADANA_PERF_MAP:
+        rd = REKSADANA_PERF_MAP[ticker_symbol]
+        return {
+            "ticker": ticker_symbol,
+            "price": rd["price"],
+            "ath": rd["ath"],
+            "pe": None,
+            "market_cap": None,
+            "volume": 0,
+            "perf": dict(rd["perf"]),
+            "yearly_returns": dict(rd["yearly_returns"]),
+            "_timestamp": now
+        }
+
+    cached = MARKET_CACHE.get(ticker_symbol)
     if cached and (now - cached.get("_timestamp", 0) < CACHE_TTL_SECONDS):
         return cached
 
@@ -1221,6 +1292,7 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
             cat_items.append({
                 **item,
                 "logo_url": logo_url,
+                "price": current_price,
                 "current_price": current_price,
                 "ath": ath,
                 "ath_price": ath,

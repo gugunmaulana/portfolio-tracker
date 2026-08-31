@@ -325,89 +325,7 @@
   <!-- ========================================================================= -->
   <main class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-5 space-y-5">
 
-    <!-- ======================================================================= -->
-    <!-- ⚡ PRIME TO BUY & RADAR DISKON EMAS (AI SIGNAL SHOWCASE)                -->
-    <!-- ======================================================================= -->
-    <div x-show="activeView === 'portfolio'" class="rounded-2xl bg-gradient-to-r from-emerald-950/30 via-slate-900/50 to-emerald-950/20 dark:from-[#0b1f1a] dark:via-[#111827] dark:to-[#0b1f1a] border-2 border-emerald-500/40 dark:border-emerald-500/50 p-4 shadow-lg shadow-emerald-500/10 space-y-3">
-      
-      <!-- Widget Header -->
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center gap-2.5">
-          <div class="relative flex items-center justify-center">
-            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75"></span>
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 relative"></span>
-          </div>
-          <div>
-            <h2 class="text-xs sm:text-sm font-extrabold text-emerald-400 dark:text-emerald-300 tracking-wider flex items-center gap-2 uppercase">
-              <span>⚡ RADAR DISKON EMAS & PRIME BUY</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                    x-text="getPrimeBuyAssets().length + ' Aset Terdeteksi'"></span>
-            </h2>
-            <p class="text-[11px] text-slate-400">Aset berfundamental kuat yang sedang berada di area dislokasi 2Y ATH / valuasi terdiskon (Siap Koleksi).</p>
-          </div>
-        </div>
 
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-mono text-emerald-400/90 bg-emerald-950/60 px-2 py-1 rounded-lg border border-emerald-500/30 font-semibold">
-            AI Dislocation Engine (2Y Close Peak)
-          </span>
-        </div>
-      </div>
-
-      <!-- Prime Buy Assets Cards Grid -->
-      <template x-if="getPrimeBuyAssets().length > 0">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 pt-1">
-          <template x-for="pItem in getPrimeBuyAssets()" :key="pItem.ticker">
-            <div class="p-3 rounded-xl bg-white/95 dark:bg-[#111827] border border-emerald-400/70 dark:border-emerald-500/60 shadow-md shadow-emerald-500/10 hover:border-emerald-400 hover:scale-[1.02] transition-all duration-200 flex flex-col justify-between space-y-2.5 prime-buy-glow">
-              
-              <!-- Ticker, Name & Category -->
-              <div class="flex items-start justify-between gap-1.5">
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-extrabold font-mono text-xs text-slate-900 dark:text-white" x-text="pItem.ticker"></span>
-                    <span class="text-[9px] px-1 rounded font-bold uppercase"
-                          :class="pItem.dislocation_bg || 'bg-emerald-500/20 text-emerald-400'"
-                          x-text="pItem.dislocation_code || 'Z3'"></span>
-                  </div>
-                  <span class="text-[10px] text-slate-500 dark:text-slate-400 truncate block mt-0.5" :title="pItem.name" x-text="pItem.name"></span>
-                </div>
-              </div>
-
-              <!-- Price & Drawdown Info -->
-              <div class="bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg space-y-1">
-                <div class="flex items-center justify-between text-xs font-mono">
-                  <span class="text-slate-500 dark:text-slate-400 text-[10px]">Harga:</span>
-                  <span class="font-bold text-slate-900 dark:text-white" x-text="pItem.currency === 'IDR' ? formatIDR(pItem.price) : formatUSD(pItem.price)"></span>
-                </div>
-                <div class="flex items-center justify-between text-xs font-mono">
-                  <span class="text-slate-500 dark:text-slate-400 text-[10px]">Drawdown 2Y:</span>
-                  <span class="font-bold text-rose-500" x-text="formatPct(pItem.drawdown)"></span>
-                </div>
-              </div>
-
-              <!-- Signal Badge & Valuation -->
-              <div class="flex items-center justify-between gap-1 pt-0.5">
-                <span class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-emerald-600 text-white shadow-xs tracking-wide uppercase flex items-center gap-1">
-                  <span>🟢</span>
-                  <span x-text="pItem.composite_signal || 'PRIME BUY'"></span>
-                </span>
-                <span class="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 truncate" x-text="pItem.pe_status || 'Diskon / Murah'"></span>
-              </div>
-
-            </div>
-          </template>
-        </div>
-      </template>
-
-      <!-- Empty State if no assets are in Z3/Z4/Prime Buy -->
-      <template x-if="getPrimeBuyAssets().length === 0">
-        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 text-center space-y-1">
-          <p class="text-xs font-bold text-slate-300">🛡️ Seluruh Aset Saat Ini Berada di Area Wajar / Normal (Z1–Z2)</p>
-          <p class="text-[11px] text-slate-500">Sistem terus memantau pergerakan harga 2Y Close ATH & Valuasi P/E secara realtime. Sinyal Prime Buy akan otomatis muncul saat dislokasi terdeteksi.</p>
-        </div>
-      </template>
-
-    </div>
 
     <!-- ======================================================================= -->
     <!-- TOP EXECUTIVE SUMMARY METRIC CARDS                                      -->
@@ -477,6 +395,96 @@
         <div class="text-xl lg:text-2xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums" x-text="formatIDR(data.cash_balance_idr)"></div>
         <div class="text-xs text-slate-500 tabular-nums" x-text="'Total Outgoings: ' + formatIDR(data.total_outgoings_idr)"></div>
       </div>
+
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- ⚡ PRIME TO BUY & RADAR DISKON EMAS (BELOW 5 METRIC CARDS)              -->
+    <!-- ======================================================================= -->
+    <div x-show="activeView === 'portfolio'" class="rounded-2xl bg-gradient-to-r from-emerald-50/90 via-white to-teal-50/70 dark:from-[#0b1f1a] dark:via-[#111827] dark:to-[#0b1f1a] border-2 border-emerald-400/80 dark:border-emerald-500/50 p-4 sm:p-5 shadow-lg shadow-emerald-500/10 space-y-3.5">
+      
+      <!-- Widget Header: High Contrast for both Light & Dark themes -->
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="relative flex items-center justify-center">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 relative"></span>
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-emerald-300 tracking-tight flex items-center gap-2">
+              <span class="text-emerald-700 dark:text-emerald-400">⚡ RADAR DISKON EMAS & PRIME BUY</span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-600 dark:border-emerald-500/40 shadow-xs"
+                    x-text="getPrimeBuyAssets().length + ' Aset Terdeteksi'"></span>
+            </h2>
+            <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
+              Aset berfundamental kuat yang sedang berada di area dislokasi 2Y ATH / valuasi terdiskon (Klik kartu untuk langsung menuju ke rincian aset).
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100/90 dark:bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-300 dark:border-emerald-500/30 shadow-xs">
+            2Y Close Peak AI Radar
+          </span>
+        </div>
+      </div>
+
+      <!-- Prime Buy Assets Cards Grid (Interactive & Clickable to Scroll Down) -->
+      <template x-if="getPrimeBuyAssets().length > 0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 pt-1">
+          <template x-for="pItem in getPrimeBuyAssets()" :key="pItem.ticker">
+            <div @click="scrollToAsset(pItem)"
+                 class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border-2 border-emerald-400/90 dark:border-emerald-500/60 shadow-md shadow-emerald-500/10 hover:border-emerald-600 dark:hover:border-emerald-400 hover:scale-[1.03] active:scale-98 transition-all duration-200 flex flex-col justify-between space-y-2.5 prime-buy-glow cursor-pointer group"
+                 :title="'Klik untuk melihat rincian ' + pItem.ticker + ' di tabel radar'">
+              
+              <!-- Ticker, Name & Category -->
+              <div class="flex items-start justify-between gap-1.5">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-extrabold font-mono text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition" x-text="pItem.ticker"></span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded font-bold uppercase"
+                          :class="pItem.dislocation_bg || 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'"
+                          x-text="pItem.dislocation_code || 'Z3'"></span>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-600 dark:text-slate-400 truncate block mt-0.5" :title="pItem.name" x-text="pItem.name"></span>
+                </div>
+                <i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition shrink-0"></i>
+              </div>
+
+              <!-- Price & Drawdown Info -->
+              <div class="bg-slate-100/80 dark:bg-slate-800/80 p-2.5 rounded-xl space-y-1 border border-slate-200/60 dark:border-slate-700/60">
+                <div class="flex items-center justify-between text-xs font-mono">
+                  <span class="text-slate-500 dark:text-slate-400 text-[11px] font-medium">Harga:</span>
+                  <span class="font-bold text-slate-900 dark:text-white" 
+                        x-text="pItem.currency === 'IDR' ? formatIDR(pItem.price || pItem.current_price) : formatUSD(pItem.price || pItem.current_price)"></span>
+                </div>
+                <div class="flex items-center justify-between text-xs font-mono">
+                  <span class="text-slate-500 dark:text-slate-400 text-[11px] font-medium">Drawdown 2Y:</span>
+                  <span class="font-bold text-rose-600 dark:text-rose-400" x-text="formatPct(pItem.drawdown)"></span>
+                </div>
+              </div>
+
+              <!-- Signal Badge & Valuation -->
+              <div class="flex items-center justify-between gap-1 pt-0.5">
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-emerald-600 text-white shadow-xs tracking-wide uppercase flex items-center gap-1">
+                  <span>🟢</span>
+                  <span x-text="pItem.composite_signal || 'PRIME BUY'"></span>
+                </span>
+                <span class="text-[10px] font-semibold text-emerald-800 dark:text-emerald-400 truncate font-sans" x-text="pItem.pe_status || 'Diskon / Murah'"></span>
+              </div>
+
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- Empty State if no assets are in Z3/Z4/Prime Buy -->
+      <template x-if="getPrimeBuyAssets().length === 0">
+        <div class="p-4 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50 text-center space-y-1">
+          <p class="text-xs font-bold text-slate-700 dark:text-slate-300">🛡️ Seluruh Aset Saat Ini Berada di Area Wajar / Normal (Z1–Z2)</p>
+          <p class="text-[11px] text-slate-500">Sistem terus memantau pergerakan harga 2Y Close ATH & Valuasi P/E secara realtime. Sinyal Prime Buy akan otomatis muncul saat dislokasi terdeteksi.</p>
+        </div>
+      </template>
 
     </div>
 
@@ -3083,13 +3091,18 @@
           if (!this.data || !this.data.categories) return res;
           for (const cat of this.data.categories) {
             for (const item of (cat.items || [])) {
-              const sig = (item.composite_signal || '').toUpperCase();
-              const dis = (item.dislocation_code || '').toUpperCase();
+              const sig = (item.composite_signal || item.signal_label || '').toUpperCase();
+              const dis = (item.dislocation_code || item.status_code || '').toUpperCase();
               const peSt = (item.pe_state || '').toUpperCase();
-              const dd = item.drawdown !== undefined && item.drawdown !== null ? item.drawdown : 0;
+              const dd = item.drawdown !== undefined && item.drawdown !== null ? item.drawdown : (item.ath_drawdown_pct || 0);
+              const p = (item.current_price !== undefined && item.current_price !== null && item.current_price > 0) ? item.current_price : (item.price || item.avg_price || 0);
+              
               if (sig.includes('PRIME') || sig.includes('BUY') || dis === 'Z3' || dis === 'Z4' || peSt === 'GREAT' || dd <= -25) {
                 res.push({
                   ...item,
+                  price: p,
+                  current_price: p,
+                  drawdown: dd,
                   catName: cat.name,
                   catColor: cat.color || 'blue'
                 });
@@ -3097,6 +3110,25 @@
             }
           }
           return res.sort((a, b) => (a.drawdown || 0) - (b.drawdown || 0));
+        },
+
+        scrollToAsset(item) {
+          if (!item || !item.ticker) return;
+          this.activeView = 'portfolio';
+          this.$nextTick(() => {
+            const rowId = `asset-row-${item.id || item.ticker}`;
+            let rowEl = document.getElementById(rowId);
+            if (!rowEl) {
+              rowEl = document.getElementById(`asset-row-${item.ticker}`);
+            }
+            if (rowEl) {
+              rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              rowEl.classList.add('flash-asset-highlight');
+              setTimeout(() => {
+                rowEl.classList.remove('flash-asset-highlight');
+              }, 2600);
+            }
+          });
         },
 
 
@@ -3675,6 +3707,10 @@
           const rawTicker = item.ticker.trim().toUpperCase();
           let clean = rawTicker.replace('.JK', '').replace('-USD', '').toLowerCase();
 
+          // Reksa Dana Verified Performance & Annual History (Bareksa Official)
+          if (rawTicker === 'MNC-BAROKAH' || rawTicker.includes('BAROKAH')) return 'https://www.bareksa.com/reksadana/produk/mnc-dana-syariah-barokah';
+          if (rawTicker === 'CAPITAL-FIXED' || rawTicker.includes('FIXED')) return 'https://www.bareksa.com/reksadana/produk/capital-fixed-income-fund';
+
           // 1. Cryptocurrencies (CoinMarketCap Official Historical Return Records)
           if (rawTicker === 'BTC-USD' || rawTicker === 'BTC') {
             return 'https://coinmarketcap.com/currencies/bitcoin/historical-data/';
@@ -3724,6 +3760,10 @@
           const clean = raw.replace('.JK', '').replace('-USD', '').toLowerCase();
 
           // Dedicated verified direct Investing.com routes
+          // Reksa Dana Direct Official Performance & NAV Links (Bareksa & Pasardana)
+          if (raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) return 'https://www.bareksa.com/reksadana/produk/mnc-dana-syariah-barokah';
+          if (raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) return 'https://www.bareksa.com/reksadana/produk/capital-fixed-income-fund';
+
           const directInvestingUrls = {
             "VOO": "https://www.investing.com/etfs/vanguard-s-p-500",
             "QQQ": "https://www.investing.com/etfs/powershares-qqqq",
