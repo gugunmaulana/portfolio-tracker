@@ -76,6 +76,8 @@ class CategoryPayload(BaseModel):
 
 class SettingsPayload(BaseModel):
     target_financial_freedom: float
+    target_financial_freedom_usd: Optional[float] = 500000.0
+    target_mode: Optional[str] = "USD"
     total_outgoings: float
     cash_balance: float
 
@@ -221,7 +223,9 @@ async def api_update_settings(payload: SettingsPayload, user_id: str = "default_
         user_id=user_id,
         target_ff=payload.target_financial_freedom,
         total_outgoings=payload.total_outgoings,
-        cash_balance=payload.cash_balance
+        cash_balance=payload.cash_balance,
+        target_ff_usd=payload.target_financial_freedom_usd if payload.target_financial_freedom_usd is not None else 500000.0,
+        target_mode=payload.target_mode if payload.target_mode else "USD"
     )
     user_raw = get_user_portfolio(user_id)
     portfolio = compute_full_portfolio(user_raw)

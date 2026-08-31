@@ -336,8 +336,10 @@
           <span>Target Financial Freedom</span>
           <button @click="openSettingsModal()" class="text-sky-500 hover:underline text-[11px] font-semibold">Edit</button>
         </div>
-        <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" x-text="formatIDR(data.target_financial_freedom_idr)"></div>
-        <div class="text-xs text-slate-500 font-mono" x-text="'≈ ' + formatUSD(data.target_financial_freedom_idr / getUsdIdrRate())"></div>
+        <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" 
+             x-text="formatIDR((data.target_mode === 'USD' && data.target_financial_freedom_usd) ? (data.target_financial_freedom_usd * getUsdIdrRate()) : data.target_financial_freedom_idr)"></div>
+        <div class="text-xs text-slate-500 font-mono flex items-center gap-1" 
+             x-text="'≈ ' + formatUSD((data.target_mode === 'USD' && data.target_financial_freedom_usd) ? data.target_financial_freedom_usd : (data.target_financial_freedom_idr / getUsdIdrRate())) + (data.target_mode === 'USD' ? ' (USD Utama 💵)' : ' (IDR Utama 🇮🇩)')"></div>
         <div class="flex items-center gap-2 pt-0.5">
           <div class="flex-1 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
             <div class="bg-gradient-to-r from-sky-500 to-emerald-500 h-full rounded-full transition-all duration-500" 
@@ -1868,28 +1870,74 @@
       </div>
 
       <form @submit.prevent="saveSettings()" class="space-y-4 text-xs">
-        <!-- Target Financial Freedom (USD) with Auto-Convert to IDR -->
-        <div class="p-3 rounded-xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-800/60 space-y-3">
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <label class="font-bold text-sky-900 dark:text-sky-300 flex items-center gap-1.5">
-                <span>🎯 Target Financial Freedom (USD)</span>
-              </label>
-              <span class="text-[10px] text-slate-500 font-mono" x-text="'Kurs: $1 = ' + formatIDR(getUsdIdrRate())"></span>
-            </div>
-            <div class="relative">
-              <span class="absolute left-3.5 top-2 font-mono font-bold text-slate-400">$</span>
-              <input type="number" step="any" x-model.number="settingsForm.target_financial_freedom_usd" @input="onTargetUsdChange()"
-                     placeholder="500000"
-                     class="w-full rounded-xl pl-8 pr-3.5 py-2 font-mono bg-white dark:bg-slate-800 border border-sky-300 dark:border-sky-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-bold">
-            </div>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Ketik nominal USD (misal: <code class="font-bold text-sky-600 dark:text-sky-400">500000</code> untuk $500k), otomatis terkonversi ke Rupiah.</p>
+        <!-- Target Financial Freedom with Master Switch Toggle (USD vs IDR) -->
+        <div class="p-3.5 rounded-2xl bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/60 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs">
+              <i data-lucide="target" class="w-4 h-4 text-sky-500"></i>
+              <span>Target Financial Freedom</span>
+            </span>
+            
+            <!-- Switch / Toggle Button -->
+            <button type="button" @click="toggleTargetMode()" 
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold transition shadow-xs border active:scale-95 cursor-pointer"
+                    :class="settingsForm.target_mode === 'USD' ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 shadow-blue-500/20'"
+                    :title="settingsForm.target_mode === 'USD' ? 'Klik untuk mengubah IDR sebagai Nilai Utama' : 'Klik untuk mengubah USD sebagai Nilai Utama'">
+              <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i>
+              <span x-text="settingsForm.target_mode === 'USD' ? '💵 USD di Atas (Utama)' : '🇮🇩 Rupiah di Atas (Utama)'"></span>
+            </button>
           </div>
 
-          <div>
-            <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Target Financial Freedom (IDR) — Nilai Utama</label>
-            <input type="number" step="any" x-model.number="settingsForm.target_financial_freedom" @input="onTargetIdrChange()" required
-                   class="w-full rounded-xl px-3.5 py-2 font-mono bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500 font-bold">
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono bg-white/60 dark:bg-slate-900/40 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-800">
+            <span>Kurs Realtime: <strong class="text-slate-800 dark:text-slate-200 font-bold" x-text="'$1 = Rp ' + Math.round(getUsdIdrRate()).toLocaleString('id-ID')"></strong></span>
+            <span class="text-sky-600 dark:text-sky-400 font-sans font-medium" x-text="settingsForm.target_mode === 'USD' ? 'Input USD di atas → IDR di bawah otomatis mengikut' : 'Input IDR di atas → USD di bawah otomatis mengikut'"></span>
+          </div>
+
+          <!-- Dynamic Container: Swaps Top/Bottom based on target_mode -->
+          <div class="flex flex-col gap-3">
+            
+            <!-- 1. USD INPUT BLOCK -->
+            <div :class="settingsForm.target_mode === 'USD' ? 'order-1' : 'order-2'" class="transition-all duration-300">
+              <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300 text-xs flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <span class="font-bold">Target Financial Freedom (USD)</span>
+                  <span x-show="settingsForm.target_mode === 'USD'" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">🟢 Nilai Utama (Di Atas)</span>
+                  <span x-show="settingsForm.target_mode !== 'USD'" class="px-1.5 py-0.5 rounded text-[9px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">⬇️ Mengikuti Kurs Realtime</span>
+                </span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-2 font-mono font-bold"
+                      :class="settingsForm.target_mode === 'USD' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'">$</span>
+                <input type="number" step="any" x-model.number="settingsForm.target_financial_freedom_usd" 
+                       @input="onTargetUsdChange()"
+                       :readonly="settingsForm.target_mode !== 'USD'"
+                       placeholder="500000"
+                       class="w-full rounded-xl pl-8 pr-3.5 py-2 font-mono text-slate-900 dark:text-white outline-none font-bold text-sm transition"
+                       :class="settingsForm.target_mode === 'USD' ? 'bg-white dark:bg-slate-800 border-2 border-emerald-500 dark:border-emerald-600 focus:ring-2 focus:ring-emerald-500/30 shadow-sm' : 'bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed'">
+              </div>
+            </div>
+
+            <!-- 2. IDR INPUT BLOCK -->
+            <div :class="settingsForm.target_mode === 'IDR' ? 'order-1' : 'order-2'" class="transition-all duration-300">
+              <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300 text-xs flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <span class="font-bold">Target Financial Freedom (IDR)</span>
+                  <span x-show="settingsForm.target_mode === 'IDR'" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30">🟢 Nilai Utama (Di Atas)</span>
+                  <span x-show="settingsForm.target_mode !== 'IDR'" class="px-1.5 py-0.5 rounded text-[9px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">⬇️ Mengikuti Kurs Realtime</span>
+                </span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-3.5 top-2 font-mono font-bold text-xs"
+                      :class="settingsForm.target_mode === 'IDR' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'">Rp</span>
+                <input type="number" step="any" x-model.number="settingsForm.target_financial_freedom" 
+                       @input="onTargetIdrChange()"
+                       :readonly="settingsForm.target_mode !== 'IDR'"
+                       placeholder="8844000000"
+                       class="w-full rounded-xl pl-9 pr-3.5 py-2 font-mono text-slate-900 dark:text-white outline-none font-bold text-sm transition"
+                       :class="settingsForm.target_mode === 'IDR' ? 'bg-white dark:bg-slate-800 border-2 border-blue-500 dark:border-blue-600 focus:ring-2 focus:ring-blue-500/30 shadow-sm' : 'bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed'">
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -2250,10 +2298,11 @@
         },
 
         settingsForm: {
-          target_financial_freedom: 0,
-          target_financial_freedom_usd: 500000,
-          total_outgoings: 0,
-          cash_balance: 0
+          target_mode: 'USD',
+          target_financial_freedom: 8844000000.0,
+          target_financial_freedom_usd: 500000.0,
+          total_outgoings: 91457683.0,
+          cash_balance: 7000000.0
         },
 
         monthlyForm: {
@@ -2277,9 +2326,18 @@
           this.applyCategoryOrder();
           const rate = this.getUsdIdrRate();
           const targetIdr = this.data.target_financial_freedom_idr || 8844000000.0;
+          const mode = this.data.target_mode || 'USD';
+          let targetUsd = this.data.target_financial_freedom_usd || 500000.0;
+          let targetIdr = this.data.target_financial_freedom_idr || 8844000000.0;
+          if (mode === 'USD') {
+            targetIdr = Math.round(targetUsd * rate);
+          } else {
+            targetUsd = rate > 0 ? Math.round((targetIdr / rate) * 100) / 100 : 500000.0;
+          }
           this.settingsForm = {
+            target_mode: mode,
             target_financial_freedom: targetIdr,
-            target_financial_freedom_usd: Math.round(targetIdr / rate),
+            target_financial_freedom_usd: targetUsd,
             total_outgoings: this.data.total_outgoings_idr || 91457683.0,
             cash_balance: this.data.cash_balance_idr || 7000000.0
           };
@@ -2291,14 +2349,33 @@
 
         openSettingsModal() {
           const rate = this.getUsdIdrRate();
-          const idr = (this.data && this.data.target_financial_freedom_idr) ? this.data.target_financial_freedom_idr : 8844000000.0;
+          const mode = (this.data && this.data.target_mode) ? this.data.target_mode : 'USD';
+          let targetUsd = (this.data && this.data.target_financial_freedom_usd) ? this.data.target_financial_freedom_usd : 500000.0;
+          let targetIdr = (this.data && this.data.target_financial_freedom_idr) ? this.data.target_financial_freedom_idr : 8844000000.0;
+          if (mode === 'USD') {
+            targetIdr = Math.round(targetUsd * rate);
+          } else {
+            targetUsd = rate > 0 ? Math.round((targetIdr / rate) * 100) / 100 : 500000.0;
+          }
           this.settingsForm = {
-            target_financial_freedom: idr,
-            target_financial_freedom_usd: Math.round(idr / rate),
-            total_outgoings: this.data.total_outgoings_idr || 91457683.0,
-            cash_balance: this.data.cash_balance_idr || 7000000.0
+            target_mode: mode,
+            target_financial_freedom: targetIdr,
+            target_financial_freedom_usd: targetUsd,
+            total_outgoings: (this.data && this.data.total_outgoings_idr) ? this.data.total_outgoings_idr : 91457683.0,
+            cash_balance: (this.data && this.data.cash_balance_idr) ? this.data.cash_balance_idr : 7000000.0
           };
           this.showSettingsModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        toggleTargetMode() {
+          this.settingsForm.target_mode = this.settingsForm.target_mode === 'USD' ? 'IDR' : 'USD';
+          const rate = this.getUsdIdrRate();
+          if (this.settingsForm.target_mode === 'USD') {
+            this.onTargetUsdChange();
+          } else {
+            this.onTargetIdrChange();
+          }
           this.$nextTick(() => lucide.createIcons());
         },
 

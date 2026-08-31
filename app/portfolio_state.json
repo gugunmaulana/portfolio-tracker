@@ -1,7 +1,9 @@
 {
   "user_id": "default_user",
   "user_name": "Master Investor",
-  "target_financial_freedom": 8844000000.0,
+  "target_mode": "IDR",
+  "target_financial_freedom_usd": 565000.0,
+  "target_financial_freedom": 10000000000.0,
   "total_outgoings": 91457683.0,
   "cash_balance": 7000000.0,
   "target_annual_min_return": 10.0,

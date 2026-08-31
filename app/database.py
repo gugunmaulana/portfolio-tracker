@@ -742,6 +742,14 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN visible_columns TEXT")
     except Exception:
         pass
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN target_financial_freedom_usd REAL DEFAULT 500000.0")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN target_mode TEXT DEFAULT 'USD'")
+    except Exception:
+        pass
 
     # Enforce uppercase tickers across all existing database records
     cursor.execute("UPDATE portfolio_items SET ticker = UPPER(TRIM(ticker)) WHERE ticker IS NOT NULL")
@@ -930,6 +938,8 @@ def get_user_portfolio(user_id: str = "default_user") -> Dict[str, Any]:
     return {
         "user_id": user["id"],
         "user_name": user["name"],
+        "target_mode": user["target_mode"] if "target_mode" in user.keys() and user["target_mode"] else "USD",
+        "target_financial_freedom_usd": float(user["target_financial_freedom_usd"]) if "target_financial_freedom_usd" in user.keys() and user["target_financial_freedom_usd"] else 500000.0,
         "target_financial_freedom": float(user["target_financial_freedom"]),
         "total_outgoings": float(user["total_outgoings"]),
         "cash_balance": float(user["cash_balance"]),
@@ -1035,13 +1045,13 @@ def upsert_monthly_record(user_id: str, record: Dict[str, Any]):
     conn.close()
 
 
-def update_user_settings(user_id: str, target_ff: float, total_outgoings: float, cash_balance: float):
+def update_user_settings(user_id: str, target_ff: float, total_outgoings: float, cash_balance: float, target_ff_usd: float = 500000.0, target_mode: str = "USD"):
     init_db()
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-    UPDATE users SET target_financial_freedom = ?, total_outgoings = ?, cash_balance = ? WHERE id = ?
-    """, (target_ff, total_outgoings, cash_balance, user_id))
+    UPDATE users SET target_financial_freedom = ?, total_outgoings = ?, cash_balance = ?, target_financial_freedom_usd = ?, target_mode = ? WHERE id = ?
+    """, (target_ff, total_outgoings, cash_balance, target_ff_usd, target_mode, user_id))
     conn.commit()
     conn.close()
     backup_portfolio_state_to_json(user_id)

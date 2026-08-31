@@ -646,10 +646,25 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
 
         cur_price = result["price"]
 
-        # Determine All-Time High across both daily and max series
-        all_highs = highs_daily + highs_max
-        ath_meta = meta.get("fiftyTwoWeekHigh")
-        high_point = max(all_highs) if all_highs else (ath_meta or (cur_price * 1.1))
+        # Determine Rolling 2-Year Daily Close ATH (Pilihan 1: Daily Close High dalam 2 Tahun Terakhir)
+        # Menghindari false intraday wick spikes dan bubble anomali masa lalu
+        cur_dt = daily_pts[-1]["dt"] if daily_pts else datetime.datetime.now(datetime.timezone.utc)
+        two_years_ago_dt = cur_dt - datetime.timedelta(days=730)
+        
+        # Ambil seluruh harga penutupan harian (Daily Close) dalam rentang 2 tahun terakhir
+        closes_2y = [
+            p["close"] for p in daily_pts 
+            if p["dt"] >= two_years_ago_dt and p["close"] is not None and not math.isnan(p["close"]) and p["close"] > 0
+        ]
+        
+        if closes_2y:
+            high_point = max(closes_2y)
+        elif daily_pts:
+            high_point = max([p["close"] for p in daily_pts if p["close"] is not None and not math.isnan(p["close"]) and p["close"] > 0])
+        else:
+            ath_meta = meta.get("fiftyTwoWeekHigh") or (cur_price * 1.1)
+            high_point = ath_meta
+
         result["ath"] = round(max(high_point, cur_price), 2)
 
         # Calculate high-precision performance returns
@@ -1255,7 +1270,13 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
     current_net_worth_usd = current_net_worth_idr / usd_idr if usd_idr > 0 else 0.0
     
     total_outgoings_idr = float(portfolio_data.get("total_outgoings", 0.0))
-    target_ff_idr = float(portfolio_data.get("target_financial_freedom", 8844000000.0))
+    target_mode = str(portfolio_data.get("target_mode") or "USD").upper()
+    if target_mode == "USD":
+        target_ff_usd = float(portfolio_data.get("target_financial_freedom_usd", 500000.0))
+        target_ff_idr = target_ff_usd * usd_idr if usd_idr > 0 else float(portfolio_data.get("target_financial_freedom", 8844000000.0))
+    else:
+        target_ff_idr = float(portfolio_data.get("target_financial_freedom", 8844000000.0))
+        target_ff_usd = target_ff_idr / usd_idr if usd_idr > 0 else 500000.0
     
     ff_progress_pct = (current_net_worth_idr / target_ff_idr * 100.0) if target_ff_idr > 0 else 0.0
     
@@ -1266,6 +1287,8 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
     raw_output = {
         "user_id": portfolio_data.get("user_id"),
         "user_name": portfolio_data.get("user_name", "Investor"),
+        "target_mode": target_mode,
+        "target_financial_freedom_usd": round(target_ff_usd, 2),
         "target_financial_freedom_idr": target_ff_idr,
         "ff_progress_pct": round(ff_progress_pct, 2) if not math.isnan(ff_progress_pct) else 0.0,
         "current_net_worth_idr": round(current_net_worth_idr, 0) if not math.isnan(current_net_worth_idr) else 0.0,
