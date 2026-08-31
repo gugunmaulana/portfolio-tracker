@@ -3694,6 +3694,19 @@
             return `https://coinmarketcap.com/currencies/${clean}/historical-data/`;
           }
 
+          // 1.1 Emas Fisik Antam Indonesia
+          if (rawTicker === 'EMAS' || rawTicker === 'ANTAM' || rawTicker === 'LOGAMMULIA' || rawTicker === 'EMAS.IDR') {
+            return 'https://www.logammulia.com/id/harga-emas-hari-ini';
+          }
+
+          // 1.2 Reksa Dana Official Links
+          if (rawTicker === 'MNC-BAROKAH' || rawTicker.includes('BAROKAH')) {
+            return 'https://www.mncasset.com/reksa-dana-pasar-uang';
+          }
+          if (rawTicker === 'CAPITAL-FIXED' || rawTicker.includes('FIXED')) {
+            return 'https://capital-asset.co.id/';
+          }
+
           // 2. Commodities (TradingView World Gold Benchmark)
           if (rawTicker === 'GC=F' || rawTicker === 'GLD') {
             return 'https://www.tradingview.com/symbols/TVC-GOLD/';
@@ -3729,9 +3742,10 @@
           const clean = raw.replace('.JK', '').replace('-USD', '').toLowerCase();
 
           // Dedicated verified direct Investing.com routes
-          // Reksa Dana Direct Official Performance & NAV Links (Bareksa & Pasardana)
-          if (raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) return 'https://www.bareksa.com/reksadana/produk/mnc-dana-syariah-barokah';
-          if (raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) return 'https://www.bareksa.com/reksadana/produk/capital-fixed-income-fund';
+          // Reksa Dana & Emas Official Working Links
+          if (raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) return 'https://www.mncasset.com/reksa-dana-pasar-uang';
+          if (raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) return 'https://capital-asset.co.id/';
+          if (raw === 'EMAS' || raw === 'ANTAM' || raw === 'LOGAMMULIA' || raw === 'EMAS.IDR') return 'https://www.logammulia.com/id/harga-emas-hari-ini';
 
           const directInvestingUrls = {
             "VOO": "https://www.investing.com/etfs/vanguard-s-p-500",
@@ -3799,15 +3813,20 @@
           const raw = (item.ticker || '').trim().toUpperCase();
           const cat = (item.category || '').toLowerCase();
 
-          // 0. Reksa Dana Official Links (Bareksa & Pasardana Realtime Official)
+          // 0. Reksa Dana Official Working Links (PT MNC Asset & PT Capital Asset Management)
           if (cat === 'reksadana' || raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) {
-            return 'https://www.bareksa.com/reksadana/produk/mnc-dana-syariah-barokah';
+            return 'https://www.mncasset.com/reksa-dana-pasar-uang';
           }
           if (cat === 'reksadana' || raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) {
-            return 'https://www.bareksa.com/reksadana/produk/capital-fixed-income-fund';
+            return 'https://capital-asset.co.id/';
           }
           if (cat === 'reksadana') {
-            return 'https://www.bareksa.com/reksadana/produk';
+            return 'https://pasardana.id/reksadana/';
+          }
+
+          // 0.1 Emas Fisik Antam / Indonesia per Gram (Situs Resmi Logam Mulia Antam)
+          if (raw === 'EMAS' || raw === 'EMAS.IDR' || raw === 'ANTAM' || raw === 'LOGAMMULIA' || raw === 'XAU-IDR' || raw === 'GOLD.IDR') {
+            return 'https://www.logammulia.com/id/harga-emas-hari-ini';
           }
 
           // 1. Commodities & Macro

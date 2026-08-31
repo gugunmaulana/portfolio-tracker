@@ -38,6 +38,11 @@ ASSET_LOGOS = {
     "SOL": "https://assets.coingecko.com/coins/images/4128/small/solana.png",
     "GC=F": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png", # Gold bullion
     "XAUUSD": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png",
+    "EMAS": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png", # Emas Fisik IDR / Gram
+    "EMAS.IDR": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png",
+    "ANTAM": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png",
+    "XAU-IDR": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png",
+    "GOLD.IDR": "https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color/paxg.png",
     # ETFs & Major Indices
     "VOO": "https://assets.parqet.com/logos/symbol/VOO?format=png",
     "QQQ": "https://assets.parqet.com/logos/symbol/QQQ?format=png",
@@ -542,6 +547,30 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             "volume": 0,
             "perf": dict(rd["perf"]),
             "yearly_returns": dict(rd["yearly_returns"]),
+            "_timestamp": now
+        }
+
+    # Direct Realtime IDR Emas per Gram for Indonesian Physical Gold / Antam
+    if ticker_symbol in ["EMAS", "EMAS.IDR", "ANTAM", "XAU-IDR", "GOLD.IDR", "XAU.IDR"]:
+        gold_mkt = fetch_ticker_market_data("GC=F")
+        usd_mkt = fetch_ticker_market_data("USDIDR=X")
+        g_price = gold_mkt.get("price", 4455.0)
+        g_ath = gold_mkt.get("ath", 5318.0)
+        u_rate = usd_mkt.get("price", 17685.0)
+        
+        # 1 Troy Ounce = 31.1034768 grams
+        price_per_gram = round((g_price * u_rate) / 31.1034768, 0)
+        ath_per_gram = round((g_ath * u_rate) / 31.1034768, 0)
+        
+        return {
+            "ticker": ticker_symbol,
+            "price": price_per_gram,
+            "ath": ath_per_gram,
+            "pe": None,
+            "market_cap": None,
+            "volume": gold_mkt.get("volume", 0),
+            "perf": dict(gold_mkt.get("perf", {})),
+            "yearly_returns": dict(gold_mkt.get("yearly_returns", {})),
             "_timestamp": now
         }
 

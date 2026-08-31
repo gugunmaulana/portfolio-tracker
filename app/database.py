@@ -86,10 +86,10 @@ DEFAULT_PORTFOLIO_CONFIG = {
                     "pe_exp": None
                 },
                 {
-                    "ticker": "GC=F",
-                    "name": "FX / Hedge (Gold USD / XAU)",
+                    "ticker": "EMAS",
+                    "name": "Emas Fisik (Logam Mulia Antam per Gram)",
                     "category": "war_nemesis",
-                    "currency": "USD",
+                    "currency": "IDR",
                     "invested_idr": 0.0,
                     "quantity": 0.0,
                     "avg_price_usd": 0.0,
