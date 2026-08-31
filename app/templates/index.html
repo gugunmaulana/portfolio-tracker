@@ -3700,11 +3700,11 @@
           }
 
           // 1.2 Reksa Dana Official Links
-          if (rawTicker === 'MNC-BAROKAH' || rawTicker.includes('BAROKAH')) {
-            return 'https://www.mncasset.com/reksa-dana-pasar-uang';
+          if (rawTicker === 'CAPITAL-FIXED' || rawTicker.includes('FIXED') || rawTicker.includes('CAPITAL')) {
+            return 'https://www.capital-asset.co.id/';
           }
-          if (rawTicker === 'CAPITAL-FIXED' || rawTicker.includes('FIXED')) {
-            return 'https://capital-asset.co.id/';
+          if (rawTicker.includes('REKSA')) {
+            return 'https://pasardana.id/reksadana/';
           }
 
           // 2. Commodities (TradingView World Gold Benchmark)
@@ -3743,8 +3743,7 @@
 
           // Dedicated verified direct Investing.com routes
           // Reksa Dana & Emas Official Working Links
-          if (raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) return 'https://www.mncasset.com/reksa-dana-pasar-uang';
-          if (raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) return 'https://capital-asset.co.id/';
+          if (raw === 'CAPITAL-FIXED' || raw.includes('FIXED') || raw.includes('CAPITAL')) return 'https://www.capital-asset.co.id/';
           if (raw === 'EMAS' || raw === 'ANTAM' || raw === 'LOGAMMULIA' || raw === 'EMAS.IDR') return 'https://www.logammulia.com/id/harga-emas-hari-ini';
 
           const directInvestingUrls = {
@@ -3813,12 +3812,9 @@
           const raw = (item.ticker || '').trim().toUpperCase();
           const cat = (item.category || '').toLowerCase();
 
-          // 0. Reksa Dana Official Working Links (PT MNC Asset & PT Capital Asset Management)
-          if (cat === 'reksadana' || raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) {
-            return 'https://www.mncasset.com/reksa-dana-pasar-uang';
-          }
-          if (cat === 'reksadana' || raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) {
-            return 'https://capital-asset.co.id/';
+          // 0. Reksa Dana Official Working Links (PT Capital Asset Management & Pasardana)
+          if (cat === 'reksadana' || raw === 'CAPITAL-FIXED' || raw.includes('FIXED') || raw.includes('CAPITAL')) {
+            return 'https://www.capital-asset.co.id/';
           }
           if (cat === 'reksadana') {
             return 'https://pasardana.id/reksadana/';

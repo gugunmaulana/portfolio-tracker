@@ -768,8 +768,7 @@ def init_db():
         cursor.execute("""
         INSERT INTO portfolio_items (user_id, category, ticker, name, currency, invested_idr, quantity, avg_price, is_lot, sort_order)
         VALUES 
-        ('default_user', 'reksadana', 'MNC-BAROKAH', 'MNC Dana Syariah Barokah (Pasar Uang)', 'IDR', 4000000.0, 4011553.0, 0.99712, 0, 1),
-        ('default_user', 'reksadana', 'CAPITAL-FIXED', 'Capital Fixed Income Fund (Pendapatan Tetap)', 'IDR', 3010000.0, 3063669.0, 0.98248, 0, 2)
+        ('default_user', 'reksadana', 'CAPITAL-FIXED', 'Capital Fixed Income Fund (Pendapatan Tetap)', 'IDR', 3010000.0, 3063669.0, 0.98248, 0, 1)
         """)
 
     # Enforce uppercase tickers across all existing database records
