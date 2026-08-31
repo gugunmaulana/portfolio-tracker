@@ -369,171 +369,156 @@
   <main class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-4 space-y-4">
 
     <!-- ======================================================================= -->
-    <!-- 📊 REALTIME ASSET ALLOCATION & DIVERSIFICATION DONUT CHARTS             -->
+    <!-- 2-COLUMN SIDE-BY-SIDE: [PRIME BUY RADAR (LEFT)] + [ALOKASI PORTOFOLIO (RIGHT)] -->
     <!-- ======================================================================= -->
-    <div x-show="activeView === 'portfolio'" class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm space-y-4">
+    <div x-show="activeView === 'portfolio'" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
       
-      <!-- Card Header -->
-      <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div class="flex items-center gap-2.5">
-          <div class="p-2 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-            <i data-lucide="pie-chart" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>📊 SUSUNAN ALOKASI PORTOFOLIO & ASSET DIVERSIFICATION</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">REALTIME</span>
-            </h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400">
-              Distribusi nilai kapital & bobot persentase dari Total Net Worth (<span class="font-mono font-bold text-sky-600 dark:text-sky-400" x-text="formatIDR(data.current_net_worth_idr)"></span>)
-            </p>
-          </div>
-        </div>
+      <!-- KOLOM KIRI (7/12): ⚡ RADAR DISKON EMAS & PRIME BUY -->
+      <div class="lg:col-span-7 rounded-2xl bg-gradient-to-r from-emerald-50/90 via-white to-teal-50/70 dark:from-[#0b1f1a] dark:via-[#111827] dark:to-[#0b1f1a] border-2 border-emerald-400/80 dark:border-emerald-500/50 p-4 sm:p-5 shadow-lg shadow-emerald-500/10 flex flex-col justify-between space-y-3">
         
-        <div class="flex items-center gap-2">
-          <button @click="showAllocationCharts = !showAllocationCharts" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center gap-1.5">
-            <span x-text="showAllocationCharts ? 'Minimize ▲' : 'Expand ▼'"></span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Charts Grid (2 Donut Charts Side-by-Side) -->
-      <div x-show="showAllocationCharts" x-collapse class="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-1">
-        
-        <!-- CHART 1: Alokasi per Kategori + Kas -->
-        <div class="p-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/30 border border-slate-200/60 dark:border-slate-700/50 flex flex-col justify-between space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <i data-lucide="layers" class="w-4 h-4 text-indigo-500"></i>
-              <span>1. Alokasi per Kategori Aset + Kas</span>
-            </span>
-            <span class="text-[11px] font-mono font-bold text-slate-500" x-text="data.categories ? (data.categories.length + 1) + ' Kategori & Kas' : ''"></span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row items-center gap-4">
-            <!-- Donut Canvas -->
-            <div class="relative w-44 h-44 sm:w-48 sm:h-48 shrink-0 flex items-center justify-center">
-              <canvas id="categoryAllocChart"></canvas>
+        <!-- Header -->
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-1 border-b border-emerald-200/50 dark:border-emerald-800/40">
+          <div class="flex items-center gap-2">
+            <div class="relative flex items-center justify-center">
+              <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 relative"></span>
             </div>
-            <!-- Custom Legend -->
-            <div class="flex-1 w-full space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs" id="categoryAllocLegend">
-              <!-- Rendered dynamically -->
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-emerald-300 tracking-tight flex items-center gap-2">
+                <span class="text-emerald-700 dark:text-emerald-400">⚡ RADAR DISKON EMAS & PRIME BUY</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-600 dark:border-emerald-500/40 shadow-xs"
+                      x-text="getPrimeBuyAssets().length + ' Aset Terdeteksi'"></span>
+              </h2>
+              <p class="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+                Area dislokasi 2Y ATH / valuasi terdiskon (Klik kartu untuk scroll ke rincian aset).
+              </p>
             </div>
           </div>
-        </div>
 
-        <!-- CHART 2: Alokasi per Satuan Aset + Kas -->
-        <div class="p-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/30 border border-slate-200/60 dark:border-slate-700/50 flex flex-col justify-between space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <i data-lucide="coins" class="w-4 h-4 text-amber-500"></i>
-              <span>2. Alokasi per Satuan Aset + Kas</span>
-            </span>
-            <span class="text-[11px] font-mono font-bold text-slate-500" id="assetAllocCount"></span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row items-center gap-4">
-            <!-- Donut Canvas -->
-            <div class="relative w-44 h-44 sm:w-48 sm:h-48 shrink-0 flex items-center justify-center">
-              <canvas id="assetAllocChart"></canvas>
-            </div>
-            <!-- Custom Legend -->
-            <div class="flex-1 w-full space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs" id="assetAllocLegend">
-              <!-- Rendered dynamically -->
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ======================================================================= -->
-    <!-- ⚡ PRIME TO BUY & RADAR DISKON EMAS (BELOW ASSET ALLOCATION)              -->
-    <!-- ======================================================================= -->
-    <div x-show="activeView === 'portfolio'" class="rounded-2xl bg-gradient-to-r from-emerald-50/90 via-white to-teal-50/70 dark:from-[#0b1f1a] dark:via-[#111827] dark:to-[#0b1f1a] border-2 border-emerald-400/80 dark:border-emerald-500/50 p-4 sm:p-5 shadow-lg shadow-emerald-500/10 space-y-3.5">
-      
-      <!-- Widget Header: High Contrast for both Light & Dark themes -->
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center gap-2.5">
-          <div class="relative flex items-center justify-center">
-            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-ping absolute opacity-75"></span>
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 relative"></span>
-          </div>
-          <div>
-            <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-emerald-300 tracking-tight flex items-center gap-2">
-              <span class="text-emerald-700 dark:text-emerald-400">⚡ RADAR DISKON EMAS & PRIME BUY</span>
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-600 dark:border-emerald-500/40 shadow-xs"
-                    x-text="getPrimeBuyAssets().length + ' Aset Terdeteksi'"></span>
-            </h2>
-            <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
-              Aset berfundamental kuat yang sedang berada di area dislokasi 2Y ATH / valuasi terdiskon (Klik kartu untuk langsung menuju ke rincian aset).
-            </p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100/90 dark:bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-300 dark:border-emerald-500/30 shadow-xs">
-            2Y Close Peak AI Radar
+          <span class="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100/90 dark:bg-emerald-950/60 px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-500/30 shadow-xs">
+            2Y Peak AI Radar
           </span>
         </div>
+
+        <!-- Prime Buy Assets Cards Grid (3 Columns on Left side) -->
+        <template x-if="getPrimeBuyAssets().length > 0">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-[350px] overflow-y-auto pr-1">
+            <template x-for="pItem in getPrimeBuyAssets()" :key="pItem.ticker">
+              <div @click="scrollToAsset(pItem)"
+                   class="p-3 rounded-xl bg-white dark:bg-[#111827] border-2 border-emerald-400/90 dark:border-emerald-500/60 shadow-xs hover:shadow-md hover:border-emerald-600 dark:hover:border-emerald-400 transition-all duration-200 flex flex-col justify-between space-y-2 cursor-pointer group"
+                   :title="'Klik untuk melihat rincian ' + pItem.ticker + ' di tabel radar'">
+                
+                <div class="flex items-start justify-between gap-1.5">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-extrabold font-mono text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition" x-text="pItem.ticker"></span>
+                      <span class="text-[9px] px-1.5 py-0.2 rounded font-bold uppercase"
+                            :class="pItem.dislocation_bg || 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'"
+                            x-text="pItem.dislocation_code || 'Z3'"></span>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-600 dark:text-slate-400 truncate block mt-0.5" :title="pItem.name" x-text="pItem.name"></span>
+                  </div>
+                  <i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition shrink-0"></i>
+                </div>
+
+                <div class="bg-slate-100/80 dark:bg-slate-800/80 p-2 rounded-lg space-y-1 border border-slate-200/60 dark:border-slate-700/60">
+                  <div class="flex items-center justify-between text-xs font-mono">
+                    <span class="text-slate-500 dark:text-slate-400 text-[10px]">Harga:</span>
+                    <span class="font-bold text-slate-900 dark:text-white text-[11px]" 
+                          x-text="pItem.currency === 'IDR' ? formatIDR(pItem.price || pItem.current_price) : formatUSD(pItem.price || pItem.current_price)"></span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs font-mono">
+                    <span class="text-slate-500 dark:text-slate-400 text-[10px]">Drawdown 2Y:</span>
+                    <span class="font-bold text-rose-600 dark:text-rose-400 text-[11px]" x-text="formatPct(pItem.drawdown)"></span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-1 pt-0.5">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-600 text-white tracking-wide uppercase flex items-center gap-1">
+                    <span>🟢</span>
+                    <span x-text="pItem.composite_signal || 'PRIME BUY'"></span>
+                  </span>
+                  <span class="text-[10px] font-semibold text-emerald-800 dark:text-emerald-400 truncate font-sans" x-text="pItem.pe_status || 'Diskon / Murah'"></span>
+                </div>
+
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <template x-if="getPrimeBuyAssets().length === 0">
+          <div class="p-4 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50 text-center space-y-1">
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">🛡️ Seluruh Aset Saat Ini Berada di Area Wajar / Normal</p>
+            <p class="text-[11px] text-slate-500">Sinyal Prime Buy akan otomatis muncul saat dislokasi 2Y ATH terdeteksi.</p>
+          </div>
+        </template>
+
       </div>
 
-      <!-- Prime Buy Assets Cards Grid (Interactive & Clickable to Scroll Down) -->
-      <template x-if="getPrimeBuyAssets().length > 0">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 pt-1">
-          <template x-for="pItem in getPrimeBuyAssets()" :key="pItem.ticker">
-            <div @click="scrollToAsset(pItem)"
-                 class="p-3.5 rounded-xl bg-white dark:bg-[#111827] border-2 border-emerald-400/90 dark:border-emerald-500/60 shadow-md shadow-emerald-500/10 hover:border-emerald-600 dark:hover:border-emerald-400 hover:scale-[1.03] active:scale-98 transition-all duration-200 flex flex-col justify-between space-y-2.5 prime-buy-glow cursor-pointer group"
-                 :title="'Klik untuk melihat rincian ' + pItem.ticker + ' di tabel radar'">
-              
-              <!-- Ticker, Name & Category -->
-              <div class="flex items-start justify-between gap-1.5">
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-extrabold font-mono text-xs text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition" x-text="pItem.ticker"></span>
-                    <span class="text-[9px] px-1.5 py-0.2 rounded font-bold uppercase"
-                          :class="pItem.dislocation_bg || 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'"
-                          x-text="pItem.dislocation_code || 'Z3'"></span>
-                  </div>
-                  <span class="text-[11px] font-medium text-slate-600 dark:text-slate-400 truncate block mt-0.5" :title="pItem.name" x-text="pItem.name"></span>
-                </div>
-                <i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition shrink-0"></i>
-              </div>
-
-              <!-- Price & Drawdown Info -->
-              <div class="bg-slate-100/80 dark:bg-slate-800/80 p-2.5 rounded-xl space-y-1 border border-slate-200/60 dark:border-slate-700/60">
-                <div class="flex items-center justify-between text-xs font-mono">
-                  <span class="text-slate-500 dark:text-slate-400 text-[11px] font-medium">Harga:</span>
-                  <span class="font-bold text-slate-900 dark:text-white" 
-                        x-text="pItem.currency === 'IDR' ? formatIDR(pItem.price || pItem.current_price) : formatUSD(pItem.price || pItem.current_price)"></span>
-                </div>
-                <div class="flex items-center justify-between text-xs font-mono">
-                  <span class="text-slate-500 dark:text-slate-400 text-[11px] font-medium">Drawdown 2Y:</span>
-                  <span class="font-bold text-rose-600 dark:text-rose-400" x-text="formatPct(pItem.drawdown)"></span>
-                </div>
-              </div>
-
-              <!-- Signal Badge & Valuation -->
-              <div class="flex items-center justify-between gap-1 pt-0.5">
-                <span class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-emerald-600 text-white shadow-xs tracking-wide uppercase flex items-center gap-1">
-                  <span>🟢</span>
-                  <span x-text="pItem.composite_signal || 'PRIME BUY'"></span>
-                </span>
-                <span class="text-[10px] font-semibold text-emerald-800 dark:text-emerald-400 truncate font-sans" x-text="pItem.pe_status || 'Diskon / Murah'"></span>
-              </div>
-
+      <!-- KOLOM KANAN (5/12): 📊 SUSUNAN ALOKASI PORTOFOLIO & DIVERSIFICATION -->
+      <div class="lg:col-span-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm flex flex-col justify-between space-y-3.5">
+        
+        <!-- Header & 2 Toggle Buttons -->
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+              <i data-lucide="pie-chart" class="w-4 h-4"></i>
             </div>
-          </template>
-        </div>
-      </template>
+            <div>
+              <h2 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <span>📊 ALOKASI PORTOFOLIO</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold font-mono">REALTIME</span>
+              </h2>
+              <p class="text-[10px] text-slate-500 font-mono" x-text="'Net Worth: ' + formatIDR(data.current_net_worth_idr)"></p>
+            </div>
+          </div>
 
-      <!-- Empty State if no assets are in Z3/Z4/Prime Buy -->
-      <template x-if="getPrimeBuyAssets().length === 0">
-        <div class="p-4 rounded-xl bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50 text-center space-y-1">
-          <p class="text-xs font-bold text-slate-700 dark:text-slate-300">🛡️ Seluruh Aset Saat Ini Berada di Area Wajar / Normal (Z1–Z2)</p>
-          <p class="text-[11px] text-slate-500">Sistem terus memantau pergerakan harga 2Y Close ATH & Valuasi P/E secara realtime. Sinyal Prime Buy akan otomatis muncul saat dislokasi terdeteksi.</p>
+          <!-- Switcher Buttons: 1. Kategori + Kas vs 2. Satuan Aset + Kas -->
+          <div class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-[11px] font-bold gap-1">
+            <button type="button" @click="setAllocTab('category')" 
+                    class="px-2.5 py-1 rounded-lg transition flex items-center gap-1"
+                    :class="allocTab === 'category' ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'">
+              <span>🏷️ 1. Kategori + Kas</span>
+            </button>
+            <button type="button" @click="setAllocTab('asset')" 
+                    class="px-2.5 py-1 rounded-lg transition flex items-center gap-1"
+                    :class="allocTab === 'asset' ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'">
+              <span>🪙 2. Satuan Aset + Kas</span>
+            </button>
+          </div>
         </div>
-      </template>
+
+        <!-- Donut Chart & Breakdown List -->
+        <div class="flex flex-col sm:flex-row items-center gap-3.5">
+          
+          <!-- Donut Canvas Container -->
+          <div class="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
+            <canvas id="portfolioAllocDonut"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+              <span class="text-[9px] uppercase font-bold text-slate-400" x-text="allocTab === 'category' ? 'Kategori' : 'Aset'"></span>
+              <span class="text-[12px] font-extrabold text-slate-900 dark:text-white font-mono" x-text="getAllocData().length + ' Porsi'"></span>
+            </div>
+          </div>
+
+          <!-- Dynamic Legend & Values List (Reactive via Alpine) -->
+          <div class="flex-1 w-full space-y-1 max-h-[300px] overflow-y-auto pr-1 text-xs">
+            <template x-for="(item, idx) in getAllocData()" :key="item.name + idx">
+              <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/50 transition">
+                <div class="flex items-center gap-2 truncate pr-1">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color: ' + item.color"></span>
+                  <span class="font-bold text-slate-900 dark:text-white truncate" x-text="item.name"></span>
+                </div>
+                <div class="text-right shrink-0 font-mono">
+                  <span class="font-bold text-slate-900 dark:text-white" x-text="'Rp ' + (item.val/1e6).toFixed(1) + ' jt'"></span>
+                  <span class="text-[10px] text-slate-500 font-semibold ml-1" x-text="'(' + item.pct.toFixed(1) + '%)'"></span>
+                </div>
+              </div>
+            </template>
+          </div>
+
+        </div>
+
+      </div>
 
     </div>
 
@@ -2405,7 +2390,8 @@
         
         isDark: localStorage.getItem('theme_dark') !== 'false',
         activeView: 'portfolio',
-        showAllocationCharts: true,
+        allocTab: 'category',
+        allocChartInst: null,
         searchQuery: '',
         
         // 25 Configurable Columns & Custom Order
@@ -3169,6 +3155,151 @@
             }
           }
           return res.sort((a, b) => (a.drawdown || 0) - (b.drawdown || 0));
+        },
+
+        setAllocTab(tab) {
+          this.allocTab = tab;
+          this.$nextTick(() => {
+            this.updateAllocDonut();
+          });
+        },
+
+        getAllocData() {
+          const totalNetWorth = (this.data && this.data.current_net_worth_idr && this.data.current_net_worth_idr > 0) 
+                                ? this.data.current_net_worth_idr 
+                                : (((this.data && this.data.total_invested_idr) || 0) + ((this.data && this.data.cash_balance_idr) || 0));
+          if (!totalNetWorth || totalNetWorth <= 0 || !this.data) return [];
+
+          const categoryColors = {
+            'war_nemesis': '#6366f1',
+            'us_monopoly': '#3b82f6',
+            'high_growth': '#ec4899',
+            'indonesian_bluechips': '#8b5cf6',
+            'dividend_yield': '#14b8a6',
+            'reksadana': '#06b6d4'
+          };
+          const palette = ['#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#84cc16', '#eab308', '#f97316', '#ef4444', '#ec4899', '#8b5cf6', '#a855f7', '#d946ef', '#0284c7', '#059669', '#d97706'];
+
+          if (this.allocTab === 'category') {
+            const list = [];
+            if (Array.isArray(this.data.categories)) {
+              this.data.categories.forEach((cat, idx) => {
+                const val = cat.total_cur_val_idr || (cat.items ? cat.items.reduce((s, it) => s + (it.cur_val_idr || it.invested_idr || 0), 0) : 0);
+                if (val > 0) {
+                  list.push({
+                    name: cat.name,
+                    val: val,
+                    pct: (val / totalNetWorth) * 100,
+                    color: categoryColors[cat.id] || palette[idx % palette.length]
+                  });
+                }
+              });
+            }
+            if (this.data.cash_balance_idr && this.data.cash_balance_idr > 0) {
+              list.push({
+                name: 'Sisa Saldo Kas (Cash)',
+                val: this.data.cash_balance_idr,
+                pct: (this.data.cash_balance_idr / totalNetWorth) * 100,
+                color: '#f59e0b'
+              });
+            }
+            return list;
+          } else {
+            // Asset tab
+            const list = [];
+            if (Array.isArray(this.data.categories)) {
+              this.data.categories.forEach(cat => {
+                if (Array.isArray(cat.items)) {
+                  cat.items.forEach(it => {
+                    const val = it.cur_val_idr || it.invested_idr || 0;
+                    if (val > 0) {
+                      list.push({
+                        name: it.ticker + ' (' + (it.name || '').substring(0, 16) + ')',
+                        ticker: it.ticker,
+                        val: val,
+                        pct: (val / totalNetWorth) * 100
+                      });
+                    }
+                  });
+                }
+              });
+            }
+            if (this.data.cash_balance_idr && this.data.cash_balance_idr > 0) {
+              list.push({
+                name: 'Sisa Saldo Kas (Cash)',
+                ticker: 'KAS',
+                val: this.data.cash_balance_idr,
+                pct: (this.data.cash_balance_idr / totalNetWorth) * 100
+              });
+            }
+            list.sort((a, b) => b.val - a.val);
+            list.forEach((item, idx) => {
+              item.color = palette[idx % palette.length];
+            });
+            return list;
+          }
+        },
+
+        updateAllocDonut() {
+          const canvas = document.getElementById('portfolioAllocDonut');
+          if (!canvas) return;
+          const items = this.getAllocData();
+          if (!items || items.length === 0) return;
+
+          const isDark = document.documentElement.classList.contains('dark');
+          const labels = items.map(x => x.name);
+          const dataVals = items.map(x => x.val);
+          const bgColors = items.map(x => x.color);
+
+          if (this.allocChartInst) {
+            try {
+              this.allocChartInst.destroy();
+            } catch (e) {}
+            this.allocChartInst = null;
+          }
+
+          try {
+            this.allocChartInst = new Chart(canvas, {
+              type: 'doughnut',
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: dataVals,
+                  backgroundColor: bgColors,
+                  borderWidth: isDark ? 2 : 1,
+                  borderColor: isDark ? '#111827' : '#ffffff',
+                  hoverOffset: 6
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    titleColor: isDark ? '#f8fafc' : '#0f172a',
+                    bodyColor: isDark ? '#cbd5e1' : '#334155',
+                    borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
+                    borderWidth: 1,
+                    padding: 10,
+                    cornerRadius: 10,
+                    callbacks: {
+                      label: (c) => {
+                        const val = c.parsed;
+                        const total = c.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
+                        return ` Rp ${Math.round(val).toLocaleString('id-ID')} (${pct}%)`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          } catch (err) {
+            console.error('Error rendering doughnut chart:', err);
+          }
         },
 
         scrollToAsset(item) {
@@ -3946,6 +4077,7 @@
           }
 
           // 5. Global & US Stocks / ETFs (Works dynamically for any newly added ticker!)
+                    // 5. Global & US Stocks / ETFs (Works dynamically for any newly added ticker!)
           const cleanTicker = raw.replace('/', '').replace('.', '');
           return `https://www.tradingview.com/symbols/${encodeURIComponent(cleanTicker)}/`;
         }
@@ -3953,233 +4085,7 @@
     }
 
     // =========================================================================
-
-      // =========================================================================
-      // REALTIME ASSET ALLOCATION DONUT CHARTS (Category & Individual Asset + Cash)
-      // =========================================================================
-      let catAllocChartInst = null;
-      let assetAllocChartInst = null;
-
-      function renderAllocationCharts(appData) {
-        if (!appData) return;
-        const totalNetWorth = (appData.current_net_worth_idr && appData.current_net_worth_idr > 0) 
-                              ? appData.current_net_worth_idr 
-                              : ((appData.total_invested_idr || 0) + (appData.cash_balance_idr || 0));
-        if (!totalNetWorth || totalNetWorth <= 0) return;
-
-        const isDark = document.documentElement.classList.contains('dark');
-
-        // 1. Category Allocation Data
-        const catLabels = [];
-        const catValues = [];
-        const catColors = [];
-        const catPercents = [];
-
-        const categoryColorMap = {
-          'war_nemesis': '#6366f1',
-          'us_monopoly': '#3b82f6',
-          'high_growth': '#ec4899',
-          'indonesian_bluechips': '#8b5cf6',
-          'dividend_yield': '#14b8a6',
-          'reksadana': '#06b6d4'
-        };
-        const fallbackColors = ['#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#84cc16', '#eab308', '#f97316', '#ef4444', '#ec4899', '#8b5cf6'];
-
-        if (Array.isArray(appData.categories)) {
-          appData.categories.forEach((cat, idx) => {
-            const val = cat.total_cur_val_idr || (cat.items ? cat.items.reduce((s, it) => s + (it.cur_val_idr || it.invested_idr || 0), 0) : 0);
-            if (val > 0) {
-              const pct = (val / totalNetWorth) * 100;
-              catLabels.push(cat.name || 'Kategori ' + (idx + 1));
-              catValues.push(val);
-              catPercents.push(pct);
-              const col = categoryColorMap[cat.id] || fallbackColors[idx % fallbackColors.length];
-              catColors.push(col);
-            }
-          });
-        }
-
-        // Add Cash Balance
-        const cashVal = appData.cash_balance_idr || 0;
-        if (cashVal > 0) {
-          const cashPct = (cashVal / totalNetWorth) * 100;
-          catLabels.push('Sisa Saldo Kas (Cash)');
-          catValues.push(cashVal);
-          catPercents.push(cashPct);
-          catColors.push('#f59e0b');
-        }
-
-        // Render Category Donut Chart
-        const catCtx = document.getElementById('categoryAllocChart');
-        if (catCtx) {
-          if (catAllocChartInst) catAllocChartInst.destroy();
-          catAllocChartInst = new Chart(catCtx, {
-            type: 'doughnut',
-            data: {
-              labels: catLabels,
-              datasets: [{
-                data: catValues,
-                backgroundColor: catColors,
-                borderWidth: isDark ? 2 : 1,
-                borderColor: isDark ? '#111827' : '#ffffff',
-                hoverOffset: 6
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              cutout: '70%',
-              plugins: {
-                legend: { display: false },
-                tooltip: {
-                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                  titleColor: isDark ? '#f8fafc' : '#0f172a',
-                  bodyColor: isDark ? '#cbd5e1' : '#334155',
-                  borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
-                  borderWidth: 1,
-                  padding: 10,
-                  cornerRadius: 10,
-                  callbacks: {
-                    label: (c) => {
-                      const val = c.parsed;
-                      const pct = ((val / totalNetWorth) * 100).toFixed(1);
-                      return ` Rp ${Math.round(val).toLocaleString('id-ID')} (${pct}%)`;
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-
-        // Render Category Legend
-        const catLegendEl = document.getElementById('categoryAllocLegend');
-        if (catLegendEl) {
-          catLegendEl.innerHTML = catLabels.map((lbl, i) => `
-            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/40 transition">
-              <div class="flex items-center gap-2 truncate pr-2">
-                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${catColors[i]}"></span>
-                <span class="font-semibold text-slate-800 dark:text-slate-200 truncate">${lbl}</span>
-              </div>
-              <div class="text-right shrink-0 font-mono">
-                <span class="font-bold text-slate-900 dark:text-white">Rp ${(catValues[i]/1e6).toFixed(1)} jt</span>
-                <span class="text-[10px] text-slate-500 font-semibold ml-1">(${catPercents[i].toFixed(1)}%)</span>
-              </div>
-            </div>
-          `).join('');
-        }
-
-        // 2. Individual Asset Allocation Data
-        const assetList = [];
-        if (Array.isArray(appData.categories)) {
-          appData.categories.forEach(cat => {
-            if (Array.isArray(cat.items)) {
-              cat.items.forEach(it => {
-                const val = it.cur_val_idr || it.invested_idr || 0;
-                if (val > 0) {
-                  assetList.push({
-                    ticker: it.ticker,
-                    name: it.name,
-                    val: val,
-                    category: cat.name
-                  });
-                }
-              });
-            }
-          });
-        }
-        if (cashVal > 0) {
-          assetList.push({
-            ticker: 'KAS (IDR)',
-            name: 'Sisa Saldo Kas',
-            val: cashVal,
-            category: 'Kas'
-          });
-        }
-
-        assetList.sort((a, b) => b.val - a.val);
-
-        const assetCountEl = document.getElementById('assetAllocCount');
-        if (assetCountEl) assetCountEl.textContent = assetList.length + ' Aset Aktif';
-
-        const assetPalette = [
-          '#f59e0b', '#3b82f6', '#10b981', '#6366f1', '#ec4899', '#8b5cf6', 
-          '#06b6d4', '#14b8a6', '#84cc16', '#f97316', '#ef4444', '#0ea5e9',
-          '#a855f7', '#d946ef', '#0284c7', '#059669', '#d97706', '#dc2626'
-        ];
-
-        const assetLabels = assetList.map(a => a.ticker);
-        const assetValues = assetList.map(a => a.val);
-        const assetColors = assetList.map((a, i) => assetPalette[i % assetPalette.length]);
-        const assetPercents = assetList.map(a => (a.val / totalNetWorth) * 100);
-
-        // Render Asset Donut Chart
-        const assetCtx = document.getElementById('assetAllocChart');
-        if (assetCtx) {
-          if (assetAllocChartInst) assetAllocChartInst.destroy();
-          assetAllocChartInst = new Chart(assetCtx, {
-            type: 'doughnut',
-            data: {
-              labels: assetLabels,
-              datasets: [{
-                data: assetValues,
-                backgroundColor: assetColors,
-                borderWidth: isDark ? 2 : 1,
-                borderColor: isDark ? '#111827' : '#ffffff',
-                hoverOffset: 6
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              cutout: '70%',
-              plugins: {
-                legend: { display: false },
-                tooltip: {
-                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                  titleColor: isDark ? '#f8fafc' : '#0f172a',
-                  bodyColor: isDark ? '#cbd5e1' : '#334155',
-                  borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
-                  borderWidth: 1,
-                  padding: 10,
-                  cornerRadius: 10,
-                  callbacks: {
-                    title: (items) => {
-                      const idx = items[0].dataIndex;
-                      return `${assetList[idx].ticker} — ${assetList[idx].name}`;
-                    },
-                    label: (c) => {
-                      const val = c.parsed;
-                      const pct = ((val / totalNetWorth) * 100).toFixed(1);
-                      return ` Rp ${Math.round(val).toLocaleString('id-ID')} (${pct}%)`;
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-
-        // Render Asset Legend
-        const assetLegendEl = document.getElementById('assetAllocLegend');
-        if (assetLegendEl) {
-          assetLegendEl.innerHTML = assetList.map((a, i) => `
-            <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/40 transition">
-              <div class="flex items-center gap-2 truncate pr-2">
-                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${assetColors[i]}"></span>
-                <span class="font-bold text-slate-900 dark:text-white">${a.ticker}</span>
-                <span class="text-[11px] text-slate-500 truncate hidden sm:inline">(${a.name})</span>
-              </div>
-              <div class="text-right shrink-0 font-mono">
-                <span class="font-bold text-slate-900 dark:text-white">Rp ${(a.val/1e6).toFixed(1)} jt</span>
-                <span class="text-[10px] text-slate-500 font-semibold ml-1">(${assetPercents[i].toFixed(1)}%)</span>
-              </div>
-            </div>
-          `).join('');
-        }
-      }
-
-        // PROTOKOL NAGA DEDICATED CALCULATION & CHARTING ENGINE
+    // PROTOKOL NAGA DEDICATED CALCULATION & CHARTING ENGINE
     // =========================================================================
     const TR = [
       {k:'starter',  l:'Starter',    sb:'< $6K',       c:'#777772',bg:'rgba(119,119,114,.08)',br:'rgba(119,119,114,.2)',  d:'Fondasi awal — compounding belum signifikan. Disiplin menabung adalah satu-satunya senjata di tahap ini.'},
