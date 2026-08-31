@@ -1343,7 +1343,8 @@ def compute_full_portfolio(portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
     current_net_worth_idr = current_value_investment_idr + cash_balance
     current_net_worth_usd = current_net_worth_idr / usd_idr if usd_idr > 0 else 0.0
     
-    total_outgoings_idr = float(portfolio_data.get("total_outgoings", 0.0))
+    # Perhitungan Total Outgoings: Seluruh modal keluar yang ada di seluruh aset (termasuk reksadana) + saldo kas
+    total_outgoings_idr = total_invested_idr + cash_balance
     target_mode = str(portfolio_data.get("target_mode") or "USD").upper()
     if target_mode == "USD":
         target_ff_usd = float(portfolio_data.get("target_financial_freedom_usd", 500000.0))

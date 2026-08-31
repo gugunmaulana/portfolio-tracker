@@ -102,26 +102,35 @@
   <!-- ========================================================================= -->
   <!-- TOP NAVIGATION & GLOBAL MACRO TICKER BAR                                  -->
   <!-- ========================================================================= -->
-  <header class="sticky top-0 z-40 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
+    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#0b0f19]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs">
     
-    <!-- Top Sub-Bar (Live Macro FX, Ticker Benchmarks & Realtime Multi-Period Performance) -->
-    <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-2.5 flex flex-wrap items-center justify-between gap-4 text-xs border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/40 dark:bg-[#0c1322]/40">
+    <!-- Top Sub-Bar: Branding on Left, Macro Indicators in Center, Actions on Right -->
+    <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-[#0c1322]/60">
       
-      <!-- Live Macro Indicators with Direct TradingView Links & Multi-Period Returns -->
-      <div class="flex flex-wrap items-center gap-4 sm:gap-6 font-mono text-[11px] overflow-x-auto">
-        
-        <!-- Live Dot Badge -->
-        <div class="flex items-center gap-1.5 shrink-0">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-[10px]">MARKET RADAR</span>
+      <!-- Left: RADAR ASET PRO INTELLIGENCE Branding & Subtitle -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
+          <i data-lucide="radar" class="w-4.5 h-4.5"></i>
         </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+              RADAR ASET
+            </h1>
+            <span class="text-[9px] px-2 py-0.2 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold border border-sky-500/20 uppercase tracking-wide">
+              PRO INTELLIGENCE
+            </span>
+          </div>
+          <p class="text-[10.5px] text-slate-500 dark:text-slate-400 hidden sm:block">Core-Satellite Asset Allocation & AI Dip-Buying Signal Terminal</p>
+        </div>
+      </div>
 
-        <!-- USD/IDR Card with TradingView Link & Performance Details -->
+      <!-- Center: Live Macro Indicators (USD/IDR, CNY/IDR, IHSG, S&P 500) -->
+      <div class="flex flex-wrap items-center gap-3 sm:gap-5 font-mono text-[11px] overflow-x-auto">
+        
+        <!-- USD/IDR -->
         <div class="flex flex-col gap-0.5 group">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1">
             <a href="https://www.tradingview.com/symbols/USDIDR/" target="_blank" 
                class="font-bold text-slate-800 dark:text-slate-200 hover:text-sky-500 dark:hover:text-sky-400 transition flex items-center gap-0.5 underline-offset-2 hover:underline"
                title="Buka Grafik Real-Time USD/IDR di TradingView">
@@ -132,19 +141,17 @@
             <span :class="data.macro.usd_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'" 
                   x-text="'(' + (data.macro.usd_idr_chg >= 0 ? '+' : '') + data.macro.usd_idr_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.usd_idr_perf">
             <span>1W:<strong :class="data.macro.usd_idr_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.usd_idr_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['1m'])"></strong></span>
-            <span>6M:<strong :class="data.macro.usd_idr_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['6m'])"></strong></span>
             <span>1Y:<strong :class="data.macro.usd_idr_perf['1y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['1y'])"></strong></span>
             <span>5Y:<strong :class="data.macro.usd_idr_perf['5y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.usd_idr_perf['5y'])"></strong></span>
           </div>
         </div>
 
-        <!-- CNY/IDR Card with TradingView Link & Performance Details -->
+        <!-- CNY/IDR -->
         <div class="flex flex-col gap-0.5 group">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1">
             <a href="https://www.tradingview.com/symbols/CNYIDR/" target="_blank" 
                class="font-bold text-slate-800 dark:text-slate-200 hover:text-sky-500 dark:hover:text-sky-400 transition flex items-center gap-0.5 underline-offset-2 hover:underline"
                title="Buka Grafik Real-Time CNY/IDR di TradingView">
@@ -155,19 +162,17 @@
             <span :class="data.macro.cny_idr_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
                   x-text="'(' + (data.macro.cny_idr_chg >= 0 ? '+' : '') + data.macro.cny_idr_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.cny_idr_perf">
             <span>1W:<strong :class="data.macro.cny_idr_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.cny_idr_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['1m'])"></strong></span>
-            <span>6M:<strong :class="data.macro.cny_idr_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['6m'])"></strong></span>
             <span>1Y:<strong :class="data.macro.cny_idr_perf['1y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['1y'])"></strong></span>
             <span>5Y:<strong :class="data.macro.cny_idr_perf['5y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.cny_idr_perf['5y'])"></strong></span>
           </div>
         </div>
 
-        <!-- IHSG Card with TradingView Link & Performance Details -->
+        <!-- IHSG -->
         <div class="flex flex-col gap-0.5 group">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1">
             <a href="https://www.tradingview.com/symbols/IDX-COMPOSITE/" target="_blank" 
                class="font-bold text-slate-800 dark:text-slate-200 hover:text-sky-500 dark:hover:text-sky-400 transition flex items-center gap-0.5 underline-offset-2 hover:underline"
                title="Buka Grafik Real-Time IHSG di TradingView">
@@ -178,19 +183,17 @@
             <span :class="data.macro.ihsg_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
                   x-text="'(' + (data.macro.ihsg_chg >= 0 ? '+' : '') + data.macro.ihsg_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.ihsg_perf">
             <span>1W:<strong :class="data.macro.ihsg_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.ihsg_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['1m'])"></strong></span>
-            <span>6M:<strong :class="data.macro.ihsg_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['6m'])"></strong></span>
             <span>1Y:<strong :class="data.macro.ihsg_perf['1y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['1y'])"></strong></span>
             <span>5Y:<strong :class="data.macro.ihsg_perf['5y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.ihsg_perf['5y'])"></strong></span>
           </div>
         </div>
 
-        <!-- S&P 500 Card with TradingView Link & Performance Details -->
+        <!-- S&P 500 -->
         <div class="flex flex-col gap-0.5 group">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1">
             <a href="https://www.tradingview.com/symbols/SPX/" target="_blank" 
                class="font-bold text-slate-800 dark:text-slate-200 hover:text-sky-500 dark:hover:text-sky-400 transition flex items-center gap-0.5 underline-offset-2 hover:underline"
                title="Buka Grafik Real-Time S&P 500 di TradingView">
@@ -201,11 +204,9 @@
             <span :class="data.macro.sp500_chg >= 0 ? 'text-emerald-500' : 'text-rose-500'"
                   x-text="'(' + (data.macro.sp500_chg >= 0 ? '+' : '') + data.macro.sp500_chg + '% 24H)'"></span>
           </div>
-          <!-- Multi-period Performance Strip (1W, 1M, 6M, 1Y, 5Y) -->
           <div class="flex items-center gap-1.5 text-[9.5px] text-slate-400" x-show="data.macro.sp500_perf">
             <span>1W:<strong :class="data.macro.sp500_perf['1w'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['1w'])"></strong></span>
             <span>1M:<strong :class="data.macro.sp500_perf['1m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['1m'])"></strong></span>
-            <span>6M:<strong :class="data.macro.sp500_perf['6m'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['6m'])"></strong></span>
             <span>1Y:<strong :class="data.macro.sp500_perf['1y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['1y'])"></strong></span>
             <span>5Y:<strong :class="data.macro.sp500_perf['5y'] >= 0 ? 'text-emerald-500' : 'text-rose-500'" x-text="formatPct(data.macro.sp500_perf['5y'])"></strong></span>
           </div>
@@ -213,104 +214,146 @@
 
       </div>
 
-      <!-- Live Clock & Auto-refresh status -->
-      <div class="flex items-center gap-2.5 text-[11px] shrink-0">
-        <span class="text-slate-500" x-text="'WIB: ' + currentTime"></span>
-        <div class="flex items-center gap-1.5 bg-sky-500/10 dark:bg-sky-950/40 px-2 py-0.5 rounded-lg border border-sky-500/20">
+      <!-- Right: Clock, Auto-refresh & Action Buttons -->
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-slate-500 text-[11px] hidden md:inline" x-text="'WIB: ' + currentTime"></span>
+        <div class="flex items-center gap-1 bg-sky-500/10 dark:bg-sky-950/40 px-2 py-0.5 rounded-lg border border-sky-500/20 text-[11px]">
           <span class="text-sky-600 dark:text-sky-400 font-semibold"
-                x-text="'Auto-refresh: ' + autoRefreshCountdown + 's'"></span>
-          <!-- Manual Refresh / Sync Button (Moved next to Auto-refresh) -->
+                x-text="autoRefreshCountdown + 's'"></span>
           <button @click="refreshData(false)" 
                   :disabled="isLoading"
-                  class="p-1 rounded hover:bg-sky-500 hover:text-white text-sky-600 dark:text-sky-400 transition disabled:opacity-50 flex items-center justify-center"
+                  class="p-0.5 rounded hover:bg-sky-500 hover:text-white text-sky-600 dark:text-sky-400 transition disabled:opacity-50 flex items-center justify-center"
                   title="Sinkronisasi Manual Data Pasar">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5" :class="{ 'animate-spin': isLoading }"></i>
+            <i data-lucide="refresh-cw" class="w-3 h-3" :class="{ 'animate-spin': isLoading }"></i>
           </button>
         </div>
-      </div>
 
-    </div>
-
-    <!-- Main Navigation Header -->
-    <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-3.5 flex items-center justify-between gap-4">
-      
-      <!-- Brand Logo & Title -->
-      <div class="flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
-          <i data-lucide="radar" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-              RADAR ASET
-            </h1>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold border border-sky-500/20">
-              PRO INTELLIGENCE
-            </span>
-          </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Core-Satellite Asset Allocation & AI Dip-Buying Signal Terminal</p>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-2">
-        
-        <!-- Add Category Button -->
+        <!-- + Kategori -->
         <button @click="openAddCategoryModal()" 
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition border border-slate-200 dark:border-slate-700">
+                class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-semibold transition border border-slate-200 dark:border-slate-700">
           <i data-lucide="folder-plus" class="w-3.5 h-3.5 text-sky-500"></i>
           <span>+ Kategori</span>
         </button>
 
         <!-- Settings Modal Button -->
         <button @click="showSettingsModal = true" 
-                class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700"
+                class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700"
                 title="Pengaturan Target & Kas">
-          <i data-lucide="settings" class="w-4 h-4"></i>
+          <i data-lucide="settings" class="w-3.5 h-3.5"></i>
         </button>
 
         <!-- Dark / Light Mode Toggle -->
         <button @click="toggleTheme()" 
-                class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700 flex items-center justify-center"
+                class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700 flex items-center justify-center"
                 :title="isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'">
-          <svg x-show="isDark" class="w-4 h-4 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg x-show="isDark" class="w-3.5 h-3.5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
           </svg>
-          <svg x-show="!isDark" class="w-4 h-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg x-show="!isDark" class="w-3.5 h-3.5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
           </svg>
         </button>
-
       </div>
 
+    </div>
+
+    <!-- Middle Header Section: 5 Executive Summary Metric Cards (Compact & Streamlined) -->
+    <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        
+        <!-- 1. Target Financial Freedom -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-medium">
+            <span>Target Financial Freedom</span>
+            <button @click="openSettingsModal()" class="text-sky-500 hover:underline text-[11px] font-semibold">Edit</button>
+          </div>
+          <div class="text-lg lg:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums" 
+               x-text="formatIDR((data.target_mode === 'USD' && data.target_financial_freedom_usd) ? (data.target_financial_freedom_usd * getUsdIdrRate()) : data.target_financial_freedom_idr)"></div>
+          <div class="text-[11px] text-slate-500 font-mono flex items-center gap-1" 
+               x-text="'≈ ' + formatUSD((data.target_mode === 'USD' && data.target_financial_freedom_usd) ? data.target_financial_freedom_usd : (data.target_financial_freedom_idr / getUsdIdrRate())) + (data.target_mode === 'USD' ? ' (USD Utama 💵)' : ' (IDR Utama 🇮🇩)')"></div>
+          <div class="flex items-center gap-2 pt-0.5">
+            <div class="flex-1 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-sky-500 to-emerald-500 h-full rounded-full transition-all duration-500" 
+                   :style="'width: ' + Math.min(data.ff_progress_pct, 100) + '%'"></div>
+            </div>
+            <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 font-mono" x-text="data.ff_progress_pct + '%'"></span>
+          </div>
+        </div>
+
+        <!-- 2. Current Net Worth -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-medium">
+            <span>Current Net Worth</span>
+            <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold font-mono">REALTIME</span>
+          </div>
+          <div class="text-lg lg:text-xl font-extrabold text-sky-600 dark:text-sky-400 tabular-nums" x-text="formatIDR(data.current_net_worth_idr)"></div>
+          <div class="text-[11px] text-slate-500 font-mono" x-text="'≈ ' + formatUSD(data.current_net_worth_usd)"></div>
+        </div>
+
+        <!-- 3. Total Modal Terinvestasi -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-medium">
+            <span>Modal Terinvestasi</span>
+            <span class="text-slate-400 text-[10px]">Cost Basis</span>
+          </div>
+          <div class="text-lg lg:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums" x-text="formatIDR(data.total_invested_idr)"></div>
+          <div class="text-[11px] text-slate-500 font-mono" x-text="'Nilai Portofolio: ' + formatIDR(data.current_value_investment_idr)"></div>
+        </div>
+
+        <!-- 4. Total Floating PnL -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-medium">
+            <span>Total Floating Profit / Loss</span>
+            <span class="text-slate-400 text-[10px]">Return</span>
+          </div>
+          <div class="text-lg lg:text-xl font-extrabold tabular-nums flex items-baseline gap-1"
+               :class="data.total_pnl_idr >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+            <span x-text="(data.total_pnl_idr >= 0 ? '+' : '') + formatIDR(data.total_pnl_idr)"></span>
+          </div>
+          <div class="text-[11px] font-semibold tabular-nums"
+               :class="data.total_pnl_pct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
+               x-text="(data.total_pnl_pct >= 0 ? '+' : '') + data.total_pnl_pct + '%'"></div>
+        </div>
+
+        <!-- 5. Sisa Saldo Kas -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[11px] font-medium">
+            <span>Sisa Saldo Kas</span>
+            <button @click="showSettingsModal = true" class="text-sky-500 hover:underline text-[11px] font-semibold">Edit</button>
+          </div>
+          <div class="text-lg lg:text-xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums" x-text="formatIDR(data.cash_balance_idr)"></div>
+          <div class="text-[11px] text-slate-500 tabular-nums" x-text="'Total Outgoings: ' + formatIDR(data.total_outgoings_idr)"></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Navigation Tabs (4 Main Menus) -->
     <div class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800/60 overflow-x-auto whitespace-nowrap text-xs font-semibold">
       
       <button @click="activeView = 'portfolio'" 
-              class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
+              class="py-2 px-4 border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'portfolio' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="layout-grid" class="w-4 h-4"></i>
         <span>1. RADAR PORTOFOLIO</span>
       </button>
 
       <button @click="activeView = 'yearly_pnl'" 
-              class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
+              class="py-2 px-4 border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'yearly_pnl' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
         <span>2. PNL / RETURN TAHUNAN (2011-NOW)</span>
       </button>
 
       <button @click="openMonthlyTab()" 
-              class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
+              class="py-2 px-4 border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'monthly' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="calendar" class="w-4 h-4"></i>
         <span>3. TRACK BULANAN (MULTI-TAHUN)</span>
       </button>
 
       <button @click="openCalculatorTab()" 
-              class="py-2.5 px-4 border-b-2 flex items-center gap-1.5 transition"
+              class="py-2 px-4 border-b-2 flex items-center gap-1.5 transition"
               :class="activeView === 'calculator' ? 'border-sky-500 text-sky-600 dark:text-sky-400 font-bold' : 'border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'">
         <i data-lucide="calculator" class="w-4 h-4"></i>
         <span>4. KALKULATOR FF (PROTOKOL NAGA)</span>
@@ -323,30 +366,11 @@
   <!-- ========================================================================= -->
   <!-- MAIN CONTAINER (ULTRA-WIDE EXPANDED VIEW)                                 -->
   <!-- ========================================================================= -->
-  <main class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-5 space-y-5">
+  <main class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto px-2 sm:px-4 lg:px-6 py-4 space-y-4">
 
 
 
-    <!-- ======================================================================= -->
-    <!-- TOP EXECUTIVE SUMMARY METRIC CARDS                                      -->
-    <!-- ======================================================================= -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-      
-      <!-- Target Financial Freedom -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-1">
-        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
-          <span>Target Financial Freedom</span>
-          <button @click="openSettingsModal()" class="text-sky-500 hover:underline text-[11px] font-semibold">Edit</button>
-        </div>
-        <div class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums" 
-             x-text="formatIDR((data.target_mode === 'USD' && data.target_financial_freedom_usd) ? (data.target_financial_freedom_usd * getUsdIdrRate()) : data.target_financial_freedom_idr)"></div>
-        <div class="text-xs text-slate-500 font-mono flex items-center gap-1" 
-             x-text="'≈ ' + formatUSD((data.target_mode === 'USD' && data.target_financial_freedom_usd) ? data.target_financial_freedom_usd : (data.target_financial_freedom_idr / getUsdIdrRate())) + (data.target_mode === 'USD' ? ' (USD Utama 💵)' : ' (IDR Utama 🇮🇩)')"></div>
-        <div class="flex items-center gap-2 pt-0.5">
-          <div class="flex-1 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div class="bg-gradient-to-r from-sky-500 to-emerald-500 h-full rounded-full transition-all duration-500" 
-                 :style="'width: ' + Math.min(data.ff_progress_pct, 100) + '%'"></div>
-          </div>
+    
           <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono" x-text="data.ff_progress_pct + '%'"></span>
         </div>
       </div>
@@ -2036,15 +2060,11 @@
         </div>
 
         <div>
-          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Total Outgoings Bulanan / Modal Keluar (IDR)</label>
-          <input type="number" step="any" x-model.number="settingsForm.total_outgoings" required
-                 class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
-        </div>
-
-        <div>
-          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Sisa Saldo Kas, Reksa Dana & BPJS (IDR)</label>
+          <label class="block mb-1 font-semibold text-slate-700 dark:text-slate-300">Sisa Saldo Kas (IDR)</label>
           <input type="number" step="any" x-model.number="settingsForm.cash_balance" required
+                 placeholder="0"
                  class="w-full rounded-xl px-3.5 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:border-sky-500">
+          <p class="text-[11px] text-slate-400 mt-1">Total Outgoings otomatis dihitung dari akumulasi seluruh modal aset + sisa saldo kas.</p>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
