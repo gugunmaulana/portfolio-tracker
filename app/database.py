@@ -752,6 +752,9 @@ def init_db():
     except Exception:
         pass
 
+    # Ensure default target is 500k USD in USD mode
+    cursor.execute("UPDATE users SET target_financial_freedom_usd = 500000.0, target_mode = 'USD' WHERE id = 'default_user' AND (target_financial_freedom_usd IS NULL OR target_financial_freedom_usd = 0)")
+
     # Ensure category reksadana and items exist
     cursor.execute("SELECT COUNT(*) FROM categories WHERE user_id = 'default_user' AND id = 'reksadana'")
     if cursor.fetchone()[0] == 0:

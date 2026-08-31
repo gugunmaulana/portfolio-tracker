@@ -659,7 +659,9 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono tabular-nums">
                   <template x-for="(item, idx) in filteredCategoryItems(category)" :key="item.id || item.ticker">
-                    <tr class="crypto-row transition"
+                    <tr :id="'asset-row-' + item.ticker.replace('.', '_').replace('-', '_')"
+                        :data-ticker="item.ticker"
+                        class="crypto-row transition"
                         @dragover.prevent="onAssetDragOver($event)"
                         @drop="onAssetDrop($event, item, category)"
                         :class="{ 'opacity-40 bg-sky-50/50 dark:bg-sky-950/20': draggedItem && draggedItem.id === item.id }">
@@ -715,7 +717,7 @@
                           <span x-text="item.ticker"></span>
                           <a :href="getTradingViewLink(item)" target="_blank" 
                              class="text-sky-500 hover:text-white hover:bg-sky-500 p-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[10px] flex items-center transition" 
-                             :title="'Buka Grafik Interaktif & Analisis ' + item.ticker + ' di TradingView'">
+                             :title="(item.category === 'reksadana' ? 'Buka Data & NAB Realtime ' : 'Buka Grafik Interaktif & Analisis ') + item.ticker + (item.category === 'reksadana' ? ' di Bareksa Official' : ' di TradingView')">
                             <span>↗</span>
                           </a>
                         </div>
@@ -3091,13 +3093,11 @@
           if (!this.data || !this.data.categories) return res;
           for (const cat of this.data.categories) {
             for (const item of (cat.items || [])) {
-              const sig = (item.composite_signal || item.signal_label || '').toUpperCase();
-              const dis = (item.dislocation_code || item.status_code || '').toUpperCase();
-              const peSt = (item.pe_state || '').toUpperCase();
-              const dd = item.drawdown !== undefined && item.drawdown !== null ? item.drawdown : (item.ath_drawdown_pct || 0);
-              const p = (item.current_price !== undefined && item.current_price !== null && item.current_price > 0) ? item.current_price : (item.price || item.avg_price || 0);
-              
-              if (sig.includes('PRIME') || sig.includes('BUY') || dis === 'Z3' || dis === 'Z4' || peSt === 'GREAT' || dd <= -25) {
+              const sig = (item.signal_label || item.composite_signal || item.signal_code || '').toUpperCase();
+              // STRICT: Only include assets whose AI signal is strictly "PRIME BUY"
+              if (sig.includes('PRIME') && sig.includes('BUY')) {
+                const dd = item.drawdown !== undefined && item.drawdown !== null ? item.drawdown : (item.ath_drawdown_pct || 0);
+                const p = (item.current_price !== undefined && item.current_price !== null && item.current_price > 0) ? item.current_price : (item.price || item.avg_price || 0);
                 res.push({
                   ...item,
                   price: p,
@@ -3115,19 +3115,22 @@
         scrollToAsset(item) {
           if (!item || !item.ticker) return;
           this.activeView = 'portfolio';
+          this.searchQuery = ''; // Clear search so row is not filtered out
           this.$nextTick(() => {
-            const rowId = `asset-row-${item.id || item.ticker}`;
-            let rowEl = document.getElementById(rowId);
-            if (!rowEl) {
-              rowEl = document.getElementById(`asset-row-${item.ticker}`);
-            }
-            if (rowEl) {
-              rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              rowEl.classList.add('flash-asset-highlight');
-              setTimeout(() => {
-                rowEl.classList.remove('flash-asset-highlight');
-              }, 2600);
-            }
+            setTimeout(() => {
+              const cleanTicker = item.ticker.replace('.', '_').replace('-', '_');
+              let rowEl = document.getElementById(`asset-row-${cleanTicker}`)
+                       || document.querySelector(`[data-ticker="${item.ticker}"]`)
+                       || document.getElementById(`asset-row-${item.ticker}`);
+              
+              if (rowEl) {
+                rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                rowEl.classList.add('flash-asset-highlight');
+                setTimeout(() => {
+                  rowEl.classList.remove('flash-asset-highlight');
+                }, 3000);
+              }
+            }, 60);
           });
         },
 
@@ -3828,6 +3831,18 @@
         getTradingViewLink(item) {
           if (!item || !item.ticker) return 'https://www.tradingview.com';
           const raw = (item.ticker || '').trim().toUpperCase();
+          const cat = (item.category || '').toLowerCase();
+
+          // 0. Reksa Dana Official Links (Bareksa & Pasardana Realtime Official)
+          if (cat === 'reksadana' || raw === 'MNC-BAROKAH' || raw.includes('BAROKAH')) {
+            return 'https://www.bareksa.com/reksadana/produk/mnc-dana-syariah-barokah';
+          }
+          if (cat === 'reksadana' || raw === 'CAPITAL-FIXED' || raw.includes('FIXED')) {
+            return 'https://www.bareksa.com/reksadana/produk/capital-fixed-income-fund';
+          }
+          if (cat === 'reksadana') {
+            return 'https://www.bareksa.com/reksadana/produk';
+          }
 
           // 1. Commodities & Macro
           if (raw === 'GC=F' || raw === 'XAUUSD' || raw === 'GOLD') return 'https://www.tradingview.com/symbols/TVC-GOLD/';
