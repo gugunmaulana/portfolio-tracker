@@ -1174,7 +1174,7 @@
     <!-- ======================================================================= -->
     <!-- VIEW 3: TRACK BULANAN (MULTI-TAHUN) — REALTIME SYNC                     -->
     <!-- ======================================================================= -->
-    <div x-show="activeView === 'monthly'" class="max-w-[1440px] mx-auto space-y-6" x-cloak>
+    <div x-show="activeView === 'monthly'" class="w-full max-w-[98%] 2xl:max-w-[99%] mx-auto space-y-4 sm:space-y-6" x-cloak>
       
       <!-- Top Action Bar for Monthly Tracking -->
       <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
@@ -1206,11 +1206,11 @@
         </div>
       </div>
 
-      <!-- 2-COLUMN GRID: EQUAL 50%/50% WIDTH: LEFT = MONTHLY TABLE, RIGHT = MONTHLY GROWTH CHART -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+      <!-- 2-COLUMN GRID: 7/12 (LEFT TABLE) + 5/12 (RIGHT CHART) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
-        <!-- LEFT: MONTHLY TABLE (EQUAL 50% WIDTH) -->
-        <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col justify-between h-full">
+        <!-- LEFT: MONTHLY TABLE (7/12 WIDTH: WIDE & FULLY VISIBLE WITHOUT SCROLL) -->
+        <div class="lg:col-span-7 2xl:col-span-7 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col justify-between h-full">
           <div>
             <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -1223,12 +1223,12 @@
               <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50/80 dark:bg-[#0d1527] text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th class="py-2.5 px-3.5">Bulan</th>
-                    <th class="py-2.5 px-3 text-right">Modal Keluar</th>
-                    <th class="py-2.5 px-3 text-right">Networth</th>
-                    <th class="py-2.5 px-3 text-right">Injeksi</th>
-                    <th class="py-2.5 px-3 text-right">Assets P&L</th>
-                    <th class="py-2.5 px-3 text-center">Growth %</th>
+                    <th class="py-3 px-3.5 sm:px-4">Bulan</th>
+                    <th class="py-3 px-2.5 sm:px-3.5 text-right">Modal Keluar</th>
+                    <th class="py-3 px-2.5 sm:px-3.5 text-right">Networth</th>
+                    <th class="py-3 px-2.5 sm:px-3.5 text-right">Injeksi</th>
+                    <th class="py-3 px-2.5 sm:px-3.5 text-right">Assets P&L</th>
+                    <th class="py-3 px-2.5 sm:px-3.5 text-center">Growth %</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono tabular-nums">
@@ -1276,8 +1276,8 @@
           </div>
         </div>
 
-        <!-- RIGHT: MONTHLY PORTFOLIO VALUE GROWTH & MODAL KELUAR CHART (EQUAL 50% WIDTH) -->
-        <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 flex flex-col justify-between h-full space-y-4">
+        <!-- RIGHT: MONTHLY PORTFOLIO VALUE GROWTH & MODAL KELUAR CHART (5/12 WIDTH) -->
+        <div class="lg:col-span-5 2xl:col-span-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col justify-between h-full space-y-4">
           
           <div>
             <!-- Card Header: Title & Time -->
