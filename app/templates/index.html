@@ -488,31 +488,31 @@
           </div>
         </div>
 
-        <!-- Donut Chart & Proportional Breakdown List (Diagram Left, Ticker Middle, Nominal Right) -->
-        <div class="flex-1 flex flex-col 2xl:flex-row items-center justify-between gap-6 my-auto pt-1">
+        <!-- Breakdown List (Left) & Donut Chart (Right) with Clean Divider -->
+        <div class="flex-1 flex flex-col xl:flex-row items-center justify-between gap-6 my-auto pt-1">
           
-          <!-- Diagram Donat (Kiri / Left) -->
-          <div class="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 xl:w-84 xl:h-84 shrink-0 flex items-center justify-center my-auto"
-               x-init="$nextTick(() => updateAllocDonut())">
-            <canvas id="portfolioAllocDonut"></canvas>
-          </div>
-
-          <!-- Rincian Aset: Nama Aset di Tengah, Nominal di Kanan dengan Space Proporsional -->
-          <div class="flex-1 w-full space-y-1 max-h-[340px] overflow-y-auto pr-1.5 text-xs">
+          <!-- SISI KIRI: Rincian Aset (Nama Aset di Kiri, Nominal di Kanan) -->
+          <div class="flex-1 w-full space-y-1 max-h-[340px] overflow-y-auto pr-2 xl:pr-6 xl:border-r xl:border-slate-100 xl:dark:border-slate-800/80 text-xs">
             <template x-for="(item, idx) in getAllocData()" :key="item.name + idx">
-              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/50 transition gap-3">
-                <!-- Tengah: Dot Warna + Ticker & Nama Aset -->
-                <div class="flex items-center gap-2 min-w-0 flex-1 pr-1">
+              <div class="flex items-center justify-between py-1.5 px-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/50 transition gap-4">
+                <!-- Dot Warna + Ticker & Nama Aset -->
+                <div class="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
                   <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs" :style="'background-color: ' + item.color"></span>
                   <span class="font-bold text-slate-800 dark:text-slate-200 truncate text-[11px] sm:text-xs" x-text="item.name"></span>
                 </div>
-                <!-- Kanan: Nominal Rupiah & Persentase -->
+                <!-- Nominal Rupiah & Persentase -->
                 <div class="text-right shrink-0 font-mono whitespace-nowrap pl-2">
                   <span class="font-black text-slate-900 dark:text-white text-xs sm:text-[13px]" x-text="'Rp ' + (item.val/1e6).toFixed(1) + ' jt'"></span>
                   <span class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold ml-1.5" x-text="'(' + item.pct.toFixed(1) + '%)'"></span>
                 </div>
               </div>
             </template>
+          </div>
+
+          <!-- SISI KANAN: Diagram Donat -->
+          <div class="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 xl:w-84 xl:h-84 shrink-0 flex items-center justify-center my-auto"
+               x-init="$nextTick(() => updateAllocDonut())">
+            <canvas id="portfolioAllocDonut"></canvas>
           </div>
 
         </div>
@@ -1235,8 +1235,13 @@
                   <template x-for="row in monthlyRecords" :key="row.id || row.month_index">
                     <tr class="crypto-row transition" :class="isCurrentMonthRow(row) ? 'bg-sky-50/40 dark:bg-sky-950/20 font-semibold' : ''">
                       
-                      <!-- Month Name -->
-                      <td class="py-2.5 px-3.5 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <!-- Month Name with Edit Pencil Icon Button -->
+                      <td class="py-2.5 px-3.5 font-sans font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <button type="button" @click="editMonthlyRow(row)" 
+                                title="Edit Modal Keluar, Networth & Injeksi Bulan Ini"
+                                class="p-1 rounded-lg hover:bg-sky-500/10 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition flex items-center justify-center">
+                          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
                         <span x-text="row.month_name"></span>
                         <span x-show="isCurrentMonthRow(row)" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 uppercase">Live</span>
                       </td>
