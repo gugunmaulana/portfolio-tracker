@@ -320,20 +320,7 @@ DEFAULT_PORTFOLIO_CONFIG = {
                     "pe_good": 6.5,
                     "pe_exp": 8.5
                 },
-                {
-                    "ticker": "BREN.JK",
-                    "name": "Energi Terbarukan Panas Bumi RI",
-                    "category": "satellites",
-                    "currency": "IDR",
-                    "invested_idr": 922500.0,
-                    "quantity": 1.0,
-                    "avg_price_idr": 9225.0,
-                    "is_lot": True,
-                    "pe_great": 80.0,
-                    "pe_good": 120.0,
-                    "pe_exp": 180.0
-                },
-                {
+                                {
                     "ticker": "ETH-USD",
                     "name": "Smart Contract Platform Leader",
                     "category": "satellites",

@@ -12,7 +12,7 @@
   "categories": [
     {
       "id": "core_radar",
-      "name": "CORE RADAR — Fondasi Wealth 3 ETF",
+      "name": "CORE RADAR \u2014 Fondasi Wealth 3 ETF",
       "subtitle": "Index US 500, QQQ & AI Semikonduktor",
       "color": "blue",
       "sort_order": 1,
@@ -324,7 +324,7 @@
     },
     {
       "id": "satellites",
-      "name": "EXTENDED RADAR — Indonesia & Crypto Satellites",
+      "name": "EXTENDED RADAR \u2014 Indonesia & Crypto Satellites",
       "subtitle": "Diversifikasi Lokal IHSG & High-Beta Crypto",
       "color": "emerald",
       "sort_order": 4,
@@ -375,21 +375,6 @@
           "sort_order": 0
         },
         {
-          "id": 23,
-          "ticker": "BREN.JK",
-          "name": "Energi Terbarukan RI",
-          "category": "satellites",
-          "currency": "IDR",
-          "invested_idr": 407000.0,
-          "quantity": 1.0,
-          "avg_price": 4070.0,
-          "is_lot": true,
-          "pe_great": 12.0,
-          "pe_good": 16.0,
-          "pe_exp": 22.0,
-          "sort_order": 0
-        },
-        {
           "id": 24,
           "ticker": "ETH-USD",
           "name": "Ethereum Smart Contract Platform",
@@ -423,7 +408,7 @@
     },
     {
       "id": "watchlist",
-      "name": "WATCHLIST — AI Infrastructure & Energy Grid",
+      "name": "WATCHLIST \u2014 AI Infrastructure & Energy Grid",
       "subtitle": "Rantai Pasok Semikonduktor, Software & Nuklir",
       "color": "cyan",
       "sort_order": 5,

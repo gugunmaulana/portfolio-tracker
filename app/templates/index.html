@@ -488,31 +488,24 @@
           </div>
         </div>
 
-        <!-- Donut Chart & Breakdown List (Vertically Centered with Dead-Center Hole Text) -->
-        <div class="flex-1 flex flex-col xl:flex-row items-center justify-center gap-6 my-auto pt-1">
+        <!-- Donut Chart & Breakdown List (15% Larger & Compact Snug Legend) -->
+        <div class="flex-1 flex flex-col xl:flex-row items-center justify-between gap-4 my-auto pt-1">
           
-          <!-- Donut Canvas Container with ABSOLUTE Dead-Center Text -->
-          <div class="relative w-60 h-60 sm:w-68 sm:h-68 md:w-76 md:h-76 shrink-0 flex items-center justify-center my-auto"
+          <!-- Donut Canvas Container (15% Larger: 320px-350px) -->
+          <div class="relative w-68 h-68 sm:w-76 sm:h-76 md:w-84 md:h-84 xl:w-92 xl:h-92 shrink-0 flex items-center justify-center my-auto"
                x-init="$nextTick(() => updateAllocDonut())">
             <canvas id="portfolioAllocDonut"></canvas>
-            
-            <!-- Absolute Dead-Center Hole Disc -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white dark:bg-[#111827] shadow-inner flex flex-col items-center justify-center pointer-events-none text-center border border-slate-100 dark:border-slate-800 z-0">
-              <span class="text-[10px] sm:text-xs uppercase font-extrabold text-slate-400 tracking-wider" x-text="allocTab === 'category' ? 'Kategori' : 'Aset'"></span>
-              <span class="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white font-mono leading-tight mt-0.5" x-text="getAllocData().length + ' Porsi'"></span>
-              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold font-mono">100% Net Worth</span>
-            </div>
           </div>
 
-          <!-- Dynamic Legend & Values List (Reactive via Alpine) -->
-          <div class="flex-1 w-full space-y-1 max-h-[300px] overflow-y-auto pr-1 text-xs">
+          <!-- Dynamic Legend & Values List (Tight & Compact to give space to chart) -->
+          <div class="w-full max-w-[340px] xl:max-w-[370px] space-y-1 max-h-[330px] overflow-y-auto pr-1 text-xs">
             <template x-for="(item, idx) in getAllocData()" :key="item.name + idx">
-              <div class="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/50 transition">
-                <div class="flex items-center gap-2 truncate pr-1">
-                  <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color: ' + item.color"></span>
+              <div class="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/50 transition">
+                <div class="flex items-center gap-1.5 truncate pr-2">
+                  <span class="w-2 h-2 rounded-full shrink-0" :style="'background-color: ' + item.color"></span>
                   <span class="font-bold text-slate-900 dark:text-white truncate" x-text="item.name"></span>
                 </div>
-                <div class="text-right shrink-0 font-mono">
+                <div class="text-right shrink-0 font-mono whitespace-nowrap">
                   <span class="font-bold text-slate-900 dark:text-white" x-text="'Rp ' + (item.val/1e6).toFixed(1) + ' jt'"></span>
                   <span class="text-[10px] text-slate-500 font-semibold ml-1" x-text="'(' + item.pct.toFixed(1) + '%)'"></span>
                 </div>
@@ -3261,6 +3254,42 @@
           const labels = items.map(x => x.name);
           const dataVals = items.map(x => x.val);
           const bgColors = items.map(x => x.color);
+          const activeTabName = this.allocTab;
+
+          // Chart.js Center Text Plugin: Drawn in beforeDraw so tooltips are ALWAYS rendered on top!
+          const allocCenterPlugin = {
+            id: 'allocCenterPlugin',
+            beforeDraw(chart) {
+              const { ctx, chartArea } = chart;
+              if (!chartArea) return;
+              const centerX = (chartArea.left + chartArea.right) / 2;
+              const centerY = (chartArea.top + chartArea.bottom) / 2;
+              const isDarkTheme = document.documentElement.classList.contains('dark');
+              const totalItems = chart.data.labels ? chart.data.labels.length : 0;
+              const tabLabel = (chart.config.options.customAllocTab === 'category') ? 'KATEGORI' : 'ASET';
+
+              ctx.save();
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+
+              // 1. Subtitle Tag (KATEGORI / ASET)
+              ctx.font = 'bold 11px Inter, sans-serif';
+              ctx.fillStyle = isDarkTheme ? '#94a3b8' : '#64748b';
+              ctx.fillText(tabLabel, centerX, centerY - 18);
+
+              // 2. Count (e.g. 11 Porsi)
+              ctx.font = 'bold 18px "JetBrains Mono", monospace';
+              ctx.fillStyle = isDarkTheme ? '#f8fafc' : '#0f172a';
+              ctx.fillText(totalItems + ' Porsi', centerX, centerY + 2);
+
+              // 3. 100% Net Worth
+              ctx.font = 'bold 10px "JetBrains Mono", monospace';
+              ctx.fillStyle = '#10b981';
+              ctx.fillText('100% Net Worth', centerX, centerY + 22);
+
+              ctx.restore();
+            }
+          };
 
           // Seamlessly update existing chart instance without blank flash
           const existingChart = (typeof Chart !== 'undefined' && Chart.getChart(canvas)) || this.allocChartInst;
@@ -3271,6 +3300,7 @@
               existingChart.data.datasets[0].backgroundColor = bgColors;
               existingChart.data.datasets[0].borderColor = isDark ? '#111827' : '#ffffff';
               existingChart.options.cutout = '58%';
+              existingChart.options.customAllocTab = activeTabName;
               existingChart.options.plugins.tooltip.backgroundColor = '#0f172a';
               existingChart.options.plugins.tooltip.titleColor = '#ffffff';
               existingChart.options.plugins.tooltip.bodyColor = '#38bdf8';
@@ -3298,17 +3328,19 @@
                   hoverBorderWidth: 3
                 }]
               },
+              plugins: [allocCenterPlugin],
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '58%',
+                customAllocTab: activeTabName,
                 animation: {
                   duration: 300
                 },
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    // 100% Solid Opaque Background (No Transparency / Bleed-Through)
+                    // 100% Solid Opaque Dark Background (Rendered strictly IN FRONT of canvas center text)
                     backgroundColor: '#0f172a',
                     titleColor: '#ffffff',
                     bodyColor: '#38bdf8',
