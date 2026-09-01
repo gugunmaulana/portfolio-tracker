@@ -802,9 +802,8 @@ def sync_realtime_monthly_snapshot(user_id: str = "default_user", portfolio_data
     if prev_netw > 0 and netw > 0:
         growth_pct = ((netw - prev_netw) / prev_netw) * 100.0
 
-    inv_pwr = (outg - prev_outg) if (prev_outg > 0 and outg >= prev_outg) else 3075471.0
-    if inv_pwr <= 0:
-        inv_pwr = 3075471.0
+    # Formula Injeksi = Modal Keluar Bulan Ini - Modal Keluar Bulan Sebelumnya (bisa minus bila tarik modal)
+    inv_pwr = (outg - prev_outg) if prev_outg > 0 else 0.0
 
     cursor.execute("""
     UPDATE monthly_records SET

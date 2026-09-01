@@ -1254,9 +1254,10 @@
                       <td class="py-2.5 px-3 text-right font-bold text-slate-900 dark:text-white" 
                           x-text="getMonthlyNetworth(row) > 0 ? formatIDR(getMonthlyNetworth(row)) : '-'"></td>
 
-                      <!-- Investing Power -->
-                      <td class="py-2.5 px-3 text-right font-semibold text-sky-600 dark:text-sky-400" 
-                          x-text="getMonthlyInvestingPower(row) > 0 ? formatIDR(getMonthlyInvestingPower(row)) : '0'"></td>
+                      <!-- Injeksi (Modal Keluar Bulan Ini - Modal Keluar Bulan Sebelumnya) -->
+                      <td class="py-2.5 px-2.5 text-right font-semibold" 
+                          :class="getMonthlyInvestingPower(row) > 0 ? 'text-sky-600 dark:text-sky-400' : (getMonthlyInvestingPower(row) < 0 ? 'text-rose-500 dark:text-rose-400' : 'text-slate-400')"
+                          x-text="formatInvestingPower(row)"></td>
 
                       <!-- Assets PnL -->
                       <td class="py-2.5 px-3 text-right font-bold"
@@ -3426,10 +3427,35 @@
 
         getMonthlyInvestingPower(row) {
           if (!row) return 0;
-          if (row.investing_power !== undefined && row.investing_power !== null) {
-            return row.investing_power;
+          const curOutg = this.getMonthlyOutgoings(row);
+          if (!curOutg || curOutg <= 0) return 0;
+
+          const curIdx = row.month_index;
+          if (curIdx === 1) {
+            return (row.investing_power !== undefined && row.investing_power !== null) ? row.investing_power : 0;
           }
-          return 0;
+
+          const prevRow = this.monthlyRecords ? this.monthlyRecords.find(m => m.month_index === curIdx - 1) : null;
+          if (prevRow) {
+            const prevOutg = this.getMonthlyOutgoings(prevRow);
+            if (prevOutg > 0) {
+              return curOutg - prevOutg;
+            }
+          }
+
+          return (row.investing_power !== undefined && row.investing_power !== null) ? row.investing_power : 0;
+        },
+
+        formatInvestingPower(row) {
+          if (!row) return '0';
+          const outg = this.getMonthlyOutgoings(row);
+          if (!outg || outg <= 0) return '0';
+          const val = this.getMonthlyInvestingPower(row);
+          if (val === 0) return '0';
+          if (val < 0) {
+            return '-' + this.formatIDR(Math.abs(val));
+          }
+          return this.formatIDR(val);
         },
 
         getMonthlyPnLIDR(row) {
