@@ -1,18 +1,18 @@
 {
   "user_id": "default_user",
   "user_name": "Master Investor",
-  "target_mode": "IDR",
-  "target_financial_freedom_usd": 565000.0,
-  "target_financial_freedom": 10000000000.0,
+  "target_mode": "USD",
+  "target_financial_freedom_usd": 500000.0,
+  "target_financial_freedom": 8870500000.0,
   "total_outgoings": 91457683.0,
-  "cash_balance": 7000000.0,
+  "cash_balance": 3400000.0,
   "target_annual_min_return": 10.0,
   "target_annual_ideal_return": 20.0,
   "currency_base": "IDR",
   "categories": [
     {
       "id": "core_radar",
-      "name": "CORE RADAR \u2014 Fondasi Wealth 3 ETF",
+      "name": "CORE RADAR — Fondasi Wealth 3 ETF",
       "subtitle": "Index US 500, QQQ & AI Semikonduktor",
       "color": "blue",
       "sort_order": 1,
@@ -88,10 +88,10 @@
         },
         {
           "id": 5,
-          "ticker": "GC=F",
-          "name": "FX / Hedge (Gold USD / XAU)",
+          "ticker": "EMAS",
+          "name": "Emas Fisik (Logam Mulia Antam per Gram)",
           "category": "war_nemesis",
-          "currency": "USD",
+          "currency": "IDR",
           "invested_idr": 0.0,
           "quantity": 0.0,
           "avg_price": 0.0,
@@ -324,7 +324,7 @@
     },
     {
       "id": "satellites",
-      "name": "EXTENDED RADAR \u2014 Indonesia & Crypto Satellites",
+      "name": "EXTENDED RADAR — Indonesia & Crypto Satellites",
       "subtitle": "Diversifikasi Lokal IHSG & High-Beta Crypto",
       "color": "emerald",
       "sort_order": 4,
@@ -408,7 +408,7 @@
     },
     {
       "id": "watchlist",
-      "name": "WATCHLIST \u2014 AI Infrastructure & Energy Grid",
+      "name": "WATCHLIST — AI Infrastructure & Energy Grid",
       "subtitle": "Rantai Pasok Semikonduktor, Software & Nuklir",
       "color": "cyan",
       "sort_order": 5,
@@ -637,6 +637,30 @@
           "pe_good": 26.0,
           "pe_exp": 34.0,
           "sort_order": 15
+        }
+      ]
+    },
+    {
+      "id": "reksadana",
+      "name": "REKSA DANA — Pasar Uang & Pendapatan Tetap",
+      "subtitle": "Posisi Investasi Reksa Dana & Yield Stabil",
+      "color": "teal",
+      "sort_order": 6,
+      "items": [
+        {
+          "id": 52,
+          "ticker": "CAPITAL-FIXED",
+          "name": "Capital Fixed Income Fund (Pendapatan Tetap)",
+          "category": "reksadana",
+          "currency": "IDR",
+          "invested_idr": 3010000.0,
+          "quantity": 3063669.0,
+          "avg_price": 0.98248,
+          "is_lot": false,
+          "pe_great": null,
+          "pe_good": null,
+          "pe_exp": null,
+          "sort_order": 2
         }
       ]
     }

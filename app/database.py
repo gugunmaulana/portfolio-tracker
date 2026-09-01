@@ -740,7 +740,9 @@ def init_db():
         pass
 
     # Ensure default target is 500k USD in USD mode and cash balance is 3,000,000 IDR
-    cursor.execute("UPDATE users SET target_financial_freedom_usd = 500000.0, target_mode = 'USD', cash_balance = 3000000.0 WHERE id = 'default_user'")
+        cursor.execute("UPDATE users SET target_financial_freedom_usd = 500000.0 WHERE target_financial_freedom_usd IS NULL")
+    cursor.execute("UPDATE users SET target_mode = 'USD' WHERE target_mode IS NULL")
+    cursor.execute("UPDATE users SET cash_balance = 3000000.0 WHERE cash_balance IS NULL")
 
     # Ensure category reksadana and items exist
     cursor.execute("SELECT COUNT(*) FROM categories WHERE user_id = 'default_user' AND id = 'reksadana'")
@@ -1029,25 +1031,40 @@ def upsert_monthly_record(user_id: str, record: Dict[str, Any]):
     netw = float(record.get("current_networth") or 0.0)
     inv_pwr = float(record.get("investing_power") or 0.0)
     
-    pnl_idr = (netw - outg) if outg > 0 else 0.0
+    pnl_idr = (netw - outg) if (outg > 0 or netw > 0) else 0.0
     pnl_pct = ((pnl_idr / outg) * 100.0) if outg > 0 else 0.0
     growth_pct = float(record.get("growth_pct") or 0.0)
     
-    if record.get("id"):
+    rec_id = record.get("id")
+    year = int(record.get("year", 2026))
+    month_idx = int(record.get("month_index", 1))
+
+    if rec_id:
         cursor.execute("""
         UPDATE monthly_records SET
             total_outgoings = ?, current_networth = ?, investing_power = ?,
             pnl_idr = ?, pnl_pct = ?, growth_pct = ?, notes = ?
         WHERE id = ? AND user_id = ?
-        """, (outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", ""), record.get("id"), user_id))
+        """, (outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", ""), rec_id, user_id))
     else:
-        cursor.execute("""
-        INSERT INTO monthly_records (user_id, year, month_index, month_name, total_outgoings, current_networth, investing_power, pnl_idr, pnl_pct, growth_pct, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            user_id, int(record.get("year", 2026)), int(record.get("month_index", 1)),
-            record.get("month_name", "Month"), outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", "")
-        ))
+        # Check if record already exists for this year and month_index
+        cursor.execute("SELECT id FROM monthly_records WHERE user_id = ? AND year = ? AND month_index = ?", (user_id, year, month_idx))
+        existing = cursor.fetchone()
+        if existing:
+            cursor.execute("""
+            UPDATE monthly_records SET
+                total_outgoings = ?, current_networth = ?, investing_power = ?,
+                pnl_idr = ?, pnl_pct = ?, growth_pct = ?, notes = ?
+            WHERE id = ?
+            """, (outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", ""), existing[0]))
+        else:
+            cursor.execute("""
+            INSERT INTO monthly_records (user_id, year, month_index, month_name, total_outgoings, current_networth, investing_power, pnl_idr, pnl_pct, growth_pct, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                user_id, year, month_idx,
+                record.get("month_name", "Month"), outg, netw, inv_pwr, pnl_idr, pnl_pct, growth_pct, record.get("notes", "")
+            ))
     conn.commit()
     conn.close()
 

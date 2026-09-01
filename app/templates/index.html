@@ -3403,52 +3403,65 @@
 
 
         getMonthlyOutgoings(row) {
-          if (this.isCurrentMonthRow(row)) {
-            return this.data.total_outgoings_idr || row.total_outgoings;
+          if (!row) return 0;
+          if (row.total_outgoings !== undefined && row.total_outgoings > 0) {
+            return row.total_outgoings;
           }
-          return row.total_outgoings;
+          if (this.isCurrentMonthRow(row) && this.data && this.data.total_outgoings_idr) {
+            return this.data.total_outgoings_idr;
+          }
+          return row.total_outgoings || 0;
         },
 
         getMonthlyNetworth(row) {
-          if (this.isCurrentMonthRow(row)) {
-            return this.data.current_net_worth_idr || row.current_networth;
+          if (!row) return 0;
+          if (row.current_networth !== undefined && row.current_networth > 0) {
+            return row.current_networth;
           }
-          return row.current_networth;
+          if (this.isCurrentMonthRow(row) && this.data && this.data.current_net_worth_idr) {
+            return this.data.current_net_worth_idr;
+          }
+          return row.current_networth || 0;
         },
 
         getMonthlyInvestingPower(row) {
-          if (this.isCurrentMonthRow(row)) {
-            const curIdx = row.month_index;
-            const prevRow = this.monthlyRecords.find(m => m.month_index === curIdx - 1);
-            if (prevRow && prevRow.total_outgoings > 0 && this.data.total_outgoings_idr >= prevRow.total_outgoings) {
-              return this.data.total_outgoings_idr - prevRow.total_outgoings;
-            }
-            return row.investing_power || 3075471.0;
+          if (!row) return 0;
+          if (row.investing_power !== undefined && row.investing_power !== null) {
+            return row.investing_power;
           }
-          return row.investing_power;
+          return 0;
         },
 
         getMonthlyPnLIDR(row) {
-          if (this.isCurrentMonthRow(row)) {
-            return this.data.total_pnl_idr !== undefined ? this.data.total_pnl_idr : row.pnl_idr;
+          if (!row) return 0;
+          const netw = this.getMonthlyNetworth(row);
+          const outg = this.getMonthlyOutgoings(row);
+          if (outg > 0 || netw > 0) {
+            return netw - outg;
           }
-          return row.pnl_idr;
+          return row.pnl_idr || 0;
         },
 
         getMonthlyPnLPct(row) {
-          if (this.isCurrentMonthRow(row)) {
-            return this.data.total_pnl_pct !== undefined ? this.data.total_pnl_pct : (row.pnl_pct || 0.0);
+          if (!row) return 0;
+          const netw = this.getMonthlyNetworth(row);
+          const outg = this.getMonthlyOutgoings(row);
+          if (outg > 0) {
+            return ((netw - outg) / outg) * 100.0;
           }
-          return row.pnl_pct || 0.0;
+          return row.pnl_pct || 0;
         },
 
         getMonthlyGrowth(row) {
-          if (this.isCurrentMonthRow(row)) {
-            const curIdx = row.month_index;
-            const prevRow = this.monthlyRecords.find(m => m.month_index === curIdx - 1);
-            if (prevRow && prevRow.current_networth > 0 && this.data.current_net_worth_idr > 0) {
-              return ((this.data.current_net_worth_idr - prevRow.current_networth) / prevRow.current_networth) * 100.0;
-            }
+          if (!row) return 0;
+          if (row.growth_pct !== undefined && row.growth_pct !== null && row.growth_pct !== 0) {
+            return row.growth_pct;
+          }
+          const curIdx = row.month_index;
+          const prevRow = this.monthlyRecords ? this.monthlyRecords.find(m => m.month_index === curIdx - 1) : null;
+          const curNetw = this.getMonthlyNetworth(row);
+          if (prevRow && prevRow.current_networth > 0 && curNetw > 0) {
+            return ((curNetw - prevRow.current_networth) / prevRow.current_networth) * 100.0;
           }
           return row.growth_pct || 0.0;
         },
@@ -3698,7 +3711,11 @@
             if (result.status === 'success') {
               this.data = result.data;
               this.showSettingsModal = false;
-              this.showToast('Pengaturan berhasil diperbarui!');
+              this.showToast('Pengaturan & Sisa Saldo Kas berhasil disimpan!');
+              this.$nextTick(() => {
+                this.updateAllocDonut();
+                lucide.createIcons();
+              });
             }
           } catch (err) {
             alert('Gagal menyimpan pengaturan: ' + err);
@@ -3708,13 +3725,13 @@
         editMonthlyRow(row) {
           this.monthlyForm = {
             id: row.id,
-            year: this.selectedYear,
+            year: this.selectedYear || 2026,
             month_index: row.month_index,
             month_name: row.month_name,
-            total_outgoings: this.getMonthlyOutgoings(row),
-            current_networth: this.getMonthlyNetworth(row),
-            investing_power: this.getMonthlyInvestingPower(row),
-            growth_pct: this.getMonthlyGrowth(row),
+            total_outgoings: row.total_outgoings || this.getMonthlyOutgoings(row) || 0,
+            current_networth: row.current_networth || this.getMonthlyNetworth(row) || 0,
+            investing_power: (row.investing_power !== undefined && row.investing_power !== null) ? row.investing_power : this.getMonthlyInvestingPower(row),
+            growth_pct: (row.growth_pct !== undefined && row.growth_pct !== null) ? row.growth_pct : this.getMonthlyGrowth(row),
             notes: row.notes || ''
           };
           this.showMonthlyModal = true;
@@ -3723,6 +3740,12 @@
 
         async saveMonthly() {
           try {
+            // Ensure numbers are properly parsed as float
+            this.monthlyForm.total_outgoings = parseFloat(this.monthlyForm.total_outgoings) || 0;
+            this.monthlyForm.current_networth = parseFloat(this.monthlyForm.current_networth) || 0;
+            this.monthlyForm.investing_power = parseFloat(this.monthlyForm.investing_power) || 0;
+            this.monthlyForm.growth_pct = parseFloat(this.monthlyForm.growth_pct) || 0;
+
             const res = await fetch('/api/monthly/upsert', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3732,8 +3755,11 @@
             if (result.status === 'success') {
               this.monthlyRecords = result.data;
               this.showMonthlyModal = false;
-              this.showToast('Catatan bulanan diperbarui!');
-              this.$nextTick(() => this.renderPortfolioGrowthChart());
+              this.showToast(`✨ Catatan ${this.monthlyForm.month_name} berhasil disimpan & diperbarui!`);
+              this.$nextTick(() => {
+                this.renderPortfolioGrowthChart();
+                lucide.createIcons();
+              });
             }
           } catch (err) {
             alert('Gagal menyimpan catatan bulanan: ' + err);
