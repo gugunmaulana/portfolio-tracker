@@ -3405,9 +3405,7 @@
 
         getMonthlyOutgoings(row) {
           if (!row) return 0;
-          if (row.total_outgoings !== undefined && row.total_outgoings > 0) {
-            return row.total_outgoings;
-          }
+          // Bulan Live berjalan mengikuti realtime data portofolio aktif
           if (this.isCurrentMonthRow(row) && this.data && this.data.total_outgoings_idr) {
             return this.data.total_outgoings_idr;
           }
@@ -3416,9 +3414,7 @@
 
         getMonthlyNetworth(row) {
           if (!row) return 0;
-          if (row.current_networth !== undefined && row.current_networth > 0) {
-            return row.current_networth;
-          }
+          // Bulan Live berjalan mengikuti realtime Networth aktif
           if (this.isCurrentMonthRow(row) && this.data && this.data.current_net_worth_idr) {
             return this.data.current_net_worth_idr;
           }
@@ -3460,6 +3456,10 @@
 
         getMonthlyPnLIDR(row) {
           if (!row) return 0;
+          // Bulan Live mengikuti Floating Profit/Loss realtime
+          if (this.isCurrentMonthRow(row) && this.data && this.data.total_pnl_idr !== undefined) {
+            return this.data.total_pnl_idr;
+          }
           const netw = this.getMonthlyNetworth(row);
           const outg = this.getMonthlyOutgoings(row);
           if (outg > 0 || netw > 0) {
@@ -3470,6 +3470,10 @@
 
         getMonthlyPnLPct(row) {
           if (!row) return 0;
+          // Bulan Live mengikuti Return % realtime
+          if (this.isCurrentMonthRow(row) && this.data && this.data.total_pnl_pct !== undefined) {
+            return this.data.total_pnl_pct;
+          }
           const netw = this.getMonthlyNetworth(row);
           const outg = this.getMonthlyOutgoings(row);
           if (outg > 0) {
@@ -3480,14 +3484,31 @@
 
         getMonthlyGrowth(row) {
           if (!row) return 0;
+          const curIdx = row.month_index;
+          const curNetw = this.getMonthlyNetworth(row);
+          if (!curNetw || curNetw <= 0) return 0.0;
+          if (curIdx === 1) return 0.0;
+          
+          // Bulan Live terhitung realtime terhadap networth bulan sebelumnya
+          if (this.isCurrentMonthRow(row)) {
+            const prevRow = this.monthlyRecords ? this.monthlyRecords.find(m => m.month_index === curIdx - 1) : null;
+            if (prevRow) {
+              const prevNetw = this.getMonthlyNetworth(prevRow);
+              if (prevNetw > 0) {
+                return ((curNetw - prevNetw) / prevNetw) * 100.0;
+              }
+            }
+          }
+          
           if (row.growth_pct !== undefined && row.growth_pct !== null && row.growth_pct !== 0) {
             return row.growth_pct;
           }
-          const curIdx = row.month_index;
           const prevRow = this.monthlyRecords ? this.monthlyRecords.find(m => m.month_index === curIdx - 1) : null;
-          const curNetw = this.getMonthlyNetworth(row);
-          if (prevRow && prevRow.current_networth > 0 && curNetw > 0) {
-            return ((curNetw - prevRow.current_networth) / prevRow.current_networth) * 100.0;
+          if (prevRow) {
+            const prevNetw = this.getMonthlyNetworth(prevRow);
+            if (prevNetw > 0) {
+              return ((curNetw - prevNetw) / prevNetw) * 100.0;
+            }
           }
           return row.growth_pct || 0.0;
         },
