@@ -488,17 +488,19 @@
           </div>
         </div>
 
-        <!-- Donut Chart & Breakdown List (Enlarged & Prominent Display) -->
-        <div class="flex flex-col xl:flex-row items-center gap-5 pt-1">
+        <!-- Donut Chart & Breakdown List (Extra Large & High Contrast Display) -->
+        <div class="flex flex-col xl:flex-row items-center gap-6 pt-1">
           
-          <!-- Donut Canvas Container (Enlarged to 220px-240px) -->
-          <div class="relative w-52 h-52 sm:w-56 sm:h-56 md:w-60 md:h-60 shrink-0 flex items-center justify-center p-2"
+          <!-- Donut Canvas Container (Enlarged to 280px-300px with Solid Center Disc) -->
+          <div class="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 shrink-0 flex items-center justify-center p-2"
                x-init="$nextTick(() => updateAllocDonut())">
             <canvas id="portfolioAllocDonut"></canvas>
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+            
+            <!-- Solid Opaque Center Circle to prevent any tooltip bleed-through -->
+            <div class="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full bg-white dark:bg-[#111827] shadow-sm flex flex-col items-center justify-center pointer-events-none text-center border border-slate-100 dark:border-slate-800/80 z-0">
               <span class="text-[10px] sm:text-xs uppercase font-extrabold text-slate-400 tracking-wider" x-text="allocTab === 'category' ? 'Kategori' : 'Aset'"></span>
-              <span class="text-sm sm:text-base font-black text-slate-900 dark:text-white font-mono" x-text="getAllocData().length + ' Porsi'"></span>
-              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold font-mono">100%</span>
+              <span class="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white font-mono leading-tight mt-0.5" x-text="getAllocData().length + ' Porsi'"></span>
+              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold font-mono">100% Net Worth</span>
             </div>
           </div>
 
@@ -1393,10 +1395,9 @@
             <span>Rp 100 Miliar</span>
           </div>
 
-          <!-- Quick Shortcuts (Complete Range: 0 to 100 Miliar) -->
+          <!-- Quick Shortcuts (Range: 1 Jt to 75 Miliar) -->
           <div class="pt-2 flex flex-wrap items-center gap-1.5 text-xs" id="ff-shortcuts-box">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">SHORTCUT:</span>
-            <button type="button" onclick="setPortoVal(0)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">0</button>
             <button type="button" onclick="setPortoVal(1e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">1 Jt</button>
             <button type="button" onclick="setPortoVal(5e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">5 Jt</button>
             <button type="button" onclick="setPortoVal(10e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">10 Jt</button>
@@ -1414,7 +1415,6 @@
             <button type="button" onclick="setPortoVal(30e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">30 M</button>
             <button type="button" onclick="setPortoVal(50e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">50 M</button>
             <button type="button" onclick="setPortoVal(75e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">75 M</button>
-            <button type="button" onclick="setPortoVal(100e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">100 M</button>
           </div>
         </div>
 
@@ -3270,11 +3270,11 @@
               existingChart.data.datasets[0].data = dataVals;
               existingChart.data.datasets[0].backgroundColor = bgColors;
               existingChart.data.datasets[0].borderColor = isDark ? '#111827' : '#ffffff';
-              existingChart.options.cutout = '64%';
-              existingChart.options.plugins.tooltip.backgroundColor = isDark ? '#1e293b' : '#ffffff';
-              existingChart.options.plugins.tooltip.titleColor = isDark ? '#f8fafc' : '#0f172a';
-              existingChart.options.plugins.tooltip.bodyColor = isDark ? '#cbd5e1' : '#334155';
-              existingChart.options.plugins.tooltip.borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+              existingChart.options.cutout = '58%';
+              existingChart.options.plugins.tooltip.backgroundColor = '#0f172a';
+              existingChart.options.plugins.tooltip.titleColor = '#ffffff';
+              existingChart.options.plugins.tooltip.bodyColor = '#38bdf8';
+              existingChart.options.plugins.tooltip.borderColor = '#334155';
               existingChart.update();
               this.allocChartInst = existingChart;
               return;
@@ -3294,28 +3294,36 @@
                   backgroundColor: bgColors,
                   borderWidth: isDark ? 2.5 : 2,
                   borderColor: isDark ? '#111827' : '#ffffff',
-                  hoverOffset: 8,
+                  hoverOffset: 10,
                   hoverBorderWidth: 3
                 }]
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '64%',
+                cutout: '58%',
                 animation: {
-                  duration: 350
+                  duration: 300
                 },
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                    titleColor: isDark ? '#f8fafc' : '#0f172a',
-                    bodyColor: isDark ? '#cbd5e1' : '#334155',
-                    borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
-                    borderWidth: 1,
-                    padding: 11,
-                    cornerRadius: 12,
+                    // 100% Solid Opaque Background (No Transparency / Bleed-Through)
+                    backgroundColor: '#0f172a',
+                    titleColor: '#ffffff',
+                    bodyColor: '#38bdf8',
+                    borderColor: '#334155',
+                    borderWidth: 1.5,
+                    padding: 12,
+                    cornerRadius: 10,
+                    boxPadding: 4,
+                    displayColors: true,
+                    titleFont: { size: 12, weight: 'bold', family: 'Inter, sans-serif' },
+                    bodyFont: { size: 12, weight: 'bold', family: 'SF Mono, monospace' },
                     callbacks: {
+                      title: (items) => {
+                        return items[0] ? items[0].label : '';
+                      },
                       label: (c) => {
                         const val = c.parsed;
                         const total = c.dataset.data.reduce((a, b) => a + b, 0);
