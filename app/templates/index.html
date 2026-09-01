@@ -488,15 +488,17 @@
           </div>
         </div>
 
-        <!-- Donut Chart & Breakdown List -->
-        <div class="flex flex-col sm:flex-row items-center gap-3.5">
+        <!-- Donut Chart & Breakdown List (Enlarged & Prominent Display) -->
+        <div class="flex flex-col xl:flex-row items-center gap-5 pt-1">
           
-          <!-- Donut Canvas Container -->
-          <div class="relative w-36 h-36 sm:w-40 sm:h-40 shrink-0 flex items-center justify-center">
+          <!-- Donut Canvas Container (Enlarged to 220px-240px) -->
+          <div class="relative w-52 h-52 sm:w-56 sm:h-56 md:w-60 md:h-60 shrink-0 flex items-center justify-center p-2"
+               x-init="$nextTick(() => updateAllocDonut())">
             <canvas id="portfolioAllocDonut"></canvas>
             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-              <span class="text-[9px] uppercase font-bold text-slate-400" x-text="allocTab === 'category' ? 'Kategori' : 'Aset'"></span>
-              <span class="text-[12px] font-extrabold text-slate-900 dark:text-white font-mono" x-text="getAllocData().length + ' Porsi'"></span>
+              <span class="text-[10px] sm:text-xs uppercase font-extrabold text-slate-400 tracking-wider" x-text="allocTab === 'category' ? 'Kategori' : 'Aset'"></span>
+              <span class="text-sm sm:text-base font-black text-slate-900 dark:text-white font-mono" x-text="getAllocData().length + ' Porsi'"></span>
+              <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold font-mono">100%</span>
             </div>
           </div>
 
@@ -1391,19 +1393,28 @@
             <span>Rp 100 Miliar</span>
           </div>
 
-          <!-- Quick Shortcuts -->
+          <!-- Quick Shortcuts (Complete Range: 0 to 100 Miliar) -->
           <div class="pt-2 flex flex-wrap items-center gap-1.5 text-xs" id="ff-shortcuts-box">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">SHORTCUT:</span>
+            <button type="button" onclick="setPortoVal(0)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">0</button>
+            <button type="button" onclick="setPortoVal(1e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">1 Jt</button>
+            <button type="button" onclick="setPortoVal(5e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">5 Jt</button>
             <button type="button" onclick="setPortoVal(10e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">10 Jt</button>
             <button type="button" onclick="setPortoVal(50e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">50 Jt</button>
             <button type="button" onclick="setPortoVal(100e6)" class="sc-btn active px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-sky-600 text-white border-sky-600">100 Jt</button>
             <button type="button" onclick="setPortoVal(200e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">200 Jt</button>
+            <button type="button" onclick="setPortoVal(300e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">300 Jt</button>
             <button type="button" onclick="setPortoVal(500e6)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">500 Jt</button>
             <button type="button" onclick="setPortoVal(1e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">1 M</button>
             <button type="button" onclick="setPortoVal(2e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">2 M</button>
+            <button type="button" onclick="setPortoVal(3e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">3 M</button>
             <button type="button" onclick="setPortoVal(5e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">5 M</button>
             <button type="button" onclick="setPortoVal(10e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">10 M</button>
+            <button type="button" onclick="setPortoVal(20e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">20 M</button>
+            <button type="button" onclick="setPortoVal(30e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">30 M</button>
             <button type="button" onclick="setPortoVal(50e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">50 M</button>
+            <button type="button" onclick="setPortoVal(75e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">75 M</button>
+            <button type="button" onclick="setPortoVal(100e9)" class="sc-btn px-2.5 py-1 rounded-full border text-[11px] font-semibold transition bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">100 M</button>
           </div>
         </div>
 
@@ -3251,11 +3262,26 @@
           const dataVals = items.map(x => x.val);
           const bgColors = items.map(x => x.color);
 
-          if (this.allocChartInst) {
+          // Seamlessly update existing chart instance without blank flash
+          const existingChart = (typeof Chart !== 'undefined' && Chart.getChart(canvas)) || this.allocChartInst;
+          if (existingChart) {
             try {
-              this.allocChartInst.destroy();
-            } catch (e) {}
-            this.allocChartInst = null;
+              existingChart.data.labels = labels;
+              existingChart.data.datasets[0].data = dataVals;
+              existingChart.data.datasets[0].backgroundColor = bgColors;
+              existingChart.data.datasets[0].borderColor = isDark ? '#111827' : '#ffffff';
+              existingChart.options.cutout = '64%';
+              existingChart.options.plugins.tooltip.backgroundColor = isDark ? '#1e293b' : '#ffffff';
+              existingChart.options.plugins.tooltip.titleColor = isDark ? '#f8fafc' : '#0f172a';
+              existingChart.options.plugins.tooltip.bodyColor = isDark ? '#cbd5e1' : '#334155';
+              existingChart.options.plugins.tooltip.borderColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)';
+              existingChart.update();
+              this.allocChartInst = existingChart;
+              return;
+            } catch (e) {
+              try { existingChart.destroy(); } catch (err) {}
+              this.allocChartInst = null;
+            }
           }
 
           try {
@@ -3266,15 +3292,19 @@
                 datasets: [{
                   data: dataVals,
                   backgroundColor: bgColors,
-                  borderWidth: isDark ? 2 : 1,
+                  borderWidth: isDark ? 2.5 : 2,
                   borderColor: isDark ? '#111827' : '#ffffff',
-                  hoverOffset: 6
+                  hoverOffset: 8,
+                  hoverBorderWidth: 3
                 }]
               },
               options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '70%',
+                cutout: '64%',
+                animation: {
+                  duration: 350
+                },
                 plugins: {
                   legend: { display: false },
                   tooltip: {
@@ -3283,8 +3313,8 @@
                     bodyColor: isDark ? '#cbd5e1' : '#334155',
                     borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)',
                     borderWidth: 1,
-                    padding: 10,
-                    cornerRadius: 10,
+                    padding: 11,
+                    cornerRadius: 12,
                     callbacks: {
                       label: (c) => {
                         const val = c.parsed;
