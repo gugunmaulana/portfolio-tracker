@@ -6,12 +6,12 @@ from typing import Dict, Any, List, Optional
 DB_PATH = os.path.join(os.path.dirname(__file__), "portfolio.db")
 
 DEFAULT_CATEGORIES_DATA = [
-    ("core_radar", "default_user", "CORE RADAR — 3 Best ETF", "Pondasi Index US & Semikonduktor", "blue", 1),
-    ("war_nemesis", "default_user", "WAR NEMESIS & ANCHOR ASSETS", "Crypto Anchor & Safe Haven / Hedge", "amber", 2),
-    ("global_stock", "default_user", "US & GLOBAL MONOPOLY STOCK", "Tech Backbone & Semiconductor Chokepoint", "indigo", 3),
-    ("satellites", "default_user", "EXTENDED RADAR — Indonesia & Crypto Satellites", "Diversifikasi Lokal IHSG & High-Beta Crypto", "emerald", 4),
-    ("watchlist", "default_user", "WATCHLIST — AI Infrastructure & Energy Grid", "Rantai Pasok Semikonduktor, Software & Nuklir", "cyan", 5),
-    ("reksadana", "default_user", "REKSA DANA — Pasar Uang & Pendapatan Tetap", "Posisi Investasi Reksa Dana & Yield Stabil", "teal", 6),
+    ("core_radar", "default_user", "CORE RADAR — Fondasi Wealth & Index ETF", "Lokomotif Pertumbuhan Ekonomi AS & Tulang Punggung Pertumbuhan Jangka Panjang", "blue", 1),
+    ("war_nemesis", "default_user", "WAR NEMESIS & SOVEREIGN ASSETS", "Emas Digital Mutlak, Proksi Bitcoin Korporasi & Pelindung Devaluasi Moneter", "amber", 2),
+    ("dividend_kings", "default_user", "INDONESIA DIVIDEND KINGS & CASH COWS", "Mesin Arus Kas Tunai, Raja Perbankan Nasional & Sapi Perah Dividen Jumbo", "emerald", 3),
+    ("global_stock", "default_user", "US & GLOBAL MONOPOLY STOCK", "Penguasa Pasar Global dengan Parit Ekonomi Monopoli Tak Tergoyahkan (Wide Moat)", "indigo", 4),
+    ("ai_infrastructure", "default_user", "AI INFRASTRUCTURE & SPECIALIZED TECH", "Rantai Pasok Perangkat Lunak Chip, Grid Energi Nuklir & Keamanan Digital Kritis", "cyan", 5),
+    ("reksadana", "default_user", "REKSA DANA & CASH BUFFER", "Amunisi Likuiditas Siaga (Dry Powder) & Imbal Hasil Stabil untuk Menangkap Peluang Diskon", "teal", 6),
 ]
 
 DEFAULT_PORTFOLIO_CONFIG = {
@@ -1213,3 +1213,91 @@ def backup_portfolio_state_to_json(user_id: str = "default_user"):
             json.dump(data, f, indent=2, ensure_ascii=False)
     except Exception as e:
         pass
+
+# =============================================================================
+# DIVIDEND SCHEDULE & RADAR MANAGEMENT
+# =============================================================================
+def get_dividend_schedules(user_id: str = "default_user") -> Dict[str, List[Dict[str, Any]]]:
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, user_id, ticker, company_name, dividend_type, dps_idr, cum_date, ex_date, recording_date, payment_date, status, notes
+    FROM dividend_schedules
+    WHERE user_id = ?
+    ORDER BY cum_date ASC, id ASC
+    """, (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    import datetime
+    today_str = datetime.date.today().isoformat()
+    
+    upcoming = []
+    history = []
+    
+    for r in rows:
+        item = {
+            "id": r["id"],
+            "ticker": r["ticker"],
+            "company_name": r["company_name"],
+            "dividend_type": r["dividend_type"],
+            "dps_idr": float(r["dps_idr"] or 0.0),
+            "cum_date": r["cum_date"] or "",
+            "ex_date": r["ex_date"] or "",
+            "recording_date": r["recording_date"] or "",
+            "payment_date": r["payment_date"] or "",
+            "status": r["status"],
+            "notes": r["notes"] or ""
+        }
+        if r["status"] == "completed" or (r["payment_date"] and r["payment_date"] < today_str):
+            item["status"] = "completed"
+            history.append(item)
+        else:
+            item["status"] = "upcoming"
+            upcoming.append(item)
+            
+    return {"upcoming": upcoming, "history": history}
+
+
+def upsert_dividend_schedule(user_id: str, data: Dict[str, Any]):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    rec_id = data.get("id")
+    ticker = (data.get("ticker") or "").strip().upper()
+    comp_name = data.get("company_name") or ticker
+    div_type = data.get("dividend_type") or "Final"
+    dps = float(data.get("dps_idr") or 0.0)
+    cum_d = data.get("cum_date") or ""
+    ex_d = data.get("ex_date") or ""
+    rec_d = data.get("recording_date") or ""
+    pay_d = data.get("payment_date") or ""
+    status = data.get("status") or "upcoming"
+    notes = data.get("notes") or ""
+    
+    if rec_id:
+        cursor.execute("""
+        UPDATE dividend_schedules SET
+            ticker = ?, company_name = ?, dividend_type = ?, dps_idr = ?,
+            cum_date = ?, ex_date = ?, recording_date = ?, payment_date = ?,
+            status = ?, notes = ?
+        WHERE id = ? AND user_id = ?
+        """, (ticker, comp_name, div_type, dps, cum_d, ex_d, rec_d, pay_d, status, notes, rec_id, user_id))
+    else:
+        cursor.execute("""
+        INSERT INTO dividend_schedules (user_id, ticker, company_name, dividend_type, dps_idr, cum_date, ex_date, recording_date, payment_date, status, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (user_id, ticker, comp_name, div_type, dps, cum_d, ex_d, rec_d, pay_d, status, notes))
+    conn.commit()
+    conn.close()
+
+
+def delete_dividend_schedule(user_id: str, schedule_id: int):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM dividend_schedules WHERE id = ? AND user_id = ?", (schedule_id, user_id))
+    conn.commit()
+    conn.close()

@@ -206,6 +206,17 @@
     .msrow:last-child { border-bottom: none; }
     .bw { height: 4px; background: rgba(148,163,184,0.25); border-radius: 2px; overflow: hidden; margin-top: 3px; width: 86px; }
     .bf { height: 100%; border-radius: 2px; transition: width .3s; }
+  .crypto-row {
+      transition: all 0.12s ease-in-out;
+    }
+    .crypto-row:hover {
+      background-color: rgba(224, 242, 254, 0.75) !important;
+      box-shadow: inset 3.5px 0 0 0 #0284c7;
+    }
+    .dark .crypto-row:hover {
+      background-color: rgba(30, 41, 59, 0.95) !important;
+      box-shadow: inset 3.5px 0 0 0 #38bdf8;
+    }
   </style>
 </head>
 
@@ -854,7 +865,7 @@
                           </div>
                           <div class="min-w-0 flex-1">
                             <span class="font-semibold text-xs text-slate-900 dark:text-white truncate block" 
-                                  :title="item.name" 
+                                  :title="getTickerDescription(item.ticker)" 
                                   x-text="item.name"></span>
                             <span class="text-[9px] px-1 py-0.2 rounded font-mono font-semibold inline-block mt-0.5"
                                   :class="item.volatility_bg || 'bg-slate-100 text-slate-500'"
@@ -1102,16 +1113,282 @@
           </div>
         </template>
       </div>
+      </div> <!-- End Sub-View 2A CAGR -->
+
+      <!-- ===================================================================== -->
+      <!-- SUB-VIEW 2B: RADAR & KALENDER SAHAM DIVIDEN (BONUS CASHFLOW)          -->
+      <!-- ===================================================================== -->
+      <div x-show="activePnlTab === 'dividends'" class="space-y-6" x-cloak>
+        
+        <!-- 3 Executive Metric Highlight Cards for Dividends -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          
+          <!-- Card 1: Total Estimasi Bonus Dividen yang Anda Terima -->
+          <div class="rounded-2xl bg-white dark:bg-[#111827] border border-emerald-200 dark:border-emerald-900/60 p-4 sm:p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estimasi Bonus Dividen Saya</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">Tahun Ini</span>
+            </div>
+            <div class="my-2">
+              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tabular-nums tracking-tight"
+                   x-text="formatIDR(getTotalEstimatedDividendBonus())"></div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Dihitung otomatis dari total lot saham aktif yang Anda miliki saat ini (misal: BBCA 25 Lot + BBRI 3 Lot).
+              </p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+              <span>Arus kas masuk tunai langsung ke RDN</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Jadwal Cum-Date Terdekat -->
+          <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cum-Date Terdekat</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono">Segera</span>
+            </div>
+            <div class="my-2">
+              <template x-if="getEarliestCumDateItem()">
+                <div>
+                  <div class="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <span x-text="getEarliestCumDateItem().ticker"></span>
+                    <span class="text-xs font-bold text-slate-400" x-text="'(' + getEarliestCumDateItem().company_name + ')'"></span>
+                  </div>
+                  <div class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-0.5" 
+                       x-text="'Cum Date: ' + getEarliestCumDateItem().cum_date + ' (DPS: ' + formatIDR(getEarliestCumDateItem().dps_idr) + ')'"></div>
+                </div>
+              </template>
+              <template x-if="!getEarliestCumDateItem()">
+                <div class="text-base font-bold text-slate-400">Belum ada jadwal terdekat</div>
+              </template>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-sky-500"></i>
+              <span>Batas terakhir pembelian saham untuk dapat dividen</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Total Saham Dividen Dipantau & Tambah Aset -->
+          <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Radar Saham Dividen</span>
+              <button type="button" @click="openAddDividendModal()" 
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1 shadow-sm">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>+ Jadwal RUPS</span>
+              </button>
+            </div>
+            <div class="my-2">
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono tabular-nums"
+                   x-text="getUpcomingDividendsCount() + ' Emiten'"></div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                Kombinasi saham dividen aktif dimiliki dan radar pantauan yield jumbo (ITMG, PTBA, ADRO, GEMS, DMAS, UNTR).
+              </p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-emerald-500"></i>
+              <span>Arsip otomatis setelah tanggal payment date lewat</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dividend Table Container with Sub-Filter (Jadwal Mendatang vs Riwayat Selesai) -->
+        <div class="rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+          
+          <!-- Filter Header -->
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/40">
+            <div class="flex items-center gap-2">
+              <!-- Switcher: Upcoming vs History -->
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+                <button @click="dividendTab = 'upcoming'" 
+                        class="px-3 py-1 rounded-lg transition text-xs font-bold flex items-center gap-1.5"
+                        :class="dividendTab === 'upcoming' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
+                  <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                  <span>JADWAL MENDATANG (UPCOMING)</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-mono" x-text="dividendSchedules.upcoming ? dividendSchedules.upcoming.length : 0"></span>
+                </button>
+                <button @click="dividendTab = 'history'" 
+                        class="px-3 py-1 rounded-lg transition text-xs font-bold flex items-center gap-1.5"
+                        :class="dividendTab === 'history' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'">
+                  <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+                  <span>ARSIP HISTORI DIVIDEN SELESAI</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-mono" x-text="dividendSchedules.history ? dividendSchedules.history.length : 0"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Add Dividend Button -->
+            <button @click="openAddDividendModal()" 
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm shadow-emerald-600/20 transition active:scale-95">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>+ Tambah Pengumuman Dividen</span>
+            </button>
+          </div>
+
+          <!-- Table of Dividend Schedules -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+              <thead class="bg-slate-50/80 dark:bg-[#0d1527]/80 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                <tr>
+                  <th class="py-3 px-3 text-center w-[60px]">Aksi</th>
+                  <th class="py-3 px-3">Emiten & Ticker</th>
+                  <th class="py-3 px-3 text-center">Tipe</th>
+                  <th class="py-3 px-3 text-right">Kepemilikan Anda</th>
+                  <th class="py-3 px-3 text-right">DPS (Rp / Lembar)</th>
+                  <th class="py-3 px-3 text-right">Yield Dividen %</th>
+                  <th class="py-3 px-3.5 text-right bg-emerald-50/50 dark:bg-emerald-950/20 font-bold text-emerald-700 dark:text-emerald-300">Estimasi Bonus Anda (IDR)</th>
+                  <th class="py-3 px-3 text-center">Cum Date</th>
+                  <th class="py-3 px-3 text-center">Ex Date</th>
+                  <th class="py-3 px-3 text-center">Payment Date</th>
+                  <th class="py-3 px-3 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono tabular-nums">
+                
+                <!-- Display Upcoming or History based on dividendTab -->
+                <template x-for="item in (dividendTab === 'upcoming' ? dividendSchedules.upcoming : dividendSchedules.history)" :key="item.id">
+                  <tr class="crypto-row transition hover:bg-slate-50 dark:hover:bg-slate-800/70"
+                      :class="getHoldingForTicker(item.ticker) ? 'bg-emerald-50/30 dark:bg-emerald-950/15' : ''">
+                    
+                    <!-- Aksi -->
+                    <td class="py-3 px-3 text-center font-sans">
+                      <div class="flex items-center justify-center gap-1">
+                        <button @click="editDividend(item)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-sky-600 dark:text-sky-400" title="Edit Jadwal Dividen">
+                          <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button @click="deleteDividend(item)" class="p-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400" title="Hapus Jadwal">
+                          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </td>
+
+                    <!-- Emiten & Ticker -->
+                    <td class="py-3 px-3 font-sans">
+                      <div class="flex items-center gap-2">
+                        <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span class="text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-mono" x-text="item.ticker"></span>
+                          <span class="text-xs text-slate-800 dark:text-slate-200" x-text="item.company_name"></span>
+                        </div>
+                      </div>
+                      <span x-show="item.notes" class="text-[10px] text-slate-400 block font-normal mt-0.5" x-text="item.notes"></span>
+                    </td>
+
+                    <!-- Tipe Dividen (Interim / Final) -->
+                    <td class="py-3 px-3 text-center font-sans">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                            :class="item.dividend_type === 'Final' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'"
+                            x-text="item.dividend_type"></span>
+                    </td>
+
+                    <!-- Kepemilikan Anda (Lot & Lembar) -->
+                    <td class="py-3 px-3 text-right">
+                      <template x-if="getHoldingForTicker(item.ticker)">
+                        <div>
+                          <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs" 
+                                x-text="getHoldingForTicker(item.ticker).quantity + ' ' + (getHoldingForTicker(item.ticker).is_lot ? 'Lot' : 'Lbr')"></span>
+                          <span class="text-[10px] text-slate-400 block" x-text="'(' + getHoldingForTicker(item.ticker).total_shares.toLocaleString('id-ID') + ' lbr)'"></span>
+                        </div>
+                      </template>
+                      <template x-if="!getHoldingForTicker(item.ticker)">
+                        <span class="text-slate-400 font-sans text-xs">0 Lot (Pantauan)</span>
+                      </template>
+                    </td>
+
+                    <!-- DPS (Rp per lembar) -->
+                    <td class="py-3 px-3 text-right font-bold text-slate-900 dark:text-white"
+                        x-text="'Rp ' + item.dps_idr.toLocaleString('id-ID')"></td>
+
+                    <!-- Dividend Yield % -->
+                    <td class="py-3 px-3 text-right font-semibold text-sky-600 dark:text-sky-400"
+                        x-text="getDividendYieldPct(item) > 0 ? (getDividendYieldPct(item).toFixed(2) + '%') : '-'"></td>
+
+                    <!-- Estimasi Bonus Dividen yang Diterima (IDR) -->
+                    <td class="py-3 px-3.5 text-right bg-emerald-50/50 dark:bg-emerald-950/20">
+                      <template x-if="calculateDividendBonus(item) > 0">
+                        <span class="px-2.5 py-1 rounded-lg bg-emerald-500 text-white font-bold text-xs shadow-2xs font-mono"
+                              x-text="'+ ' + formatIDR(calculateDividendBonus(item))"></span>
+                      </template>
+                      <template x-if="calculateDividendBonus(item) === 0">
+                        <span class="text-slate-400 text-xs font-mono">-</span>
+                      </template>
+                    </td>
+
+                    <!-- Cum Date -->
+                    <td class="py-3 px-3 text-center font-bold text-slate-900 dark:text-white" x-text="item.cum_date || '-'"></td>
+
+                    <!-- Ex Date -->
+                    <td class="py-3 px-3 text-center text-slate-600 dark:text-slate-400" x-text="item.ex_date || '-'"></td>
+
+                    <!-- Payment Date -->
+                    <td class="py-3 px-3 text-center text-slate-600 dark:text-slate-400" x-text="item.payment_date || '-'"></td>
+
+                    <!-- Status -->
+                    <td class="py-3 px-3 text-center font-sans">
+                      <template x-if="item.status === 'completed'">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase">Selesai</span>
+                      </template>
+                      <template x-if="item.status !== 'completed'">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase">Terjadwal</span>
+                      </template>
+                    </td>
+
+                  </tr>
+                </template>
+
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div> <!-- End Sub-View 2B Dividend -->
 
     </div>
 
     <!-- ======================================================================= -->
-    <!-- VIEW 2: PNL / RETURN TAHUNAN (2011 - SEKARANG)                          -->
+    <!-- VIEW 2: PNL / RETURN TAHUNAN & KALENDER SAHAM DIVIDEN                   -->
     <!-- ======================================================================= -->
-    <div x-show="activeView === 'yearly_pnl'" class="max-w-[1440px] mx-auto space-y-6" x-cloak>
+    <div x-show="activeView === 'yearly_pnl'" class="max-w-[1440px] mx-auto space-y-5 sm:space-y-6" x-cloak>
       
-      <!-- Top Action & Info Bar with Interactive CAGR Timeframe Selector -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <!-- Sub-Tab Switcher for Menu 2: [Performa & CAGR Multi-Tahun] vs [Radar & Kalender Saham Dividen] -->
+      <div class="p-1.5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <!-- Sub-Tab 1: CAGR Matrix -->
+          <button type="button" 
+                  @click="activePnlTab = 'cagr'; $nextTick(() => lucide.createIcons());"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition"
+                  :class="activePnlTab === 'cagr' ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'">
+            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+            <span>1. MATRIKS PERFORMA & CAGR (2011 - SEKARANG)</span>
+          </button>
+
+          <!-- Sub-Tab 2: Dividend Radar -->
+          <button type="button" 
+                  @click="activePnlTab = 'dividends'; fetchDividends(); $nextTick(() => lucide.createIcons());"
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition"
+                  :class="activePnlTab === 'dividends' ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'">
+            <i data-lucide="coins" class="w-4 h-4"></i>
+            <span>2. 💰 RADAR & KALENDER SAHAM DIVIDEN</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-mono font-bold" 
+                  :class="activePnlTab === 'dividends' ? 'bg-white/25 text-white' : ''"
+                  x-text="getUpcomingDividendsCount() + ' Jadwal'"></span>
+          </button>
+        </div>
+
+        <div class="text-xs text-slate-500 dark:text-slate-400 font-mono pr-2 hidden md:block">
+          <span>Otomatis Sinkron Portofolio & Kalender RUPS</span>
+        </div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- SUB-VIEW 2A: CAGR MATRIX SECTION                                      -->
+      <!-- ===================================================================== -->
+      <div x-show="activePnlTab === 'cagr'" class="space-y-6">
+        
+        <!-- Top Action & Info Bar with Interactive CAGR Timeframe Selector -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <i data-lucide="bar-chart-2" class="w-4 h-4 text-sky-500"></i>
@@ -1237,7 +1514,7 @@
                           </div>
                           <div class="min-w-0 flex-1">
                             <span class="font-semibold text-xs text-slate-900 dark:text-white truncate block" 
-                                  :title="item.name" 
+                                  :title="getTickerDescription(item.ticker)" 
                                   x-text="item.name"></span>
                             <span class="text-[10px] text-slate-400 block truncate" x-text="category.name"></span>
                           </div>
@@ -2286,6 +2563,109 @@
     </div>
   </div>
 
+  <!-- MODAL: TAMBAH / EDIT JADWAL DIVIDEN -->
+  <div x-cloak x-show="showDividendModal" 
+       class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div @click.away="showDividendModal = false" 
+         class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="coins" class="w-4 h-4 text-emerald-500"></i>
+          <span x-text="dividendForm.id ? 'Edit Pengumuman Dividen' : 'Tambah Pengumuman Dividen Baru'"></span>
+        </h3>
+        <button @click="showDividendModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form @submit.prevent="saveDividend()" class="space-y-3.5 text-xs">
+        
+        <!-- Ticker & Company Name -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Ticker Saham</label>
+            <input type="text" x-model="dividendForm.ticker" required placeholder="misal: BBCA.JK, ITMG.JK"
+                   @input="dividendForm.ticker = (dividendForm.ticker || '').toUpperCase()"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono uppercase font-bold focus:outline-hidden focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Emiten / Perusahaan</label>
+            <input type="text" x-model="dividendForm.company_name" placeholder="misal: Bank Central Asia"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-hidden focus:border-emerald-500">
+          </div>
+        </div>
+
+        <!-- Dividend Type & DPS (IDR) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tipe Dividen</label>
+            <select x-model="dividendForm.dividend_type" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-semibold">
+              <option value="Final">Dividen Final</option>
+              <option value="Interim">Dividen Interim</option>
+              <option value="Spesial">Dividen Spesial</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">DPS (Rupiah per Lembar)</label>
+            <input type="number" step="any" x-model.number="dividendForm.dps_idr" required placeholder="misal: 270"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono font-bold focus:outline-hidden focus:border-emerald-500">
+          </div>
+        </div>
+
+        <!-- Cum Date & Ex Date -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Cum Date</label>
+            <input type="date" x-model="dividendForm.cum_date" required
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Ex Date</label>
+            <input type="date" x-model="dividendForm.ex_date"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono">
+          </div>
+        </div>
+
+        <!-- Recording Date & Payment Date -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Recording Date</label>
+            <input type="date" x-model="dividendForm.recording_date"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Date (Tanggal Bayar)</label>
+            <input type="date" x-model="dividendForm.payment_date"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono">
+          </div>
+        </div>
+
+        <!-- Status & Notes -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Status Jadwal</label>
+            <select x-model="dividendForm.status" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-semibold">
+              <option value="upcoming">Upcoming (Terjadwal)</option>
+              <option value="completed">Completed (Selesai/Arsip)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan</label>
+            <input type="text" x-model="dividendForm.notes" placeholder="misal: Estimasi DPR 80%"
+                   class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button type="button" @click="showDividendModal = false" class="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">Batal</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-sm shadow-emerald-600/30">Simpan Pengumuman</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div x-cloak x-show="toast.show" x-transition
        class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl flex items-center gap-2.5 font-medium text-xs">
@@ -2486,9 +2866,30 @@
         "MA": "Mastercard Inc. — Duopoli Jaringan Pembayaran Digital Global Pengendali Triliunan Transaksi Konsumen",
         "LLY": "Eli Lilly — Raksasa Farmasi Terdepan Pemegang Hak Paten Terapi Obesitas GLP-1 (Mounjaro/Zepbound) & Riset Onkologi",
 
+        // --- CORE RADAR ---
+        "VOO": "Vanguard S&P 500 ETF — 500 Korporasi Terbaik & Paling Menguntungkan di AS sebagai Pondasi Pertumbuhan Modal Teraman",
+        "QQQ": "Invesco QQQ Trust — 100 Raksasa Inovasi Teknologi & Pertumbuhan Pertumbuhan Kapital Terdepan di Dunia",
+        "SMH": "VanEck Semiconductor ETF — 25 Penguasa Rantai Pasok Semikonduktor & Komputasi AI Global (Otak Era Digital)",
+
         // --- WAR NEMESIS & CRYPTO ASSETS ---
-        "BTC-USD": "Bitcoin — Benteng Emas Digital Moneter Terdesentralisasi dengan Pasokan Mutlak Terbatas 21 Juta Koin",
+        "BTC-IDR": "Bitcoin (IDR) — Benteng Emas Digital Moneter Terdesentralisasi dengan Pasokan Mutlak Terbatas 21 Juta Koin",
+        "BTC-USD": "Bitcoin (USD) — Tolok Ukur Valuasi Emas Digital Dunia dalam Mata Uang USD & Pelindung Risiko Inflasi Global",
         "BTC": "Bitcoin — Benteng Emas Digital Moneter Terdesentralisasi dengan Pasokan Mutlak Terbatas 21 Juta Koin",
+        "MSTR": "MicroStrategy Incorporated — Pelopor Perbendaharaan Kas Korporasi Bitcoin Terbesar di Dunia & Proksi Asimetris BTC",
+        "ETH-USD": "Ethereum — Komputer Global Terdesentralisasi & Fondasi Utama Ekosistem Keuangan Terbuka (DeFi) Dunia",
+        "ETH": "Ethereum — Komputer Global Terdesentralisasi & Fondasi Utama Ekosistem Keuangan Terbuka (DeFi) Dunia",
+        "EMAS": "Emas Fisik Logam Mulia Antam (IDR) — Benteng Penyimpan Nilai Moneter Tertua & Pelindung Geopolitik 5.000 Tahun",
+
+        // --- INDONESIA DIVIDEND KINGS & CASH COWS ---
+        "BBCA.JK": "Bank Central Asia — Raja Perbankan Swasta RI dengan Dana Murah (CASA) Terbesar di ASEAN & Mesin Compounding Dividen Teraman",
+        "BBRI.JK": "Bank Rakyat Indonesia — Penguasa Jaringan Keuangan Mikro Terbesar di Dunia dengan Dividend Payout Ratio Tinggi & Hasil Bagi Dividen Jumbo",
+        "ITMG.JK": "Indo Tambangraya Megah — Raja Dividen Jumbo Klasik BEI Tanpa Utang Bank dengan Rekam Jejak Payout 70%-85%+ & Yield Belasan Persen",
+        "PTBA.JK": "Bukit Asam — Sapi Perah Dividen BUMN dengan Komitmen Setoran Dividen Payout Mendekati 100% dari Total Laba Bersih",
+        "ADRO.JK": "Adaro Energy — Konglomerasi Energi & Smelter dengan Arus Kas Bebas (FCF) Raksasa & Riwayat Dividen Spesial Jumbo",
+        "GEMS.JK": "Golden Energy Mines — Mesin Dividen Kuartalan yang Membagikan Uang Tunai 3 hingga 4 Kali Setahun dengan Payout 90%+",
+        "DMAS.JK": "Puradelta Lestari — Penguasa Kawasan Industri Bebas Utang (Zero Debt) Pemasok Lahan Data Center dengan Hasil Dividen 8%-12%+",
+        "UNTR.JK": "United Tractors — Penguasa Tunggal Alat Berat Komatsu & Eksekutor Diversifikasi Mineral Emas/Nikel dengan Hasil Dividen Tebal",
+        "CAPITAL-FIXED": "Capital Fixed Income Fund — Reksa Dana Pendapatan Tetap dengan Imbal Hasil Bulanan Stabil sebagai Penjaga Portofolio",
         "ETH-USD": "Ethereum — Komputer Global Terdesentralisasi & Fondasi Utama Ekosistem Smart Contract serta DeFi Dunia",
         "ETH": "Ethereum — Komputer Global Terdesentralisasi & Fondasi Utama Ekosistem Smart Contract serta DeFi Dunia",
         "SOL-USD": "Solana — Blockchain Layer-1 Berkecepatan Tinggi Terdesentralisasi dengan Throughput Ribuan Transaksi per Detik",
@@ -2521,6 +2922,23 @@
         
         isDark: localStorage.getItem('theme_dark') !== 'false',
         activeView: 'portfolio',
+        activePnlTab: 'cagr', // 'cagr' or 'dividends'
+        dividendTab: 'upcoming', // 'upcoming' or 'history'
+        dividendSchedules: { upcoming: [], history: [] },
+        showDividendModal: false,
+        dividendForm: {
+          id: null,
+          ticker: '',
+          company_name: '',
+          dividend_type: 'Final',
+          dps_idr: 0,
+          cum_date: '',
+          ex_date: '',
+          recording_date: '',
+          payment_date: '',
+          status: 'upcoming',
+          notes: ''
+        },
         allocTab: 'asset',
         allocChartInst: null,
         searchQuery: '',
@@ -2594,6 +3012,7 @@
 
         initApp() {
           this.applyCategoryOrder();
+          this.fetchDividends();
           const rate = this.getUsdIdrRate();
           const mode = this.data.target_mode || 'USD';
           let targetUsd = this.data.target_financial_freedom_usd || 500000.0;
@@ -3171,6 +3590,149 @@
         },
 
         // =====================================================================
+        // DIVIDEND RADAR & SCHEDULE METHODS
+        // =====================================================================
+        async fetchDividends() {
+          try {
+            const res = await fetch('/api/dividends');
+            const json = await res.json();
+            if (json.status === 'success') {
+              this.dividendSchedules = json.data;
+            }
+          } catch (err) {
+            console.error('Error fetching dividends:', err);
+          }
+        },
+
+        openAddDividendModal() {
+          this.dividendForm = {
+            id: null,
+            ticker: '',
+            company_name: '',
+            dividend_type: 'Final',
+            dps_idr: 0,
+            cum_date: '',
+            ex_date: '',
+            recording_date: '',
+            payment_date: '',
+            status: 'upcoming',
+            notes: ''
+          };
+          this.showDividendModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        editDividend(item) {
+          this.dividendForm = {
+            id: item.id,
+            ticker: item.ticker,
+            company_name: item.company_name,
+            dividend_type: item.dividend_type || 'Final',
+            dps_idr: item.dps_idr || 0,
+            cum_date: item.cum_date || '',
+            ex_date: item.ex_date || '',
+            recording_date: item.recording_date || '',
+            payment_date: item.payment_date || '',
+            status: item.status || 'upcoming',
+            notes: item.notes || ''
+          };
+          this.showDividendModal = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        async saveDividend() {
+          try {
+            this.dividendForm.dps_idr = parseFloat(this.dividendForm.dps_idr) || 0;
+            const res = await fetch('/api/dividends/upsert', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.dividendForm)
+            });
+            const json = await res.json();
+            if (json.status === 'success') {
+              this.dividendSchedules = json.data;
+              this.showDividendModal = false;
+              this.showToast('Jadwal dividen berhasil disimpan!');
+              this.$nextTick(() => lucide.createIcons());
+            }
+          } catch (err) {
+            alert('Gagal menyimpan jadwal dividen: ' + err);
+          }
+        },
+
+        async deleteDividend(item) {
+          if (!confirm(`Apakah Anda yakin ingin menghapus jadwal dividen ${item.ticker}?`)) return;
+          try {
+            const res = await fetch(`/api/dividends/${item.id}`, { method: 'DELETE' });
+            const json = await res.json();
+            if (json.status === 'success') {
+              this.dividendSchedules = json.data;
+              this.showToast('Jadwal dividen berhasil dihapus');
+              this.$nextTick(() => lucide.createIcons());
+            }
+          } catch (err) {
+            alert('Gagal menghapus jadwal dividen: ' + err);
+          }
+        },
+
+        getHoldingForTicker(ticker) {
+          if (!this.data || !this.data.categories) return null;
+          for (const cat of this.data.categories) {
+            for (const itm of cat.items) {
+              if (itm.ticker === ticker && itm.invested_idr > 0 && itm.quantity > 0) {
+                const totalShares = itm.is_lot ? (itm.quantity * 100) : itm.quantity;
+                return {
+                  quantity: itm.quantity,
+                  is_lot: itm.is_lot,
+                  total_shares: totalShares,
+                  invested_idr: itm.invested_idr,
+                  cur_val_idr: itm.cur_val_idr,
+                  price: itm.price
+                };
+              }
+            }
+          }
+          return null;
+        },
+
+        calculateDividendBonus(item) {
+          const holding = this.getHoldingForTicker(item.ticker);
+          if (!holding) return 0;
+          return (item.dps_idr || 0) * holding.total_shares;
+        },
+
+        getTotalEstimatedDividendBonus() {
+          if (!this.dividendSchedules || !this.dividendSchedules.upcoming) return 0;
+          let total = 0;
+          for (const s of this.dividendSchedules.upcoming) {
+            total += this.calculateDividendBonus(s);
+          }
+          return total;
+        },
+
+        getUpcomingDividendsCount() {
+          return (this.dividendSchedules && this.dividendSchedules.upcoming) ? this.dividendSchedules.upcoming.length : 0;
+        },
+
+        getEarliestCumDateItem() {
+          if (!this.dividendSchedules || !this.dividendSchedules.upcoming || this.dividendSchedules.upcoming.length === 0) return null;
+          return this.dividendSchedules.upcoming[0];
+        },
+
+        getDividendYieldPct(item) {
+          if (!this.data || !this.data.categories) return 0;
+          for (const cat of this.data.categories) {
+            for (const itm of cat.items) {
+              if (itm.ticker === item.ticker && itm.price > 0) {
+                return ((item.dps_idr / itm.price) * 100);
+              }
+            }
+          }
+          return 0;
+        },
+
+
+                // =====================================================================
         // TRACK BULANAN REALTIME SYNC HELPERS
         // =====================================================================
         isCurrentMonthRow(row) {

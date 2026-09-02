@@ -82,6 +82,20 @@ class SettingsPayload(BaseModel):
     cash_balance: float
 
 
+
+class DividendSchedulePayload(BaseModel):
+    id: Optional[int] = None
+    ticker: str
+    company_name: Optional[str] = ""
+    dividend_type: Optional[str] = "Final"
+    dps_idr: float = 0.0
+    cum_date: Optional[str] = ""
+    ex_date: Optional[str] = ""
+    recording_date: Optional[str] = ""
+    payment_date: Optional[str] = ""
+    status: Optional[str] = "upcoming"
+    notes: Optional[str] = ""
+
 class MonthlyPayload(BaseModel):
     id: Optional[int] = None
     year: int = 2026
@@ -275,3 +289,27 @@ async def api_upsert_monthly(payload: MonthlyPayload, user_id: str = "default_us
 async def api_lookup_ticker(ticker: str):
     data = fetch_ticker_market_data(ticker.upper())
     return JSONResponse(content=data)
+
+
+# Dividend Radar & Schedule APIs
+@app.get("/api/dividends")
+async def api_get_dividends(user_id: str = "default_user"):
+    from .database import get_dividend_schedules
+    data = get_dividend_schedules(user_id)
+    return JSONResponse(content={"status": "success", "data": data})
+
+
+@app.post("/api/dividends/upsert")
+async def api_upsert_dividend(payload: DividendSchedulePayload, user_id: str = "default_user"):
+    from .database import upsert_dividend_schedule, get_dividend_schedules
+    upsert_dividend_schedule(user_id, payload.dict())
+    data = get_dividend_schedules(user_id)
+    return JSONResponse(content={"status": "success", "data": data})
+
+
+@app.delete("/api/dividends/{schedule_id}")
+async def api_delete_dividend(schedule_id: int, user_id: str = "default_user"):
+    from .database import delete_dividend_schedule, get_dividend_schedules
+    delete_dividend_schedule(user_id, schedule_id)
+    data = get_dividend_schedules(user_id)
+    return JSONResponse(content={"status": "success", "data": data})

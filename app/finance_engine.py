@@ -30,6 +30,7 @@ HISTORICAL_CACHE_TTL = 86400
 # Vetted high-resolution asset logo repository
 ASSET_LOGOS = {
     # Cryptocurrencies & Commodities
+    "BTC-IDR": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
     "BTC-USD": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
     "BTC": "https://assets.coingecko.com/coins/images/1/small/bitcoin.png",
     "ETH-USD": "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
@@ -90,6 +91,11 @@ ASSET_LOGOS = {
     "UNP": "https://assets.parqet.com/logos/symbol/UNP?format=png",
     "WM": "https://assets.parqet.com/logos/symbol/WM?format=png",
     # Indonesian Stocks
+        "ITMG.JK": "https://assets.parqet.com/logos/symbol/ITMG.JK?format=png",
+    "PTBA.JK": "https://assets.parqet.com/logos/symbol/PTBA.JK?format=png",
+    "ADRO.JK": "https://assets.parqet.com/logos/symbol/ADRO.JK?format=png",
+    "GEMS.JK": "https://assets.parqet.com/logos/symbol/GEMS.JK?format=png",
+    "DMAS.JK": "https://assets.parqet.com/logos/symbol/DMAS.JK?format=png",
     "BBCA.JK": "https://assets.parqet.com/logos/symbol/BBCA.JK?format=png",
     "BBRI.JK": "https://assets.parqet.com/logos/symbol/BBRI.JK?format=png",
     "BMRI.JK": "https://assets.parqet.com/logos/symbol/BMRI.JK?format=png",
@@ -136,6 +142,16 @@ FALLBACK_PRICES = {
     "NVDA": 214.72,
     "ASML": 715.40,
     "LLY": 845.20,
+        "ITMG.JK": "https://assets.parqet.com/logos/symbol/ITMG.JK?format=png",
+    "PTBA.JK": "https://assets.parqet.com/logos/symbol/PTBA.JK?format=png",
+    "ADRO.JK": "https://assets.parqet.com/logos/symbol/ADRO.JK?format=png",
+    "GEMS.JK": "https://assets.parqet.com/logos/symbol/GEMS.JK?format=png",
+    "DMAS.JK": "https://assets.parqet.com/logos/symbol/DMAS.JK?format=png",
+        "ITMG.JK": 24750.0,
+    "PTBA.JK": 2580.0,
+    "ADRO.JK": 3680.0,
+    "GEMS.JK": 11400.0,
+    "DMAS.JK": 158.0,
     "BBCA.JK": 6375.0,
     "BBRI.JK": 4450.0,
     "BMRI.JK": 6800.0,
@@ -192,6 +208,11 @@ FALLBACK_PE_RATIOS = {
     "NVDA": 42.88,
     "ASML": 54.83,
     "LLY": 42.13,
+        "ITMG.JK": "https://assets.parqet.com/logos/symbol/ITMG.JK?format=png",
+    "PTBA.JK": "https://assets.parqet.com/logos/symbol/PTBA.JK?format=png",
+    "ADRO.JK": "https://assets.parqet.com/logos/symbol/ADRO.JK?format=png",
+    "GEMS.JK": "https://assets.parqet.com/logos/symbol/GEMS.JK?format=png",
+    "DMAS.JK": "https://assets.parqet.com/logos/symbol/DMAS.JK?format=png",
     "BBCA.JK": 21.5,
     "BBRI.JK": 11.27,
     "BMRI.JK": 10.8,
@@ -266,6 +287,11 @@ SHARES_OUTSTANDING = {
     "UNP": 6.08e8,
     "WM": 4.02e8,
     "MSTR": 2.45e8,
+        "ITMG.JK": "https://assets.parqet.com/logos/symbol/ITMG.JK?format=png",
+    "PTBA.JK": "https://assets.parqet.com/logos/symbol/PTBA.JK?format=png",
+    "ADRO.JK": "https://assets.parqet.com/logos/symbol/ADRO.JK?format=png",
+    "GEMS.JK": "https://assets.parqet.com/logos/symbol/GEMS.JK?format=png",
+    "DMAS.JK": "https://assets.parqet.com/logos/symbol/DMAS.JK?format=png",
     "BBCA.JK": 123.28e9,
     "BBRI.JK": 151.56e9,
     "BMRI.JK": 93.33e9,
@@ -547,6 +573,29 @@ def fetch_ticker_market_data(ticker_symbol: str) -> Dict[str, Any]:
             "volume": 0,
             "perf": dict(rd["perf"]),
             "yearly_returns": dict(rd["yearly_returns"]),
+            "_timestamp": now
+        }
+
+        # Direct Realtime IDR Bitcoin calculation from BTC-USD & USDIDR
+    if ticker_symbol in ["BTC-IDR", "BTC.IDR", "BTCIDR"]:
+        btc_mkt = fetch_ticker_market_data("BTC-USD")
+        usd_mkt = fetch_ticker_market_data("USDIDR=X")
+        b_price = btc_mkt.get("price", 77482.0)
+        b_ath = btc_mkt.get("ath", 124752.0)
+        u_rate = usd_mkt.get("price", 17685.0)
+        
+        btc_idr_price = round(b_price * u_rate, 0)
+        btc_idr_ath = round(b_ath * u_rate, 0)
+        
+        return {
+            "ticker": ticker_symbol,
+            "price": btc_idr_price,
+            "ath": btc_idr_ath,
+            "pe": None,
+            "market_cap": btc_mkt.get("market_cap"),
+            "volume": btc_mkt.get("volume", 0),
+            "perf": dict(btc_mkt.get("perf", {})),
+            "yearly_returns": dict(btc_mkt.get("yearly_returns", {})),
             "_timestamp": now
         }
 
@@ -1094,6 +1143,23 @@ def calculate_dislocation_and_valuation(
     ticker: str = ""
 ) -> Dict[str, Any]:
     """Calculate ATH drawdown, adaptive Z1-Z4 Dislocation Zone, smart PE Valuation rating, and AI Dip Buying Signal."""
+    try:
+        pe = float(pe) if pe is not None and str(pe).strip() != '' and not math.isnan(float(pe)) else None
+    except Exception:
+        pe = None
+    try:
+        pe_great = float(pe_great) if pe_great is not None and str(pe_great).strip() != '' and not math.isnan(float(pe_great)) else None
+    except Exception:
+        pe_great = None
+    try:
+        pe_good = float(pe_good) if pe_good is not None and str(pe_good).strip() != '' and not math.isnan(float(pe_good)) else None
+    except Exception:
+        pe_good = None
+    try:
+        pe_exp = float(pe_exp) if pe_exp is not None and str(pe_exp).strip() != '' and not math.isnan(float(pe_exp)) else None
+    except Exception:
+        pe_exp = None
+
     prof = detect_volatility_profile(ticker)
     th = prof["thresholds"]
 
